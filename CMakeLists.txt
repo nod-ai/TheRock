@@ -17,19 +17,27 @@ string(TIMESTAMP ROCM_MAJOR_VERSION "%Y%m%d")
 set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
 set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
-set(LLVM_DIR "${ROCM_GIT_DIR}/llvm-project/llvm")
+set(LLVM_DIR "${ROCM_GIT_DIR}/llvm-project")
 message(STATUS "LLVM_DIR is set to: ${LLVM_DIR}")
 
 # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
 set(LLVM_ENABLE_PROJECTS "compiler-rt;lld;clang" CACHE STRING "Enable LLVM projects" FORCE)
 set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
+set(LLVM_EXTERNAL_DEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs" CACHE STRING "Device libs path" FORCE)
+set(LLVM_EXTERNAL_PROJECTS "device-libs" CACHE STRING "Enable device-libs" FORCE)
 
 # Build rocm-core
 add_subdirectory(${ROCM_GIT_DIR}/rocm-core ${CMAKE_BINARY_DIR}/rocm-core)
 
 # Now include LLVM's source directory
-add_subdirectory(${LLVM_DIR} ${CMAKE_BINARY_DIR}/llvm)
+add_subdirectory(${LLVM_DIR}/llvm ${CMAKE_BINARY_DIR}/llvm)
 
 # Build roct-thunk-interface
 add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-Thunk-Interface)
+
+# Build rocm-cmake
+add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
+
+# Build ROCm Device Libs. Starting ROCm 6.1 it is the LLVM Dir.
+#add_subdirectory(${LLVM_DIR}/amd/device-libs ${CMAKE_BINARY_DIR}/device-libs)
 
