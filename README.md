@@ -2,7 +2,7 @@
 The HIP Environment and ROCm Kit - A lightweight open source build system for HIP and ROCm
 
 # Checkout Sources
-Install the `repo` tool (`sudo apt install repo git-lfs`)
+Install the `repo` tool (`sudo apt install repo git-lfs libnuma-dev ninja-build cmake g++`)
 
 Checkout the latest development branch with
 ```
@@ -16,4 +16,11 @@ Checkout TheRock build tools
 ```
 cd ~/github/
 git clone https://github.com/nod-ai/TheRock
+```
+
+Build
+
+```
+cmake -B build -GNinja .
+cmake --build build
 ```
