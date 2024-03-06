@@ -38,6 +38,12 @@ add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-T
 # Build rocm-cmake
 add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
 
-# Build ROCm Device Libs. Starting ROCm 6.1 it is the LLVM Dir.
-#add_subdirectory(${LLVM_DIR}/amd/device-libs ${CMAKE_BINARY_DIR}/device-libs)
-
+# BUILD COMGR
+set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+include_directories(${LLVM_DIR}/llvm/include)
+include_directories(${CMAKE_BINARY_DIR}/llvm/include)
+#LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/LLVM/LIB)
+set(LLVM_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/llvm/include" CACHE STRING "Include LLVM Headers" FORCE)
+set(LLVM_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/llvm/lib" CACHE STRING "Include LLVM Libs" FORCE)
+#SET(LLVM_LINK_LLVM_DYLIB ON CACHE BOOL "ENABLE LLVM DYLIB" FORCE)
+add_subdirectory(${LLVM_DIR}/amd/comgr ${CMAKE_BINARY_DIR}/comgr)
