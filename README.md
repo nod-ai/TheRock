@@ -34,6 +34,8 @@ Checkout TheRock build tools
 cd ~/github/
 git clone https://github.com/nod-ai/TheRock
 ```
+Hacks
+Rename the `check` target here https://github.com/ROCm/rocm-cmake/blob/develop/CMakeLists.txt#L44 
 
 Build
 
