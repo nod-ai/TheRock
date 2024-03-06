@@ -20,12 +20,14 @@ repo sync -j16
 ```
 Use `-b roc-6.0.x` if you need a specific branch of ROCm sources.  
 
-Checkout out LLVM 6.1 sources
+Checkout out latest LLVM sources
 
 ```
-cd cd ~/github/rocm/llvm-project
+cd ~/github/rocm/llvm-project
+git fetch --all
 llvm-project$ git checkout rocm-org/amd-staging
 ```
+Latest `HIP` and `clr` should be on the `develop` branch
 
 Checkout TheRock build tools
 ```
