@@ -17,6 +17,20 @@ string(TIMESTAMP ROCM_MAJOR_VERSION "%Y%m%d")
 set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
 set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
+# Build rocm-core
+add_subdirectory(${ROCM_GIT_DIR}/rocm-core ${CMAKE_BINARY_DIR}/rocm-core)
+
+# Build roct-thunk-interface
+add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-Thunk-Interface)
+
+# Build rocm-cmake
+add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
+
+# Build LLVM and the comgr dependency.
+# Note that this mutates some global state of build options and we therefore do
+# it last.
+set(BUILD_SHARED_LIBS OFF)
+set(LLVM_BUILD_LLVM_DYLIB ON)
 set(LLVM_DIR "${ROCM_GIT_DIR}/llvm-project")
 message(STATUS "LLVM_DIR is set to: ${LLVM_DIR}")
 
@@ -26,17 +40,8 @@ set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
 set(LLVM_EXTERNAL_DEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs" CACHE STRING "Device libs path" FORCE)
 set(LLVM_EXTERNAL_PROJECTS "device-libs" CACHE STRING "Enable device-libs" FORCE)
 
-# Build rocm-core
-add_subdirectory(${ROCM_GIT_DIR}/rocm-core ${CMAKE_BINARY_DIR}/rocm-core)
-
 # Now include LLVM's source directory
 add_subdirectory(${LLVM_DIR}/llvm ${CMAKE_BINARY_DIR}/llvm)
-
-# Build roct-thunk-interface
-add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-Thunk-Interface)
-
-# Build rocm-cmake
-add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
 
 # BUILD COMGR
 set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
