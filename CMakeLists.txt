@@ -26,6 +26,9 @@ add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-T
 # Build rocm-cmake
 add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
 
+# Build rocm-cmake
+add_subdirectory(${ROCM_GIT_DIR}/ROCR-Runtime/src ${CMAKE_BINARY_DIR}/ROCR-Runtime)
+
 # Build LLVM and the comgr dependency.
 # Note that this mutates some global state of build options and we therefore do
 # it last.
@@ -47,8 +50,6 @@ add_subdirectory(${LLVM_DIR}/llvm ${CMAKE_BINARY_DIR}/llvm)
 set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
 include_directories(${LLVM_DIR}/llvm/include)
 include_directories(${CMAKE_BINARY_DIR}/llvm/include)
-#LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/LLVM/LIB)
 set(LLVM_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/llvm/include" CACHE STRING "Include LLVM Headers" FORCE)
 set(LLVM_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/llvm/lib" CACHE STRING "Include LLVM Libs" FORCE)
-#SET(LLVM_LINK_LLVM_DYLIB ON CACHE BOOL "ENABLE LLVM DYLIB" FORCE)
 add_subdirectory(${LLVM_DIR}/amd/comgr ${CMAKE_BINARY_DIR}/comgr)
