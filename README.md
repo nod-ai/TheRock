@@ -6,7 +6,9 @@ The HIP Environment and ROCm Kit - A lightweight open source build system for HI
 On Ubuntu
 
 ```
-sudo apt install repo git-lfs libnuma-dev ninja-build cmake g++ pkg-config libdrm-dev
+sudo apt install \
+  repo git-lfs libnuma-dev ninja-build cmake g++ pkg-config libdrm-dev \
+  libelf-dev
 ```
 
 # Checkout Sources
@@ -34,8 +36,14 @@ Checkout TheRock build tools
 cd ~/github/
 git clone https://github.com/nod-ai/TheRock
 ```
-Hacks
-Rename the `check` target here https://github.com/ROCm/rocm-cmake/blob/develop/CMakeLists.txt#L44 
+
+## Applying hacks/patches
+
+Here are current patch topics that we are maintaining.
+
+```
+./apply_patches.sh
+```
 
 Build
 

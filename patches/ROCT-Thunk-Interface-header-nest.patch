@@ -1,0 +1,170 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1263efb..4341ac9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -208,7 +208,7 @@ install ( TARGETS ${HSAKMT_TARGET}
+ #install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT devel )
+ 
+ # Install public headers
+-install ( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HSAKMT_TARGET}
++install ( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/${HSAKMT_TARGET} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HSAKMT_TARGET}
+   COMPONENT devel PATTERN "linux" EXCLUDE )
+ 
+ # Option to build header path migration helpers.
+diff --git a/include/hsakmt.h b/include/hsakmt/hsakmt.h
+similarity index 100%
+rename from include/hsakmt.h
+rename to include/hsakmt/hsakmt.h
+diff --git a/include/hsakmttypes.h b/include/hsakmt/hsakmttypes.h
+similarity index 100%
+rename from include/hsakmttypes.h
+rename to include/hsakmt/hsakmttypes.h
+diff --git a/include/linux/kfd_ioctl.h b/include/hsakmt/linux/kfd_ioctl.h
+similarity index 100%
+rename from include/linux/kfd_ioctl.h
+rename to include/hsakmt/linux/kfd_ioctl.h
+diff --git a/src/debug.c b/src/debug.c
+index d438a28..932e829 100644
+--- a/src/debug.c
++++ b/src/debug.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include "libhsakmt.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <errno.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/events.c b/src/events.c
+index 60e9f6d..a9e8ccc 100644
+--- a/src/events.c
++++ b/src/events.c
+@@ -31,7 +31,7 @@
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <stdio.h>
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include "fmm.h"
+ 
+ static HSAuint64 *events_page = NULL;
+diff --git a/src/fmm.c b/src/fmm.c
+index b87ee12..1db6984 100644
+--- a/src/fmm.c
++++ b/src/fmm.c
+@@ -25,7 +25,7 @@
+ 
+ #include "libhsakmt.h"
+ #include "fmm.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
+diff --git a/src/fmm.h b/src/fmm.h
+index b8c9b84..d414b91 100644
+--- a/src/fmm.h
++++ b/src/fmm.h
+@@ -26,7 +26,7 @@
+ #ifndef FMM_H_
+ #define FMM_H_
+ 
+-#include "hsakmttypes.h"
++#include "hsakmt/hsakmttypes.h"
+ #include <stddef.h>
+ 
+ typedef enum {
+diff --git a/src/libhsakmt.h b/src/libhsakmt.h
+index 2d8da2c..348cc46 100644
+--- a/src/libhsakmt.h
++++ b/src/libhsakmt.h
+@@ -26,8 +26,8 @@
+ #ifndef LIBHSAKMT_H_INCLUDED
+ #define LIBHSAKMT_H_INCLUDED
+ 
+-#include "linux/kfd_ioctl.h"
+-#include "hsakmt.h"
++#include "hsakmt/linux/kfd_ioctl.h"
++#include "hsakmt/hsakmt.h"
+ #include <pthread.h>
+ #include <stdint.h>
+ #include <limits.h>
+diff --git a/src/memory.c b/src/memory.c
+index ba33abd..5825db9 100644
+--- a/src/memory.c
++++ b/src/memory.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include "libhsakmt.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
+diff --git a/src/perfctr.c b/src/perfctr.c
+index ed051be..32df25a 100644
+--- a/src/perfctr.c
++++ b/src/perfctr.c
+@@ -30,7 +30,7 @@
+ #include <sys/syscall.h>
+ #include "libhsakmt.h"
+ #include "pmc_table.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <unistd.h>
+ #include <sys/ioctl.h>
+ #include <errno.h>
+diff --git a/src/queues.c b/src/queues.c
+index f72f6d6..2cee2db 100644
+--- a/src/queues.c
++++ b/src/queues.c
+@@ -25,7 +25,7 @@
+ 
+ #include "libhsakmt.h"
+ #include "fmm.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/mman.h>
+diff --git a/src/spm.c b/src/spm.c
+index c4eb33e..9571197 100644
+--- a/src/spm.c
++++ b/src/spm.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include "libhsakmt.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+diff --git a/src/time.c b/src/time.c
+index 96729a1..286350b 100644
+--- a/src/time.c
++++ b/src/time.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include "libhsakmt.h"
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ 
+ HSAKMT_STATUS HSAKMTAPI hsaKmtGetClockCounters(HSAuint32 NodeId,
+ 					       HsaClockCounters *Counters)
+diff --git a/src/version.c b/src/version.c
+index 34e51e0..c6e2e8d 100644
+--- a/src/version.c
++++ b/src/version.c
+@@ -26,7 +26,7 @@
+ #include "libhsakmt.h"
+ #include <stdlib.h>
+ #include <string.h>
+-#include "linux/kfd_ioctl.h"
++#include "hsakmt/linux/kfd_ioctl.h"
+ 
+ HsaVersionInfo kfd_version_info;
+ 
