@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(TheRock-rocm-core-libs)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-include(therock_project_setup)
+project(THEROCK-rocm-core-libs)
 
 # We build as much of the rocm core libraries together in one project as
 # possible. There are ordering dependencies here because later projects
@@ -20,5 +17,3 @@ add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
 # Build ROCR-Runtime
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory(${ROCM_GIT_DIR}/ROCR-Runtime/src ${CMAKE_BINARY_DIR}/ROCR-Runtime)
-
-# add_subdirectory(${ROCM_GIT_DIR}/clr)

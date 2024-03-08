@@ -1,13 +1,40 @@
 cmake_minimum_required(VERSION 3.18)
-project(TheRock)
+
+# Set the default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+project(THEROCK)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(therock_project_setup)
 include(ExternalProject)
+
+################################################################################
+# Options
+################################################################################
+
+set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
+message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
+
+# Initialize the install directory.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${THEROCK_SOURCE_DIR}/install" CACHE PATH "" FORCE)
+  message(STATUS "Defaulted CMAKE_INSTALL_PREFIX to ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+set(ROCM_MAJOR_VERSION 6)
+set(ROCM_MINOR_VERSION 0)
+set(ROCM_PATCH_VERSION 0)
+set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
+set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
 ################################################################################
 # Global setup
 ################################################################################
+
+# Some sub-projects need Python. Make sure it is found consistently.
+find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
 
 configure_file(HIP_VERSION.in ${ROCM_GIT_DIR}/HIP/VERSION)
 
@@ -23,6 +50,15 @@ endmacro()
 
 set(DEFAULT_CMAKE_ARGS
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  -DPython3_EXECUTABLE=${Python3_EXECUTABLE}
+  -DPython3_FIND_VIRTUALENV=${Python3_FIND_VIRTUALENV}
+  -DTHEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}
+  -DROCM_GIT_DIR=${ROCM_GIT_DIR}
+  -DROCM_MAJOR_VERSION=${ROCM_MAJOR_VERSION}
+  -DROCM_MINOR_VERSION=${ROCM_MINOR_VERSION}
+  -DROCM_PATCH_VERSION=${ROCM_PATCH_VERSION}
+  -DROCM_VERSION=${ROCM_VERSION}
+  "-DAMDGPU_TARGETS=${AMDGPU_TARGETS}"
   -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
   -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
    # On some distributions, this will install to lib64. We would like

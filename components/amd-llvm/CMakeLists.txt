@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(TheRock-AMD-LLVM)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-include(therock_project_setup)
+project(THEROCK-AMD-LLVM)
 
 # Build LLVM and the comgr dependency.
 # Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
