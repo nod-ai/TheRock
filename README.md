@@ -13,6 +13,8 @@ sudo apt install \
 
 # Checkout Sources
 
+We want ROCm sources checked out into the sources/ directory or if you check it out elsewhere create a symlink called `ln -s /path/to/rocm sources`
+
 ## Via script
 
 ```
@@ -43,6 +45,8 @@ Checkout TheRock build tools
 ```
 cd ~/github/
 git clone https://github.com/nod-ai/TheRock
+cd TheRock
+ln -s </path/to/rocm> sources
 ```
 
 ## Applying hacks/patches
