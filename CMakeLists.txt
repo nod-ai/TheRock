@@ -1,74 +1,130 @@
 cmake_minimum_required(VERSION 3.18)
 project(TheRock)
 
-# Set the default build type to Release if not specified
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-endif()
-
-# Check if ROCM_GIT_DIR was passed in from the command line
-if(NOT DEFINED ROCM_GIT_DIR)
-  # Define the default path to the adjacent sources if not provided
-  get_filename_component(ROCM_GIT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../rocm" ABSOLUTE)
-endif()
-message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
-
-string(TIMESTAMP ROCM_MAJOR_VERSION "%Y%m%d")
-set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
-set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(therock_project_setup)
+include(ExternalProject)
 
 ################################################################################
-# Core deps
+# Global setup
 ################################################################################
 
-# Build rocm-core
-add_subdirectory(${ROCM_GIT_DIR}/rocm-core ${CMAKE_BINARY_DIR}/rocm-core)
+configure_file(HIP_VERSION.in ${ROCM_GIT_DIR}/HIP/VERSION)
 
-# Build roct-thunk-interface
-add_subdirectory(${ROCM_GIT_DIR}/ROCT-Thunk-Interface ${CMAKE_BINARY_DIR}/ROCT-Thunk-Interface)
+################################################################################
+# External project setup
+################################################################################
 
-# Build rocm-cmake
-add_subdirectory(${ROCM_GIT_DIR}/rocm-cmake ${CMAKE_BINARY_DIR}/rocm-cmake)
+set(FIND_PACKAGE_OPTIONS)
+
+macro(add_package_path PackageName path)
+  list(APPEND FIND_PACKAGE_OPTIONS "-D${PackageName}_DIR=${path}")
+endmacro()
+
+set(DEFAULT_CMAKE_ARGS
+  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+  -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+   # On some distributions, this will install to lib64. We would like
+   # consistency in built packages, so hard-code it.
+   -DCMAKE_INSTALL_LIBDIR=lib
+   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${CMAKE_CURRENT_SOURCE_DIR}/cmake/external_project_include.cmake
+)
 
 ################################################################################
 # LLVM
 ################################################################################
 
-# Build LLVM and the comgr dependency.
-# Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
-# The flag you want for a shared library build is LLVM_BUILD_LLVM_DYLIB.
-set(BUILD_SHARED_LIBS OFF)
-set(LLVM_BUILD_LLVM_DYLIB ON)
-# TODO: Depending on what is getting released, it may or may not be paying
-# for itself to dynamically link.
-set(LLVM_LINK_LLVM_DYLIB OFF)
-set(LLVM_DIR "${ROCM_GIT_DIR}/llvm-project")
-message(STATUS "LLVM_DIR is set to: ${LLVM_DIR}")
+ExternalProject_Add(
+  amd-llvm
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/amd-llvm
+  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/amd-llvm"
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+    -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+    # We install llvm in its own sub-directory.
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/llvm
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  #BUILD_ALWAYS TRUE
+)
 
-# Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
-set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
-set(LLVM_ENABLE_PROJECTS "compiler-rt;lld;clang" CACHE STRING "Enable LLVM projects" FORCE)
-set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
-set(LLVM_EXTERNAL_DEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs" CACHE STRING "Device libs path" FORCE)
-set(LLVM_EXTERNAL_PROJECTS "amddevice-libs;amdcomgr" CACHE STRING "Enable extra projects" FORCE)
-set(LLVM_EXTERNAL_AMDCOMGR_SOURCE_DIR "${LLVM_DIR}/amd/comgr")
-set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs")
-
-# Now include LLVM's source directory
-add_subdirectory(${LLVM_DIR}/llvm ${CMAKE_BINARY_DIR}/llvm)
+add_package_path(amd_comgr "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/amd_comgr")
+add_package_path(Clang "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/clang")
+add_package_path(LLD "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/lld")
+add_package_path(LLVM "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/llvm")
+add_package_path(AMDDeviceLibs "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/AMDDeviceLibs")
 
 ################################################################################
-# Sub-projects that depend on built LLVM
+# rocm-core-libs
 ################################################################################
 
-# Build ROCR-Runtime
-# This requires clang and llvm-objcopy and target detects them as part of
-# configure. Note that we must explicitly have the code generation depend on
-# the device libs to get build ordering right. That list of deps comes from the
-# magic AMD_DEVICE_LIBS global property.
-set(BUILD_SHARED_LIBS ON)
-set(ROCR_RUNTIME_DEVICE_LIB_PATH "${CMAKE_BINARY_DIR}/llvm/tools/amddevice-libs/amdgcn/bitcode")
-get_property(ROCR_RUNTIME_DEVICE_LIB_DEPS GLOBAL PROPERTY AMD_DEVICE_LIBS)
+ExternalProject_Add(
+  rocm-core-libs
+  DEPENDS
+    amd-llvm
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-core-libs
+  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/rocm-core-libs"
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  #BUILD_ALWAYS TRUE
+)
 
-#set(ROCR_RUNTIME_DEVICE_LIB_DEPS "rocm-device-libs")
-add_subdirectory(${ROCM_GIT_DIR}/ROCR-Runtime/src ${CMAKE_BINARY_DIR}/ROCR-Runtime)
+add_package_path(hsakmt "${CMAKE_INSTALL_PREFIX}/lib/cmake/hsakmt")
+add_package_path(hsa-runtime64 "${CMAKE_INSTALL_PREFIX}/lib/cmake/hsa-runtime64")
+
+################################################################################
+# CLR
+################################################################################
+
+ExternalProject_Add(
+  clr
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/clr
+  SOURCE_DIR "${ROCM_GIT_DIR}/clr"
+  DEPENDS
+    amd-llvm
+    rocm-core-libs
+  BUILD_ALWAYS TRUE
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    -DHIP_PLATFORM=amd
+    "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
+    "-DHIP_CLANG_PATH=${CMAKE_INSTALL_PREFIX}/llvm/bin"
+    # Some junk needs this to be defined but is special cased so if empty,
+    # bad things don't happen.
+    "-DHIPCC_BIN_DIR="
+    "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
+    "-DROCM_PATH=${CMAKE_INSTALL_PREFIX}"
+    # What is this?
+    -DROCM_PATCH_VERSION=99999
+    -D__HIP_ENABLE_PCH=OFF
+    -DCLR_BUILD_HIP=ON
+    # Force CMake to reconfigure if key values change.
+    "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
+
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE    
+)
+
+add_package_path(HIP "${CMAKE_INSTALL_PREFIX}/lib/cmake/hip")
+add_package_path(hip-lang "${CMAKE_INSTALL_PREFIX}/lib/cmake/hip-lang")
+add_package_path(hiprtc "${CMAKE_INSTALL_PREFIX}/lib/cmake/hiprtc")
+
+################################################################################
+# CLR
+################################################################################
+
+add_executable(
+  dlopen-hip
+  tests/dlopen-hip.c
+)
+target_link_libraries(dlopen-hip dl)

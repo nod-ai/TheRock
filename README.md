@@ -13,6 +13,14 @@ sudo apt install \
 
 # Checkout Sources
 
+## Via script
+
+```
+./fetch_sources.sh
+```
+
+## Manually
+
 Checkout the latest development branch with
 ```
 mkdir ~/github/rocm
@@ -45,9 +53,27 @@ Here are current patch topics that we are maintaining.
 ./apply_patches.sh
 ```
 
-Build
+## Build
 
 ```
 cmake -B build -GNinja .
+# Or if iterating and wishing to cache:
+#   cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
 cmake --build build
+```
+
+## Sanity Checks
+
+The following does not replace a robust test suite. However, it will tell you
+whether the toolchain you have just crafted is viable at all (as in can load
+and enumerate devices).
+
+```
+./build/dlopen-hip install/lib/libamdhip64.so
+```
+
+HIP enabled IREE can also be used to enumerate:
+
+```
+LD_LIBRARY_PATH=install/lib iree-run-module --dump_devices=hip
 ```

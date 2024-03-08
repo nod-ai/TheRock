@@ -5,30 +5,30 @@ set -euxo pipefail
 
 this_dir="$(cd $(dirname $0) && pwd)"
 
-function checkout_head() {
+function stash_changes() {
   local repo_name="$1"
-  local head="$2"
-
-  echo "Checking out $head on $repo_name"
-  cd $this_dir/../rocm/$repo_name
+  cd $this_dir/sources/$repo_name
   git add -A
   git stash
-  git checkout "$head"
 }
 
 function apply_patch() {
   local repo_name="$1"
   local patch_file="$2"
-  cd $this_dir/../rocm/$repo_name
+  cd $this_dir/sources/$repo_name
   echo "Applying $patch_file to $repo_name"
   patch -p1 < $this_dir/patches/$patch_file
 }
 
-checkout_head rocm-cmake rocm-org/master
+stash_changes clr
+apply_patch clr clr-disable-hipconfig-check.patch
+
+stash_changes rocm-cmake
 apply_patch rocm-cmake rocm-cmake-nocheck.patch
 
-checkout_head ROCT-Thunk-Interface rocm-org/master
+stash_changes ROCT-Thunk-Interface
 apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-header-nest.patch
+apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-export-hsaKmtGetAMDGPUDeviceHandle.patch
 
-checkout_head ROCR-Runtime m/develop
+stash_changes ROCR-Runtime
 apply_patch ROCR-Runtime ROCR-Runtime-intree-build.patch
