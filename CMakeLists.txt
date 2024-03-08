@@ -38,10 +38,13 @@ find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
 
 configure_file(HIP_VERSION.in ${ROCM_GIT_DIR}/HIP/VERSION)
 
+set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
+
 ################################################################################
 # External project setup
 ################################################################################
 
+set(ALWAYS_BUILD_SUBPROJECTS OFF)
 set(FIND_PACKAGE_OPTIONS)
 
 macro(add_package_path PackageName path)
@@ -82,17 +85,17 @@ ExternalProject_Add(
     -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
     -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
     # We install llvm in its own sub-directory.
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/llvm
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/llvm
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
-  #BUILD_ALWAYS TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(amd_comgr "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/amd_comgr")
-add_package_path(Clang "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/clang")
-add_package_path(LLD "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/lld")
-add_package_path(LLVM "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/llvm")
-add_package_path(AMDDeviceLibs "${CMAKE_INSTALL_PREFIX}/llvm/lib/cmake/AMDDeviceLibs")
+add_package_path(amd_comgr "${STAGING_INSTALL_DIR}/llvm/lib/cmake/amd_comgr")
+add_package_path(Clang "${STAGING_INSTALL_DIR}/llvm/lib/cmake/clang")
+add_package_path(LLD "${STAGING_INSTALL_DIR}/llvm/lib/cmake/lld")
+add_package_path(LLVM "${STAGING_INSTALL_DIR}/llvm/lib/cmake/llvm")
+add_package_path(AMDDeviceLibs "${STAGING_INSTALL_DIR}/llvm/lib/cmake/AMDDeviceLibs")
 
 ################################################################################
 # rocm-core-libs
@@ -107,14 +110,14 @@ ExternalProject_Add(
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
-  #BUILD_ALWAYS TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(hsakmt "${CMAKE_INSTALL_PREFIX}/lib/cmake/hsakmt")
-add_package_path(hsa-runtime64 "${CMAKE_INSTALL_PREFIX}/lib/cmake/hsa-runtime64")
+add_package_path(hsakmt "${STAGING_INSTALL_DIR}/lib/cmake/hsakmt")
+add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/lib/cmake/hsa-runtime64")
 
 ################################################################################
 # CLR
@@ -131,15 +134,15 @@ ExternalProject_Add(
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
     -DHIP_PLATFORM=amd
     "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
-    "-DHIP_CLANG_PATH=${CMAKE_INSTALL_PREFIX}/llvm/bin"
+    "-DHIP_CLANG_PATH=${STAGING_INSTALL_DIR}/llvm/bin"
     # Some junk needs this to be defined but is special cased so if empty,
     # bad things don't happen.
     "-DHIPCC_BIN_DIR="
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
-    "-DROCM_PATH=${CMAKE_INSTALL_PREFIX}"
+    "-DROCM_PATH=${STAGING_INSTALL_DIR}"
     # What is this?
     -DROCM_PATCH_VERSION=99999
     -D__HIP_ENABLE_PCH=OFF
@@ -148,15 +151,41 @@ ExternalProject_Add(
     "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
 
   USES_TERMINAL_CONFIGURE TRUE
-  USES_TERMINAL_BUILD TRUE    
+  USES_TERMINAL_BUILD ${ALWAYS_BUILD_SUBPROJECTS}    
 )
 
-add_package_path(HIP "${CMAKE_INSTALL_PREFIX}/lib/cmake/hip")
-add_package_path(hip-lang "${CMAKE_INSTALL_PREFIX}/lib/cmake/hip-lang")
-add_package_path(hiprtc "${CMAKE_INSTALL_PREFIX}/lib/cmake/hiprtc")
+add_package_path(HIP "${STAGING_INSTALL_DIR}/lib/cmake/hip")
+add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
+add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
 
 ################################################################################
-# CLR
+# Packaging
+# Since our notion of packaging does not follow the actual sub-projects,
+# we repackage based on what they have installed.
+################################################################################
+
+install(
+  CODE "set(STAGING_INSTALL_DIR ${STAGING_INSTALL_DIR})"
+  ALL_COMPONENTS
+)
+
+install(
+  SCRIPT "cmake/custom_install_amdgpu_runtime.cmake" 
+  COMPONENT amdgpu-runtime
+)
+
+install(
+  SCRIPT "cmake/custom_install_amdgpu_runtime_dev.cmake"
+  COMPONENT amdgpu-runtime-dev
+)
+
+install(
+  SCRIPT "cmake/custom_install_amdgpu_compiler.cmake"
+  COMPONENT amdgpu-compiler
+)
+
+################################################################################
+# Testing
 ################################################################################
 
 add_executable(

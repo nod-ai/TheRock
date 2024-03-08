@@ -57,13 +57,16 @@ Here are current patch topics that we are maintaining.
 ./apply_patches.sh
 ```
 
-## Build
+# Build
 
 ```
 cmake -B build -GNinja .
 # Or if iterating and wishing to cache:
 #   cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
 cmake --build build
+cmake --install build --component amdgpu-runtime
+cmake --install build --component amdgpu-runtime-dev
+cmake --install build --component amdgpu-compiler
 ```
 
 ## Sanity Checks
@@ -80,4 +83,21 @@ HIP enabled IREE can also be used to enumerate:
 
 ```
 LD_LIBRARY_PATH=install/lib iree-run-module --dump_devices=hip
+```
+
+# Development Notes
+
+## Building in a manylinux container
+
+Our CI builds run in such a container, and it can be useful to run locally.
+
+```
+docker run --rm -it -v $PWD:$PWD --entrypoint /bin/bash ghcr.io/nod-ai/manylinux_ghr_x86_64:main
+```
+
+Packages needed:
+
+```
+yum install -y numactl-devel elfutils-libelf-devel vim-common
+pip install CppHeaderParser
 ```
