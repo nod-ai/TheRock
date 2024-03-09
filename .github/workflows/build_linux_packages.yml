@@ -76,6 +76,8 @@ jobs:
           cmake --build build
           (cd build && cpack -G TBZ2)
 
+          ls -lh build
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
