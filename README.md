@@ -64,9 +64,14 @@ cmake -B build -GNinja .
 # Or if iterating and wishing to cache:
 #   cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
 cmake --build build
+
+# Install per component.
 cmake --install build --component amdgpu-runtime
 cmake --install build --component amdgpu-runtime-dev
 cmake --install build --component amdgpu-compiler
+
+# Create archives.
+(cd build && cpack -G TBZ2)
 ```
 
 ## Sanity Checks

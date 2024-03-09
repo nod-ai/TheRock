@@ -159,6 +159,16 @@ add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
 add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
 
 ################################################################################
+# Testing
+################################################################################
+
+add_executable(
+  dlopen-hip
+  tests/dlopen-hip.c
+)
+target_link_libraries(dlopen-hip dl)
+
+################################################################################
 # Packaging
 # Since our notion of packaging does not follow the actual sub-projects,
 # we repackage based on what they have installed.
@@ -184,12 +194,29 @@ install(
   COMPONENT amdgpu-compiler
 )
 
-################################################################################
-# Testing
-################################################################################
+set(CPACK_PACKAGE_NAME "TheRock")
+set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Standalone amdgpu runtime packages")
+set(CPACK_PACKAGE_VERSION "${ROCM_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${ROCM_MAJOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_MINOR "${ROCM_MINOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "${ROCM_PATCH_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "TheRock-amdgpu")
 
-add_executable(
-  dlopen-hip
-  tests/dlopen-hip.c
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+
+include(CPack)
+
+cpack_add_component(
+  amdgpu-runtime 
+  DISPLAY_NAME "AMD GPU Runtime"
 )
-target_link_libraries(dlopen-hip dl)
+cpack_add_component(
+  amdgpu-runtime-dev 
+  DISPLAY_NAME "AMD GPU Development Components"
+  DEPENDS amdgpu-runtime
+)
+cpack_add_component(
+  amdgpu-compiler 
+  DISPLAY_NAME "AMD GPU Compiler"
+)
