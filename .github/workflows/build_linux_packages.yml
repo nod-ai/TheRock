@@ -20,13 +20,13 @@ jobs:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
 
-      # - name: Enable cache
-      #   uses: actions/cache/restore@v3
-      #   with:
-      #     path: ${{ env.CACHE_DIR }}
-      #     key: linux-build-manylinux-v1-${{ github.sha }}
-      #     restore-keys: |
-      #       linux-build-test-cpp-
+      - name: Enable cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+          restore-keys: |
+            linux-build-packages-manylinux-v1-
 
       - name: Install Deps
         run: |
@@ -43,14 +43,32 @@ jobs:
         run: |
           ./apply_patches.sh
 
-      # - name: Build packages
-      #   run: |
-      #     export cache_dir="${{ env.CACHE_DIR }}"
-      #     bash build_tools/ci/build_test_cpp.sh
+      - name: Build packages
+        run: |
+          export cache_dir="${{ env.CACHE_DIR }}"
+          bash build_tools/ci/build_test_cpp.sh
+          export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
+          export CCACHE_MAXSIZE="700M"
+          mkdir -p $CCACHE_DIR
 
-      # - name: Save cache
-      #   uses: actions/cache/save@v3
-      #   if: always()
-      #   with:
-      #     path: ${{ env.CACHE_DIR }}
-      #     key: linux-build-manylinux-v1-${{ github.sha }}
+          cmake -B build -GNinja . -DPACKAGE_VERSION="${{ github.event.inputs.package_version }}"
+          cmake --build build
+          (cd build && cpack -G TBZ2)
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: linux_x86_64_release_packages
+          path: |
+            build/TheRock-*-amdgpu-*.tar.bz2
+          if-no-files-found: warn
+
+      - name: Save cache
+        uses: actions/cache/save@v3
+        if: always()
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+
+
