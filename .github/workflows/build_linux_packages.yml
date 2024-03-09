@@ -84,7 +84,7 @@ jobs:
         with:
           name: linux_x86_64_release_packages
           path: |
-            build/*-*-amdgpu-*.tar.bz2
+            build/*-amdgpu-*.tar.bz2
           if-no-files-found: warn
 
       - name: Save cache
