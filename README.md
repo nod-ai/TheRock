@@ -103,6 +103,6 @@ docker run --rm -it -v $PWD:$PWD --entrypoint /bin/bash ghcr.io/nod-ai/manylinux
 Packages needed:
 
 ```
-yum install -y numactl-devel elfutils-libelf-devel vim-common
+yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs
 pip install CppHeaderParser
 ```
