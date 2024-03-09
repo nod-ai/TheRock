@@ -3,10 +3,6 @@ name: Build Linux Packages
 on:
   workflow_dispatch:
     inputs:
-      package_version:
-        description: "Version of the package"
-        required: true
-        default: "0.1a1"
 
 jobs:
   build_linux_packages:
@@ -44,14 +40,20 @@ jobs:
           ./apply_patches.sh
 
       - name: Build packages
+        id: build_packages
         run: |
-          export cache_dir="${{ env.CACHE_DIR }}"
-          bash build_tools/ci/build_test_cpp.sh
           export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
           export CCACHE_MAXSIZE="700M"
           mkdir -p $CCACHE_DIR
 
-          cmake -B build -GNinja . -DPACKAGE_VERSION="${{ github.event.inputs.package_version }}"
+          # Generate a new build id.
+          package_version="$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          echo "Building package ${package_version}"
+          echo "package_version=${package_version}" >> $GITHUB_OUTPUT
+
+          cmake -B build -GNinja . \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPACKAGE_VERSION="${package_version}"
           cmake --build build
           (cd build && cpack -G TBZ2)
 
