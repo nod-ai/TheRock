@@ -16,6 +16,10 @@ jobs:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
 
+      - name: Report Runner Health
+        run: |
+          df -h
+
       - name: Enable cache
         uses: actions/cache/restore@v3
         with:
@@ -44,7 +48,14 @@ jobs:
       # stamps or such things.
       - name: Trim Disk Space
         run: |
-          rm -Rf .repo
+          rm -Rf sources/.repo
+          # Delete some things that we aren't building.
+          # TODO: Would be better to have repo only fetch a smaller working set.
+          rm -Rf sources/MIVisionX  # ~200M
+          rm -Rf sources/MIOpen  # ~400M
+          rm -Rf sources/hipBLASLt  # ~750M
+          rm -Rf sources/rocBLAS  # ~900M
+          rm -Rf sources/ROCK-Kernel-Driver  # ~1.5G
           df -h
 
       - name: Build packages
