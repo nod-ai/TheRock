@@ -3,10 +3,6 @@ name: Build Linux Packages
 on:
   workflow_dispatch:
     inputs:
-      package_version:
-        description: "Version of the package"
-        required: true
-        default: "0.1a1"
 
 jobs:
   build_linux_packages:
@@ -20,13 +16,24 @@ jobs:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
 
-      # - name: Enable cache
-      #   uses: actions/cache/restore@v3
-      #   with:
-      #     path: ${{ env.CACHE_DIR }}
-      #     key: linux-build-manylinux-v1-${{ github.sha }}
-      #     restore-keys: |
-      #       linux-build-test-cpp-
+      - name: Report Runner Health
+        run: |
+          df -h
+
+      - name: Enable cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+          restore-keys: |
+            linux-build-packages-manylinux-v1-
+
+      - name: Install Deps
+        run: |
+          curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
+          chmod a+x /usr/local/bin/repo
+          yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs
+          pip install CppHeaderParser
 
       - name: Fetch sources
         run: |
@@ -36,14 +43,55 @@ jobs:
         run: |
           ./apply_patches.sh
 
-      # - name: Build packages
-      #   run: |
-      #     export cache_dir="${{ env.CACHE_DIR }}"
-      #     bash build_tools/ci/build_test_cpp.sh
+      # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
+      # So we delete the latter. This must be done after getting any git
+      # stamps or such things.
+      - name: Trim Disk Space
+        run: |
+          rm -Rf sources/.repo
+          # Delete some things that we aren't building.
+          # TODO: Would be better to have repo only fetch a smaller working set.
+          rm -Rf sources/MIVisionX  # ~200M
+          rm -Rf sources/MIOpen  # ~400M
+          rm -Rf sources/hipBLASLt  # ~750M
+          rm -Rf sources/rocBLAS  # ~900M
+          rm -Rf sources/ROCK-Kernel-Driver  # ~1.5G
+          df -h
 
-      # - name: Save cache
-      #   uses: actions/cache/save@v3
-      #   if: always()
-      #   with:
-      #     path: ${{ env.CACHE_DIR }}
-      #     key: linux-build-manylinux-v1-${{ github.sha }}
+      - name: Build packages
+        id: build_packages
+        run: |
+          export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
+          export CCACHE_MAXSIZE="700M"
+          mkdir -p $CCACHE_DIR
+
+          # Generate a new build id.
+          package_version="$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          echo "Building package ${package_version}"
+          echo "package_version=${package_version}" >> $GITHUB_OUTPUT
+
+          cmake -B build -GNinja . \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPACKAGE_VERSION="${package_version}"
+          cmake --build build
+          (cd build && cpack -G TBZ2)
+
+          ls -lh build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: linux_x86_64_release_packages
+          path: |
+            build/*-*-amdgpu-*.tar.bz2
+          if-no-files-found: warn
+
+      - name: Save cache
+        uses: actions/cache/save@v3
+        if: always()
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+
+
