@@ -14,6 +14,7 @@ include(ExternalProject)
 # Options
 ################################################################################
 
+set(PACKAGE_VERSION "git" CACHE PATH "Sets the package version string")
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
@@ -197,7 +198,7 @@ install(
 set(CPACK_PACKAGE_NAME "TheRock")
 set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Standalone amdgpu runtime packages")
-set(CPACK_PACKAGE_VERSION "${ROCM_VERSION}")
+set(CPACK_PACKAGE_VERSION "${PACKAGE_VERSION}")
 set(CPACK_PACKAGE_VERSION_MAJOR "${ROCM_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${ROCM_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${ROCM_PATCH_VERSION}")

@@ -29,6 +29,7 @@ apply_patch rocm-cmake rocm-cmake-nocheck.patch
 stash_changes ROCT-Thunk-Interface
 apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-header-nest.patch
 apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-export-hsaKmtGetAMDGPUDeviceHandle.patch
+apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-link-dl-libs.patch
 
 stash_changes ROCR-Runtime
 apply_patch ROCR-Runtime ROCR-Runtime-intree-build.patch
