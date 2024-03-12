@@ -3,6 +3,16 @@ name: Build Linux Packages
 on:
   workflow_dispatch:
     inputs:
+      package_version:
+        required: true
+        type: string
+        default: ADHOCBUILD
+
+  workflow_call:
+    inputs:
+      package_version:
+        required: true
+        type: string
 
 jobs:
   build_linux_packages:
@@ -69,7 +79,7 @@ jobs:
           mkdir -p $CCACHE_DIR
 
           # Generate a new build id.
-          package_version="$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          package_version="${{ inputs.package_version }}"
           echo "Building package ${package_version}"
           echo "package_version=${package_version}" >> $GITHUB_OUTPUT
 

@@ -36,7 +36,7 @@ jobs:
         id: compute_version
         run: |
           package_version="nightly-staging-$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
-          tag_name="nightly-staging-${package_version}"
+          tag_name="${package_version}"
           echo "package_version=${package_version}" >> $GITHUB_ENV
           echo "package_version=${package_version}" >> $GITHUB_OUTPUT
           echo "tag_name=${tag_name}" >> $GITHUB_ENV
@@ -59,3 +59,9 @@ jobs:
             Automatic nightly release of ROCM staging branches.
           draft: true
           prerelease: true
+
+  build_linux_packages:
+    name: Build Linux Packages
+    needs: setup
+    with:
+      package_version: ${{ jobs.setup.outputs.package_version }}
