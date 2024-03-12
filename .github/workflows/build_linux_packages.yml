@@ -3,6 +3,16 @@ name: Build Linux Packages
 on:
   workflow_dispatch:
     inputs:
+      package_version:
+        required: true
+        type: string
+        default: ADHOCBUILD
+
+  workflow_call:
+    inputs:
+      package_version:
+        required: true
+        type: string
 
 jobs:
   build_linux_packages:
@@ -12,13 +22,19 @@ jobs:
       fail-fast: true
     env:
       CACHE_DIR: ${{ github.workspace }}/.container-cache
+      CCACHE_DIR: "${{ github.workspace }}/.container-cache/ccache"
+      CCACHE_MAXSIZE: "700M"
     steps:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
 
       - name: Report Runner Health
         run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
           df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
+          cmake --version
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
@@ -60,23 +76,16 @@ jobs:
           rm -Rf sources/ROCK-Kernel-Driver  # ~1.5G
           df -h
 
-      - name: Build packages
-        id: build_packages
+      - name: Build Projects
         run: |
-          export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
-          export CCACHE_MAXSIZE="700M"
-          ccache -z
-          mkdir -p $CCACHE_DIR
-
           # Generate a new build id.
-          package_version="$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          package_version="${{ inputs.package_version }}"
           echo "Building package ${package_version}"
-          echo "package_version=${package_version}" >> $GITHUB_OUTPUT
 
           # Build.
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DPACKAGE_VERSION="${package_version}"
+            -DTHEROCK_PACKAGE_VERSION="${package_version}"
           cmake --build build
 
       - name: Build Tarballs
@@ -95,8 +104,7 @@ jobs:
         with:
           name: TheRock-runtime-linux-x86_64-tarball
           path: |
-            build/TheRock-*-Linux-amdgpu-runtime.tar.xz
-            build/TheRock-*-Linux-amdgpu-runtime-dev.tar.xz
+            build/TheRock-amdgpu-runtime-*.tar.xz
           if-no-files-found: warn
 
       - name: Upload compiler artifacts
@@ -105,7 +113,7 @@ jobs:
         with:
           name: TheRock-compiler-linux-x86_64-tarball
           path: |
-            build/TheRock-*-Linux-amdgpu-compiler.tar.xz
+            build/TheRock-amdgpu-compiler*.tar.xz
           if-no-files-found: warn
 
       - name: Save cache

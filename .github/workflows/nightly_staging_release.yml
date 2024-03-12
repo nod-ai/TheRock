@@ -1,6 +1,9 @@
 name: Nightly Staging Release
 
 on:
+  schedule:
+    - cron: "0 10 * * *"
+
   workflow_dispatch:
     inputs:
 
@@ -36,7 +39,7 @@ jobs:
         id: compute_version
         run: |
           package_version="nightly-staging-$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
-          tag_name="nightly-staging-${package_version}"
+          tag_name="${package_version}"
           echo "package_version=${package_version}" >> $GITHUB_ENV
           echo "package_version=${package_version}" >> $GITHUB_OUTPUT
           echo "tag_name=${tag_name}" >> $GITHUB_ENV
@@ -59,3 +62,52 @@ jobs:
             Automatic nightly release of ROCM staging branches.
           draft: true
           prerelease: true
+
+  build_linux_packages:
+    name: Build Linux Packages
+    needs: setup
+    uses: ./.github/workflows/build_linux_packages.yml
+    with:
+      package_version: ${{ needs.setup.outputs.package_version }}
+
+  upload_release_assets:
+    name: Upload Release Assets
+    needs: [setup, build_linux_packages]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: linux-x86_64
+          pattern: TheRock-*-linux-x86_64-*
+          merge-multiple: true
+      - name: List Files
+        run: |
+          ls -l linux-x86_64
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        run: |
+          gh release upload ${{ needs.setup.tag_name }} linux-x86_64/*
+
+  finalize_release:
+    name: Finalise Release
+    # TODO: Add testing jobs to needs
+    needs: [setup, upload_release_assets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Mark Release Non Draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        run: |
+          gh release edit ${{ needs.setup.tag_name }} --draft=false

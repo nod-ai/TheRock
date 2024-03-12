@@ -14,7 +14,7 @@ include(ExternalProject)
 # Options
 ################################################################################
 
-set(PACKAGE_VERSION "git" CACHE PATH "Sets the package version string")
+set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string")
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
@@ -195,30 +195,52 @@ install(
   COMPONENT amdgpu-compiler
 )
 
+string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}" _package_sysarch)
+message(STATUS "CPack: SYSARCH=${_package_sysarch}, PACKAGE_VERSION=${THEROCK_PACKAGE_VERSION}")
+
 set(CPACK_PACKAGE_NAME "TheRock")
 set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Standalone amdgpu runtime packages")
-set(CPACK_PACKAGE_VERSION "${PACKAGE_VERSION}")
+set(CPACK_PACKAGE_VERSION "${THEROCK_PACKAGE_VERSION}")
 set(CPACK_PACKAGE_VERSION_MAJOR "${ROCM_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${ROCM_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${ROCM_PATCH_VERSION}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "TheRock-amdgpu")
+set(CPACK_PACKAGE_FILE_NAME "")
+set(CPACK_COMPONENTS_ALL 
+  amdgpu-compiler
+  amdgpu-runtime
+  amdgpu-runtime-dev
+)
 
+# CPack Archive Generation Options.
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_ARCHIVE_THREADS 0)
+set(
+  CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME 
+  "TheRock-amdgpu-runtime-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
+set(
+  CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME 
+  "TheRock-amdgpu-runtime-dev-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
+set(
+  CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME 
+  "TheRock-amdgpu-compiler-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
 
 include(CPack)
 
 cpack_add_component(
   amdgpu-runtime 
   DISPLAY_NAME "AMD GPU Runtime"
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME}"
 )
 cpack_add_component(
   amdgpu-runtime-dev 
   DISPLAY_NAME "AMD GPU Development Components"
   DEPENDS amdgpu-runtime
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME}"
 )
 cpack_add_component(
   amdgpu-compiler 
   DISPLAY_NAME "AMD GPU Compiler"
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME}"
 )
