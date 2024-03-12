@@ -85,7 +85,7 @@ jobs:
           # Build.
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DPACKAGE_VERSION="${package_version}"
+            -DTHEROCK_PACKAGE_VERSION="${package_version}"
           #cmake --build build
 
       # - name: Build Tarballs
