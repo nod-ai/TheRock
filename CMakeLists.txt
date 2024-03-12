@@ -14,7 +14,7 @@ include(ExternalProject)
 # Options
 ################################################################################
 
-set(THEROCK_PACKAGE_VERSION "git" CACHE PATH "Sets the package version string")
+set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string")
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
