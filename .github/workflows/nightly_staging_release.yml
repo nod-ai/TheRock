@@ -63,5 +63,6 @@ jobs:
   build_linux_packages:
     name: Build Linux Packages
     needs: setup
+    uses: ./.github/workflows/build_linux_packages.yml
     with:
       package_version: ${{ jobs.setup.outputs.package_version }}
