@@ -34,6 +34,7 @@ jobs:
           df -h
           ccache -z
           mkdir -p $CCACHE_DIR
+          cmake --version
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
@@ -75,13 +76,11 @@ jobs:
           rm -Rf sources/ROCK-Kernel-Driver  # ~1.5G
           df -h
 
-      - name: Build packages
-        id: build_packages
+      - name: Build Projects
         run: |
           # Generate a new build id.
           package_version="${{ inputs.package_version }}"
           echo "Building package ${package_version}"
-          echo "package_version=${package_version}" >> $GITHUB_OUTPUT
 
           # Build.
           cmake -B build -GNinja . \

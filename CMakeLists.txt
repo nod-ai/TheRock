@@ -215,6 +215,7 @@ set(CPACK_COMPONENTS_ALL
 # CPack Archive Generation Options.
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_ARCHIVE_THREADS 0)
+set(CPACK_ARCHIVE_FILE_NAME "")
 set(
   CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME 
   "TheRock-amdgpu-runtime-${_package_sysarch}-${PACKAGE_VERSION}")
