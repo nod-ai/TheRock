@@ -65,4 +65,4 @@ jobs:
     needs: setup
     uses: ./.github/workflows/build_linux_packages.yml
     with:
-      package_version: ${{ jobs.setup.outputs.package_version }}
+      package_version: ${{ needs.setup.outputs.package_version }}
