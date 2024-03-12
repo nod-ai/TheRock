@@ -22,7 +22,7 @@ jobs:
       fail-fast: true
     env:
       CACHE_DIR: ${{ github.workspace }}/.container-cache
-      CCACHE_DIR: "${{ env.CACHE_DIR }}/ccache"
+      CCACHE_DIR: "${{ github.workspace }}/.container-cache/ccache"
       CCACHE_MAXSIZE: "700M"
     steps:
       - name: "Checking out repository"
