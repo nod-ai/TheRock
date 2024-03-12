@@ -86,11 +86,19 @@ jobs:
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DPACKAGE_VERSION="${package_version}"
-          cmake --build build
+          #cmake --build build
 
-      - name: Build Tarballs
+      # - name: Build Tarballs
+      #   run: |
+      #     (cd build && cpack -G TXZ)
+
+      - name: cat CPackConfig.cmake
         run: |
-          (cd build && cpack -G TXZ)
+          cat build/CPackConfig.cmake
+
+      - name: cat CPackSourceConfig.cmake
+        run: |
+          cat build/CPackSourceConfig.cmake
 
       - name: Report
         if: ${{ !cancelled() }}
