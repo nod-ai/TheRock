@@ -22,6 +22,7 @@ function apply_patch() {
 
 stash_changes clr
 apply_patch clr clr-disable-hipconfig-check.patch
+apply_patch clr clr-respect-no-versioned-soname.patch
 
 stash_changes rocm-cmake
 apply_patch rocm-cmake rocm-cmake-nocheck.patch

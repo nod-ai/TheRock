@@ -3,8 +3,7 @@ requires = [
     "setuptools>=62.3",
     "wheel",
     "cmake",
-    # TODO: Re-enable for real.
-    #"ninja",
+    "ninja",
     # ROCM requires this.
     "CppHeaderParser",
 ]
