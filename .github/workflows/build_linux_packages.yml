@@ -79,7 +79,8 @@ jobs:
             -DPACKAGE_VERSION="${package_version}"
           cmake --build build
 
-          # Package.
+      - name: Build Tarballs
+        run: |
           (cd build && cpack -G TXZ)
 
       - name: Report
