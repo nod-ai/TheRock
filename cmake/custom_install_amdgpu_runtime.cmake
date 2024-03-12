@@ -8,19 +8,38 @@ endif()
 
 set(LIB_PREFIX "lib")
 set(SO_SUFFIX ".so")
+set(LLVM_STAGING_DIR "${STAGING_INSTALL_DIR}/llvm")
+set(RUNTIME_DYNAMIC_STAGING_DIR "${STAGING_INSTALL_DIR}/runtime_dynamic")
 
-# Assemble file lists.
+################################################################################
+# Dynamic runtime files
+################################################################################
+
+# Assemble runtime dynamic file lists.
 file(
   GLOB_RECURSE LIB_FILES
   LIST_DIRECTORIES FALSE
-  RELATIVE ${STAGING_INSTALL_DIR}
-  ${STAGING_INSTALL_DIR}/lib/*${SO_SUFFIX}
-  ${STAGING_INSTALL_DIR}/lib/*${SO_SUFFIX}.*
+  RELATIVE ${RUNTIME_DYNAMIC_STAGING_DIR}
+  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/*${SO_SUFFIX}
+  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/*${SO_SUFFIX}.*
 )
 list(REMOVE_ITEM LIB_FILES
   # TODO: Get the hip team to not install old version downloaded files.
   lib/libamdhip64.so.5
 )
+
+foreach(_relpath ${LIB_FILES})
+  cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
+  file(
+    INSTALL ${RUNTIME_DYNAMIC_STAGING_DIR}/${_relpath} 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
+    USE_SOURCE_PERMISSIONS    
+  )
+endforeach()
+
+################################################################################
+# LLVM runtime files
+################################################################################
 
 # NOTE: This assumes that we have linked amd_comgr statically (i.e. not
 # depending on libLLVM). This makes sense for a standalone runtime. However,
@@ -30,19 +49,10 @@ list(REMOVE_ITEM LIB_FILES
 # setup to make this work.
 file(GLOB_RECURSE LLVM_LIB_FILES
   LIST_DIRECTORIES FALSE
-  RELATIVE ${STAGING_INSTALL_DIR}/llvm
-  ${STAGING_INSTALL_DIR}/llvm/lib/${LIB_PREFIX}amd_comgr${SO_SUFFIX}
-  ${STAGING_INSTALL_DIR}/llvm/lib/${LIB_PREFIX}amd_comgr${SO_SUFFIX}.*
+  RELATIVE ${LLVM_STAGING_DIR}
+  ${LLVM_STAGING_DIR}/lib/${LIB_PREFIX}amd_comgr${SO_SUFFIX}
+  ${LLVM_STAGING_DIR}/lib/${LIB_PREFIX}amd_comgr${SO_SUFFIX}.*
 )
-
-foreach(_relpath ${LIB_FILES})
-  cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
-  file(
-    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
-    USE_SOURCE_PERMISSIONS    
-  )
-endforeach()
 
 foreach(_relpath ${LLVM_LIB_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)

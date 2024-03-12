@@ -111,14 +111,14 @@ ExternalProject_Add(
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/runtime_dynamic
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(hsakmt "${STAGING_INSTALL_DIR}/lib/cmake/hsakmt")
-add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/lib/cmake/hsa-runtime64")
+add_package_path(hsakmt "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hsakmt")
+add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hsa-runtime64")
 
 ################################################################################
 # CLR
@@ -135,7 +135,7 @@ ExternalProject_Add(
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/runtime_dynamic
     -DHIP_PLATFORM=amd
     "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
     "-DHIP_CLANG_PATH=${STAGING_INSTALL_DIR}/llvm/bin"
@@ -143,7 +143,7 @@ ExternalProject_Add(
     # bad things don't happen.
     "-DHIPCC_BIN_DIR="
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
-    "-DROCM_PATH=${STAGING_INSTALL_DIR}"
+    "-DROCM_PATH=${STAGING_INSTALL_DIR}/runtime_dynamic"
     # What is this?
     -DROCM_PATCH_VERSION=99999
     -D__HIP_ENABLE_PCH=OFF
@@ -155,9 +155,9 @@ ExternalProject_Add(
   USES_TERMINAL_BUILD ${ALWAYS_BUILD_SUBPROJECTS}    
 )
 
-add_package_path(HIP "${STAGING_INSTALL_DIR}/lib/cmake/hip")
-add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
-add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
+add_package_path(HIP "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hip")
+add_package_path(hip-lang "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hip-lang")
+add_package_path(hiprtc "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hiprtc")
 
 ################################################################################
 # Testing
