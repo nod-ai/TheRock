@@ -1,0 +1,11 @@
+[build-system]
+requires = [
+    "setuptools>=62.3",
+    "wheel",
+    "cmake",
+    # TODO: Re-enable for real.
+    #"ninja",
+    # ROCM requires this.
+    "CppHeaderParser",
+]
+build-backend = "setuptools.build_meta"
