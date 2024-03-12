@@ -20,13 +20,15 @@ jobs:
         run: |
           df -h
 
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
       - name: Enable cache
         uses: actions/cache/restore@v3
         with:
           path: ${{ env.CACHE_DIR }}
-          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+          key: linux-build-packages-manylinux-v2-${{ github.sha }}
           restore-keys: |
-            linux-build-packages-manylinux-v1-
+            linux-build-packages-manylinux-v2-
 
       - name: Install Deps
         run: |
@@ -63,6 +65,7 @@ jobs:
         run: |
           export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
           export CCACHE_MAXSIZE="700M"
+          ccache -z
           mkdir -p $CCACHE_DIR
 
           # Generate a new build id.
@@ -70,21 +73,38 @@ jobs:
           echo "Building package ${package_version}"
           echo "package_version=${package_version}" >> $GITHUB_OUTPUT
 
+          # Build.
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DPACKAGE_VERSION="${package_version}"
           cmake --build build
-          (cd build && cpack -G TBZ2)
 
+          # Package.
+          (cd build && cpack -G TXZ)
+
+      - name: Report
+        if: ${{ !cancelled() }}
+        run: |
           ls -lh build
+          ccache -s
 
-      - name: Upload artifacts
+      - name: Upload runtime artifacts
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: linux_x86_64_release_packages
+          name: TheRock-runtime-linux-x86_64-tarball
           path: |
-            build/*-amdgpu-*.tar.bz2
+            build/TheRock-*-Linux-amdgpu-runtime.tar.xz
+            build/TheRock-*-Linux-amdgpu-runtime-dev.tar.xz
+          if-no-files-found: warn
+
+      - name: Upload compiler artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: TheRock-compiler-linux-x86_64-tarball
+          path: |
+            build/TheRock-*-Linux-amdgpu-compiler.tar.xz
           if-no-files-found: warn
 
       - name: Save cache
@@ -92,6 +112,6 @@ jobs:
         if: always()
         with:
           path: ${{ env.CACHE_DIR }}
-          key: linux-build-packages-manylinux-v1-${{ github.sha }}
+          key: linux-build-packages-manylinux-v2-${{ github.sha }}
 
 
