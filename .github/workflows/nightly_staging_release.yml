@@ -66,3 +66,35 @@ jobs:
     uses: ./.github/workflows/build_linux_packages.yml
     with:
       package_version: ${{ needs.setup.outputs.package_version }}
+
+  upload_release_assets:
+    name: Upload Release Assets
+    needs: [setup, build_linux_packages]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: linux-x86_64
+          pattern: TheRock-linux-x86_64-*
+          merge-multiple: true
+      - name: List Files
+        run: |
+          ls -l linux-x86_64
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        run: |
+          gh release upload ${{ needs.setup.tag_name }} linux-x86_64/*
+
+  finalize_release:
+    name: Finalise Release
+    # TODO: Add testing jobs to needs
+    needs: [setup, upload_release_assets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark Release Non Draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        run: |
+          gh release edit ${{ needs.setup.tag_name }} --draft=false

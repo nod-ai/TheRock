@@ -22,13 +22,18 @@ jobs:
       fail-fast: true
     env:
       CACHE_DIR: ${{ github.workspace }}/.container-cache
+      CCACHE_DIR: "${{ env.CACHE_DIR }}/ccache"
+      CCACHE_MAXSIZE: "700M"
     steps:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
 
       - name: Report Runner Health
         run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
           df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
@@ -73,11 +78,6 @@ jobs:
       - name: Build packages
         id: build_packages
         run: |
-          export CCACHE_DIR="${{ env.CACHE_DIR }}/ccache"
-          export CCACHE_MAXSIZE="700M"
-          ccache -z
-          mkdir -p $CCACHE_DIR
-
           # Generate a new build id.
           package_version="${{ inputs.package_version }}"
           echo "Building package ${package_version}"
@@ -103,7 +103,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-runtime-linux-x86_64-tarball
+          name: TheRock-linux-x86_64-runtime-tarball
           path: |
             build/TheRock-*-Linux-amdgpu-runtime.tar.xz
             build/TheRock-*-Linux-amdgpu-runtime-dev.tar.xz
@@ -113,7 +113,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-compiler-linux-x86_64-tarball
+          name: TheRock-linux-x86_64-compiler-tarball
           path: |
             build/TheRock-*-Linux-amdgpu-compiler.tar.xz
           if-no-files-found: warn
