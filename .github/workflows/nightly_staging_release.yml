@@ -1,0 +1,61 @@
+name: Nightly Staging Release
+
+on:
+  workflow_dispatch:
+    inputs:
+
+permissions:
+  contents: write
+
+concurrency:
+  # A PR number if a pull request and otherwise the commit hash. This cancels
+  # queued and in-progress runs for the same PR (presubmit) or commit
+  # (postsubmit). The workflow name is prepended to avoid conflicts between
+  # different workflows.
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      package_version: ${{ steps.compute_version.outputs.package_version }}
+      tag_name: ${{ steps.compute_version.outputs.tag_name }}
+      release_id: ${{ steps.create_release.outputs.id }}
+      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+      
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Compute version
+        id: compute_version
+        run: |
+          package_version="nightly-staging-$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          tag_name="nightly-staging-${package_version}"
+          echo "package_version=${package_version}" >> $GITHUB_ENV
+          echo "package_version=${package_version}" >> $GITHUB_OUTPUT
+          echo "tag_name=${tag_name}" >> $GITHUB_ENV
+          echo "tag_name=${tag_name}" >> $GITHUB_OUTPUT
+
+      - name: Updating release tag
+        run: |
+          git tag "${tag_name}"
+          git push origin "${tag_name}"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.tag_name }}
+          release_name: ${{ env.tag_name }}
+          body: |
+            Automatic nightly release of ROCM staging branches.
+          draft: true
+          prerelease: true
