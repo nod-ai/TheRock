@@ -103,19 +103,18 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-linux-x86_64-runtime-tarball
+          name: TheRock-runtime-linux-x86_64-tarball
           path: |
-            build/TheRock-*-Linux-amdgpu-runtime.tar.xz
-            build/TheRock-*-Linux-amdgpu-runtime-dev.tar.xz
+            build/TheRock-amdgpu-runtime-*.tar.xz
           if-no-files-found: warn
 
       - name: Upload compiler artifacts
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-linux-x86_64-compiler-tarball
+          name: TheRock-compiler-linux-x86_64-tarball
           path: |
-            build/TheRock-*-Linux-amdgpu-compiler.tar.xz
+            build/TheRock-amdgpu-compiler*.tar.xz
           if-no-files-found: warn
 
       - name: Save cache
