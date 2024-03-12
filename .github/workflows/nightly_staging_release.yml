@@ -93,7 +93,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
         run: |
-          gh release upload ${{ needs.setup.tag_name }} linux-x86_64/*
+          gh release upload ${{ needs.setup.outputs.tag_name }} linux-x86_64/*
 
   finalize_release:
     name: Finalise Release
@@ -110,4 +110,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
         run: |
-          gh release edit ${{ needs.setup.tag_name }} --draft=false
+          gh release edit ${{ needs.setup.outputs.tag_name }} --draft=false
