@@ -13,5 +13,5 @@ repo sync -j16 \
 
 # LLVM needs to be on the amd-staging branch.
 cd llvm-project
-git fetch rocm-org amd-staging
+git fetch rocm-org amd-staging --depth=1
 git checkout rocm-org/amd-staging

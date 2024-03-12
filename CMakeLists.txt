@@ -215,7 +215,6 @@ set(CPACK_COMPONENTS_ALL
 # CPack Archive Generation Options.
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_ARCHIVE_THREADS 0)
-set(CPACK_ARCHIVE_FILE_NAME "")
 set(
   CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME 
   "TheRock-amdgpu-runtime-${_package_sysarch}-${PACKAGE_VERSION}")
@@ -231,13 +230,16 @@ include(CPack)
 cpack_add_component(
   amdgpu-runtime 
   DISPLAY_NAME "AMD GPU Runtime"
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME}"
 )
 cpack_add_component(
   amdgpu-runtime-dev 
   DISPLAY_NAME "AMD GPU Development Components"
   DEPENDS amdgpu-runtime
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME}"
 )
 cpack_add_component(
   amdgpu-compiler 
   DISPLAY_NAME "AMD GPU Compiler"
+  ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME}"
 )
