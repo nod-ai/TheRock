@@ -1,6 +1,11 @@
 name: Build Linux Packages
 
 on:
+  pull_request:
+  push:
+    branches:
+      - main
+  
   workflow_dispatch:
     inputs:
       package_version:
