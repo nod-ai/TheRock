@@ -1,6 +1,9 @@
 name: Nightly Staging Release
 
 on:
+  schedule:
+    - cron: "0 10 * * *"
+
   workflow_dispatch:
     inputs:
 
@@ -72,6 +75,11 @@ jobs:
     needs: [setup, build_linux_packages]
     runs-on: ubuntu-latest
     steps:
+      - name: Checking out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -93,6 +101,11 @@ jobs:
     needs: [setup, upload_release_assets]
     runs-on: ubuntu-latest
     steps:
+      - name: Checking out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: Mark Release Non Draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
