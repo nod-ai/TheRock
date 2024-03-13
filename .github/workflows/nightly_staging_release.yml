@@ -79,7 +79,7 @@ jobs:
 
   upload_release_assets:
     name: Upload Release Assets
-    needs: [setup, build_linux_packages]
+    needs: [setup, build_linux_packages, build_python_packages]
     runs-on: ubuntu-latest
     steps:
       - name: Checking out repository
