@@ -81,14 +81,15 @@ jobs:
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          ls -lh build build/wheelhouse
           ccache -s
+          cd python_projects/runtime
+          ls -lh build build/wheelhouse
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-python-runtime-linux-x86_64
+          name: TheRock-runtime-linux-x86_64-python
           path: |
             python_projects/runtime/wheelhouse/*.whl
           if-no-files-found: warn

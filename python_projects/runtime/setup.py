@@ -106,8 +106,12 @@ CMAKE_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 # package so that source and built trees are distinct.
 CMakeBuilder().run()
 
+package_name = "TheRock-runtime"
+if SUFFIX:
+    package_name += f"-{SUFFIX}"
+
 setup(
-    name=f"TheRock-runtime{SUFFIX}",
+    name=package_name,
     version=f"{VERSION}",  # TODO: Get from env var.
     author="TheRock Authors",
     author_email="stdin@nod.ai",
