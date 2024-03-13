@@ -12,14 +12,19 @@ on:
   workflow_dispatch:
     inputs:
       package_version:
-        required: true
+        required: false
         type: string
-        default: ADHOCBUILD
+      package_suffix:
+        required: false
+        type: string
 
   workflow_call:
     inputs:
       package_version:
-        required: true
+        required: false
+        type: string
+      package_suffix:
+        required: false
         type: string
 
 jobs:
@@ -74,6 +79,7 @@ jobs:
         run: |
           cd python_projects/runtime
           export THEROCK_PY_VERSION="${{ inputs.package_version }}"
+          export THEROCK_PY_SUFFIX="${{ inputs.package_suffix }}"
           export CMAKE_C_COMPILER_LAUNCHER=ccache
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
           echo "Building package ${THEROCK_PY_VERSION}"
