@@ -111,6 +111,15 @@ jobs:
               linux-x86_64/* \
               python/*
 
+      # While most testing fans out to various runners, we do some light
+      # verification that the binaries work at all here. This could be done
+      # elsewhere but gives a light sanity check that things are well-formed.
+      - name: Verify Python Packages
+        run: |
+          cd python
+          pip install -f . TheRock-runtime
+          python -m therock.test_dist
+
   finalize_release:
     name: Finalise Release
     # TODO: Add testing jobs to needs
@@ -122,6 +131,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+
       - name: Mark Release Non Draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        

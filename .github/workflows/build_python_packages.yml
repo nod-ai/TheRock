@@ -92,7 +92,7 @@ jobs:
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
           echo "Building package ${THEROCK_PY_VERSION}"
           pip wheel -v .
-          auditwheel TheRock_runtime*.whl
+          auditwheel repair TheRock_runtime*.whl
 
       - name: Report
         if: ${{ !cancelled() }}
