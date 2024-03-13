@@ -50,9 +50,8 @@ def getenv_bool(key, default_value="OFF"):
     return value.upper() in ["ON", "1", "TRUE"]
 
 
-class CMakeBuildPy(_build_py):
+class CMakeBuilder:
     def run(self):
-        super().run()
         print("*****************************", file=sys.stderr)
         print("* Building base runtime     *", file=sys.stderr)
         print("*****************************", file=sys.stderr)
@@ -85,7 +84,6 @@ class CMakeBuildPy(_build_py):
         )
 
     def cmake_install(self):
-        (CMAKE_INSTALL_DIR / "__init__.py").touch()
         with open(CMAKE_INSTALL_DIR / "version.py", "wt") as f:
             f.write(f"py_version = '{VERSION}'\n")
             # TODO: Add ROCM version, etc
@@ -96,18 +94,17 @@ class CMakeBuildPy(_build_py):
             )
 
 
-class CustomBuild(_build):
-    def run(self):
-        self.run_command("build_py")
-        self.run_command("build_ext")
-        self.run_command("build_scripts")
-
-
 packages = find_packages(where=".")
 print("Found packages:", packages)
 
 CMAKE_INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+(CMAKE_INSTALL_DIR / "__init__.py").touch()
 CMAKE_BUILD_DIR.mkdir(parents=True, exist_ok=True)
+
+# In order to reliably package the built files, it is best to run the build
+# prior to setup. All built artifacts go into the _therock top level
+# package so that source and built trees are distinct.
+CMakeBuilder().run()
 
 setup(
     name=f"TheRock-runtime{SUFFIX}",
@@ -126,8 +123,6 @@ setup(
     url="https://github.com/nod-ai/TheRock",
     python_requires=">=3.6",
     cmdclass={
-        "build": CustomBuild,
-        "build_py": CMakeBuildPy,
         "bdist_wheel": bdist_wheel,
     },
     zip_safe=False,
