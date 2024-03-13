@@ -117,7 +117,7 @@ jobs:
       # elsewhere but gives a light sanity check that things are well-formed.
       - name: Verify Python Packages
         run: |
-          cd python
+          cd linux-x86_64
           pip install -f . TheRock-runtime
           python -m therock.test_dist
 
