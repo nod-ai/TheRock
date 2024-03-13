@@ -1,4 +1,4 @@
-name: Build Linux Packages
+name: Build Python Packages
 
 on:
   pull_request:
