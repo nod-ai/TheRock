@@ -1,0 +1,105 @@
+name: Build Linux Packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/build_python_packages.yml
+      - python_projects/*
+  
+  workflow_dispatch:
+    inputs:
+      package_version:
+        required: true
+        type: string
+        default: ADHOCBUILD
+
+  workflow_call:
+    inputs:
+      package_version:
+        required: true
+        type: string
+
+jobs:
+  build_python_packages:
+    name: Build Python Packages
+    runs-on: nod-ai-shared-cpubuilder-manylinux-x86_64
+    strategy:
+      fail-fast: true
+    env:
+      CACHE_DIR: ${{ github.workspace }}/.container-cache
+      CCACHE_DIR: "${{ github.workspace }}/.container-cache/ccache"
+      CCACHE_MAXSIZE: "700M"
+    steps:
+      - name: "Checking out repository"
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+
+      - name: Report Runner Health
+        run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
+          df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
+          cmake --version
+
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
+      - name: Enable cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: build-python-manylinux-v2-${{ github.sha }}
+          restore-keys: |
+            build-python-manylinux-v2-
+
+      - name: Install Deps
+        run: |
+          ./build_tools/ci_install_build_deps.sh
+
+      - name: Fetch sources
+        run: |
+          ./build_tools/fetch_sources.py
+
+      # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
+      # So we delete the latter. This must be done after getting any git
+      # stamps or such things.
+      - name: Trim Disk Space
+        run: |
+          rm -Rf sources/.repo
+          df -h
+
+      - name: Build Projects
+        run: |
+          cd python_projects/runtime
+          export THEROCK_PY_VERSION="${{ inputs.package_version }}"
+          export CMAKE_C_COMPILER_LAUNCHER=ccache
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          echo "Building package ${THEROCK_PY_VERSION}"
+          pip wheel -v .
+          auditwheel TheRock_runtime*.whl
+
+      - name: Report
+        if: ${{ !cancelled() }}
+        run: |
+          ls -lh build build/wheelhouse
+          ccache -s
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: TheRock-python-runtime-linux-x86_64-tarball
+          path: |
+            python_projects/runtime/wheelhouse/*.whl
+          if-no-files-found: warn
+
+      - name: Save cache
+        uses: actions/cache/save@v3
+        if: always()
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: build-python-manylinux-v2-${{ github.sha }}
+
+
