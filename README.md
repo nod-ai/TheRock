@@ -3,7 +3,12 @@ The HIP Environment and ROCm Kit - A lightweight open source build system for HI
 
 # Install Deps
 
-On Ubuntu
+## Common
+```
+pip install CppHeaderParser
+```
+
+## On Ubuntu
 
 ```
 sudo apt install \
