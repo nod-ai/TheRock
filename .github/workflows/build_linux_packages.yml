@@ -53,18 +53,11 @@ jobs:
 
       - name: Install Deps
         run: |
-          curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
-          chmod a+x /usr/local/bin/repo
-          yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs
-          pip install CppHeaderParser
+          ./build_tools/ci_install_build_deps.sh
 
       - name: Fetch sources
         run: |
-          ./fetch_sources.sh
-
-      - name: Apply patches
-        run: |
-          ./apply_patches.sh
+          ./build_tools/fetch_sources.py
 
       # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
       # So we delete the latter. This must be done after getting any git
@@ -72,13 +65,6 @@ jobs:
       - name: Trim Disk Space
         run: |
           rm -Rf sources/.repo
-          # Delete some things that we aren't building.
-          # TODO: Would be better to have repo only fetch a smaller working set.
-          rm -Rf sources/MIVisionX  # ~200M
-          rm -Rf sources/MIOpen  # ~400M
-          rm -Rf sources/hipBLASLt  # ~750M
-          rm -Rf sources/rocBLAS  # ~900M
-          rm -Rf sources/ROCK-Kernel-Driver  # ~1.5G
           df -h
 
       - name: Build Projects
