@@ -5,23 +5,31 @@ on:
   push:
     branches:
       - main
+    paths:
+      - .github/workflows/build_python_packages.yml
+      - python_projects/*
   
   workflow_dispatch:
     inputs:
       package_version:
-        required: true
+        required: false
         type: string
-        default: ADHOCBUILD
+      package_suffix:
+        required: false
+        type: string
 
   workflow_call:
     inputs:
       package_version:
-        required: true
+        required: false
+        type: string
+      package_suffix:
+        required: false
         type: string
 
 jobs:
-  build_linux_packages:
-    name: Build Linux Packages
+  build_python_packages:
+    name: Build Python Packages
     runs-on: nod-ai-shared-cpubuilder-manylinux-x86_64
     strategy:
       fail-fast: true
@@ -47,9 +55,9 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ${{ env.CACHE_DIR }}
-          key: linux-build-packages-manylinux-v2-${{ github.sha }}
+          key: build-python-manylinux-v2-${{ github.sha }}
           restore-keys: |
-            linux-build-packages-manylinux-v2-
+            build-python-manylinux-v2-
 
       - name: Install Deps
         run: |
@@ -69,42 +77,28 @@ jobs:
 
       - name: Build Projects
         run: |
-          # Generate a new build id.
-          package_version="${{ inputs.package_version }}"
-          echo "Building package ${package_version}"
-
-          # Build.
-          cmake -B build -GNinja . \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DTHEROCK_PACKAGE_VERSION="${package_version}"
-          cmake --build build
-
-      - name: Build Tarballs
-        run: |
-          (cd build && cpack -G TXZ)
+          cd python_projects/runtime
+          export THEROCK_PY_VERSION="${{ inputs.package_version }}"
+          export THEROCK_PY_SUFFIX="${{ inputs.package_suffix }}"
+          export CMAKE_C_COMPILER_LAUNCHER=ccache
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          echo "Building package ${THEROCK_PY_VERSION}"
+          pip wheel -v .
+          auditwheel TheRock_runtime*.whl
 
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          ls -lh build
+          ls -lh build build/wheelhouse
           ccache -s
 
-      - name: Upload runtime artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-runtime-linux-x86_64-tarball
+          name: TheRock-python-runtime-linux-x86_64
           path: |
-            build/TheRock-amdgpu-runtime-*.tar.xz
-          if-no-files-found: warn
-
-      - name: Upload compiler artifacts
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: TheRock-compiler-linux-x86_64-tarball
-          path: |
-            build/TheRock-amdgpu-compiler*.tar.xz
+            python_projects/runtime/wheelhouse/*.whl
           if-no-files-found: warn
 
       - name: Save cache
@@ -112,6 +106,6 @@ jobs:
         if: always()
         with:
           path: ${{ env.CACHE_DIR }}
-          key: linux-build-packages-manylinux-v2-${{ github.sha }}
+          key: build-python-manylinux-v2-${{ github.sha }}
 
 

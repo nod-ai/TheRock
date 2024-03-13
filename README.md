@@ -18,7 +18,7 @@ We want ROCm sources checked out into the sources/ directory or if you check it 
 ## Via script
 
 ```
-./fetch_sources.sh
+./build_tools/fetch_sources.sh
 ```
 
 ## Manually
@@ -47,14 +47,6 @@ cd ~/github/
 git clone https://github.com/nod-ai/TheRock
 cd TheRock
 ln -s </path/to/rocm> sources
-```
-
-## Applying hacks/patches
-
-Here are current patch topics that we are maintaining.
-
-```
-./apply_patches.sh
 ```
 
 # Build

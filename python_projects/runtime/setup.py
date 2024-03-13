@@ -25,7 +25,10 @@ except ImportError:
     bdist_wheel = None
 
 
-VERSION = os.getenv("THEROCK_PY_VERSION", "0.1.dev1")
+VERSION = os.getenv("THEROCK_PY_VERSION", None)
+SUFFIX = os.getenv("THEROCK_PY_SUFFIX", "")
+if not VERSION:
+    VERSION = "0.1.dev1"
 SETUPPY_DIR = Path(__file__).resolve().parent
 SOURCE_DIR = SETUPPY_DIR.parent.parent
 # Note that setuptools always builds into a "build" directory that
@@ -107,7 +110,7 @@ CMAKE_INSTALL_DIR.mkdir(parents=True, exist_ok=True)
 CMAKE_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 
 setup(
-    name=f"TheRock-runtime",
+    name=f"TheRock-runtime{SUFFIX}",
     version=f"{VERSION}",  # TODO: Get from env var.
     author="TheRock Authors",
     author_email="stdin@nod.ai",
