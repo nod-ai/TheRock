@@ -70,6 +70,13 @@ jobs:
     with:
       package_version: ${{ needs.setup.outputs.package_version }}
 
+  build_python_packages:
+    name: Build Python Packages
+    needs: setup
+    uses: ./.github/workflows/build_python_packages.yml
+    with:
+      package_version: ${{ needs.setup.outputs.package_version }}
+
   upload_release_assets:
     name: Upload Release Assets
     needs: [setup, build_linux_packages]
@@ -86,14 +93,23 @@ jobs:
           path: linux-x86_64
           pattern: TheRock-*-linux-x86_64-*
           merge-multiple: true
+      - name: Download Python Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: python
+          pattern: TheRock-python-runtime-linux-x86_64
+          merge-multiple: true
       - name: List Files
         run: |
           ls -l linux-x86_64
+          ls -l python
       - name: Upload Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
         run: |
-          gh release upload ${{ needs.setup.outputs.tag_name }} linux-x86_64/*
+          gh release upload ${{ needs.setup.outputs.tag_name }} \
+              linux-x86_64/* \
+              python/*
 
   finalize_release:
     name: Finalise Release

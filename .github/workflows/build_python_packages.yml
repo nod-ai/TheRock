@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: TheRock-python-runtime-linux-x86_64-tarball
+          name: TheRock-python-runtime-linux-x86_64
           path: |
             python_projects/runtime/wheelhouse/*.whl
           if-no-files-found: warn
