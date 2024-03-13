@@ -3,7 +3,7 @@ name: Build Python Packages
 on:
   workflow_dispatch:
     inputs:
-      package_version:
+      version_spec:
         required: false
         type: string
       package_suffix:
@@ -12,7 +12,7 @@ on:
 
   workflow_call:
     inputs:
-      package_version:
+      version_spec:
         required: false
         type: string
       package_suffix:
@@ -70,7 +70,7 @@ jobs:
       - name: Build Projects
         run: |
           cd python_projects/runtime
-          export THEROCK_PY_VERSION="${{ inputs.package_version }}"
+          export THEROCK_PY_VERSION="${{ inputs.version_spec }}"
           export THEROCK_PY_SUFFIX="${{ inputs.package_suffix }}"
           export CMAKE_C_COMPILER_LAUNCHER=ccache
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache

@@ -38,8 +38,14 @@ jobs:
       - name: Compute version
         id: compute_version
         run: |
-          package_version="nightly-staging-$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          version_spec="$(printf '%(%Y%m%d)T.${{ github.run_number }}')"
+          package_suffix="nightly-staging"
+          package_version="nightly-staging-${version_spec}"
           tag_name="${package_version}"
+          echo "version_spec=${version_spec}" >> $GITHUB_ENV
+          echo "version_spec=${version_spec}" >> $GITHUB_OUTPUT
+          echo "package_suffix=${package_suffix}" >> $GITHUB_ENV
+          echo "package_suffix=${package_suffix}" >> $GITHUB_OUTPUT
           echo "package_version=${package_version}" >> $GITHUB_ENV
           echo "package_version=${package_version}" >> $GITHUB_OUTPUT
           echo "tag_name=${tag_name}" >> $GITHUB_ENV
@@ -75,7 +81,8 @@ jobs:
     needs: setup
     uses: ./.github/workflows/build_python_packages.yml
     with:
-      package_version: ${{ needs.setup.outputs.package_version }}
+      version_spec: ${{ needs.setup.outputs.version_spec }}
+      package_suffix: ${{ needs.setup.outputs.package_suffix }}
 
   upload_release_assets:
     name: Upload Release Assets
