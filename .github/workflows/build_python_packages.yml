@@ -32,7 +32,7 @@ concurrency:
   # queued and in-progress runs for the same PR (presubmit) or commit
   # (postsubmit). The workflow name is prepended to avoid conflicts between
   # different workflows.
-  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}-${{ github.event.name }}
   cancel-in-progress: true
 
 jobs:
