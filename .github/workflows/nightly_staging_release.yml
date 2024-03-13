@@ -118,7 +118,7 @@ jobs:
       - name: Verify Python Packages
         run: |
           cd linux-x86_64
-          pip install -f . TheRock-runtime
+          pip install -f . TheRock-runtime-nightly-staging
           python -m therock.test_dist
 
   finalize_release:
