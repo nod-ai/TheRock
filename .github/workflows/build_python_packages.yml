@@ -1,14 +1,6 @@
 name: Build Python Packages
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/build_python_packages.yml
-      - python_projects/*
-  
   workflow_dispatch:
     inputs:
       package_version:
@@ -26,14 +18,6 @@ on:
       package_suffix:
         required: false
         type: string
-
-concurrency:
-  # A PR number if a pull request and otherwise the commit hash. This cancels
-  # queued and in-progress runs for the same PR (presubmit) or commit
-  # (postsubmit). The workflow name is prepended to avoid conflicts between
-  # different workflows.
-  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}-${{ github.event.name }}
-  cancel-in-progress: true
 
 jobs:
   build_python_packages:
