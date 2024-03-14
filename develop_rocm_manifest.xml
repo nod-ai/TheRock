@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <remote name="rocm-org" fetch="https://github.com/ROCm/" />
+    <default remote="rocm-org"
+     sync-c="true"
+     sync-j="4" />
+<!--list of projects for ROCm-->
+    <project name="ROCT-Thunk-Interface" revision="master" />
+    <project name="ROCR-Runtime" revision="master" />
+    <project name="amdsmi" revision="develop" />
+    <project name="rocm_smi_lib" revision="develop" />
+    <project name="rocm-core" revision="master" />
+    <project name="rocm-cmake" revision="develop" />
+    <project name="rocminfo" revision="master" />
+    <project name="rocm_bandwidth_test" revision="master" />
+    <project name="rocprofiler" revision="amd-master" />
+    <project name="roctracer" revision="amd-master" />
+    <project name="clang-ocl" revision="master" />
+    <project name="rdc" revision="develop" />
+<!--HIP Projects-->
+    <project name="HIP" revision="develop" />
+    <project name="hip-tests" revision="develop" />
+    <project name="HIP-Examples" revision="master" />
+    <project name="clr" revision="develop" />
+    <project name="hipother" revision="develop" />
+<!-- The following projects are all associated with the AMDGPU LLVM compiler -->
+    <project name="llvm-project" revision="amd-staging" />
+    <project name="HIPIFY" revision="amd-staging" />
+<!-- gdb projects -->
+    <project name="ROCgdb" revision="amd-master" />
+    <project name="ROCdbgapi" revision="amd-master" />
+    <project name="rocr_debug_agent" revision="master" />
+<!-- Projects for OpenMP-Extras -->
+    <project name="aomp" path="openmp-extras/aomp" revision="aomp-dev" />
+    <project name="aomp-extras" path="openmp-extras/aomp-extras" revision="aomp-dev" />
+    <project name="flang" path="openmp-extras/flang" revision="aomp-dev" />
+</manifest>

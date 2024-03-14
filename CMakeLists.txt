@@ -156,6 +156,7 @@ ExternalProject_Add(
     -DROCM_PATCH_VERSION=99999
     -D__HIP_ENABLE_PCH=OFF
     -DCLR_BUILD_HIP=ON
+    -DHIP_ENABLE_ROCPROFILER_REGISTER=OFF
     # Force CMake to reconfigure if key values change.
     "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
 
