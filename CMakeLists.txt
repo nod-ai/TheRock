@@ -28,7 +28,7 @@ set(ROCM_MAJOR_VERSION 6)
 set(ROCM_MINOR_VERSION 0)
 set(ROCM_PATCH_VERSION 0)
 set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
-set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
+set(GPU_TARGETS "all" CACHE STRING "AMDGPU Targets e.g. \"gfx90a gfx942 gfx1100\"")
 
 ################################################################################
 # Global setup
@@ -63,9 +63,15 @@ set(DEFAULT_CMAKE_ARGS
   -DROCM_MINOR_VERSION=${ROCM_MINOR_VERSION}
   -DROCM_PATCH_VERSION=${ROCM_PATCH_VERSION}
   -DROCM_VERSION=${ROCM_VERSION}
-  "-DAMDGPU_TARGETS=${AMDGPU_TARGETS}"
+  "-DGPU_TARGETS=${GPU_TARGETS}"
+  "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+  "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
   -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
   -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+  "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
+  "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
+  "-DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}"
+  "-DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}"
    # On some distributions, this will install to lib64. We would like
    # consistency in built packages, so hard-code it.
    -DCMAKE_INSTALL_LIBDIR=lib
@@ -77,7 +83,6 @@ endif()
 if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
-
 
 ################################################################################
 # LLVM
@@ -91,8 +96,6 @@ ExternalProject_Add(
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
-    -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
     # We install llvm in its own sub-directory.
     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/llvm
   USES_TERMINAL_CONFIGURE TRUE
@@ -145,7 +148,7 @@ ExternalProject_Add(
     ${FIND_PACKAGE_OPTIONS}
     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/runtime_dynamic
     -DHIP_PLATFORM=amd
-    "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
+    "-DOFFLOAD_ARCH_STR=${GPU_TARGETS}"
     "-DHIP_CLANG_PATH=${STAGING_INSTALL_DIR}/llvm/bin"
     # Some junk needs this to be defined but is special cased so if empty,
     # bad things don't happen.
@@ -161,7 +164,8 @@ ExternalProject_Add(
     "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
 
   USES_TERMINAL_CONFIGURE TRUE
-  USES_TERMINAL_BUILD ${ALWAYS_BUILD_SUBPROJECTS}    
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
 add_package_path(HIP "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hip")

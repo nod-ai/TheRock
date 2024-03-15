@@ -9,22 +9,27 @@ int main(int argc, char **argv) {
   char *lib_path = argv[1];
   int rc;
   void *h = dlopen(lib_path, RTLD_NOW);
+  if (!h) {
+    fprintf(stderr, "ERROR: Could not dlopen \"%s\"\n", lib_path);
+    return 1;
+  }
   int(*hipRuntimeGetVersion)(int*) = (int(*)(int*))dlsym(h, "hipRuntimeGetVersion");
   if (!hipRuntimeGetVersion) {
-    printf("ERROR: Could not resolve symbol hipRuntimeGetVersion\n");
+    fprintf(stderr, "ERROR: Could not resolve symbol hipRuntimeGetVersion\n");
+    dlclose(h);
     return 1;
   }
   int version = -1;
   rc = hipRuntimeGetVersion(&version);
   if (rc != 0) {
-    fprintf("ERROR: hipRuntimeGetVersion returned %d\n", rc);
+    fprintf(stderr, "ERROR: hipRuntimeGetVersion returned %d\n", rc);
     return 2;
   }
   printf("HIP VERSION: %x\n", version);
 
   rc = dlclose(h);
   if (rc != 0) {
-    printf("ERROR: dlclose(): %d\n", rc);
+    fprintf(stderr, "ERROR: dlclose(): %d\n", rc);
     return 3;
   }
   return 0;
