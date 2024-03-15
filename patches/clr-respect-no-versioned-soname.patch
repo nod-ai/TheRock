@@ -1,14 +1,11 @@
 diff --git a/hipamd/packaging/CMakeLists.txt b/hipamd/packaging/CMakeLists.txt
-index 73ae1baad..76e359e22 100644
+index 34d6a96..ebecc2c 100644
 --- a/hipamd/packaging/CMakeLists.txt
 +++ b/hipamd/packaging/CMakeLists.txt
-@@ -42,16 +42,23 @@ set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+@@ -42,15 +42,20 @@ set(CPACK_RPM_PACKAGE_LICENSE "MIT")
  #Begin binary files install
  if(HIP_PLATFORM STREQUAL "amd" )
     if(BUILD_SHARED_LIBS)
-+      # Note: This is not locally built. It is downloaded and included.
-       install(PROGRAMS ${PROJECT_BINARY_DIR}/libamdhip64.so.5 DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT binary OPTIONAL)
-+
 +      # Locally built libraries must respect the CMAKE_PLATFORM_NO_VERSIONED_SONAME
 +      # setting. Note that the better way to do this would be to install the
 +      # targets and let CMake distinghuish (would also work on Windows).

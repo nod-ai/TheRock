@@ -7,8 +7,10 @@ import argparse
 from pathlib import Path
 import subprocess
 import sys
+import shutil
 
-DEFAULT_SOURCES_DIR = Path(__file__).resolve().parent.parent / "sources"
+THE_ROCK_SRC_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_SOURCES_DIR = THE_ROCK_SRC_DIR / "sources"
 
 
 def exec(args: list[str], cwd: Path):
@@ -30,14 +32,11 @@ def run(args):
         ],
         cwd=repo_dir,
     )
-    exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
 
-    # Fixup LLVM.
-    if "llvm-project" in args.projects:
-        print("Fixing up llvm-project")
-        llvm_dir = repo_dir / "llvm-project"
-        exec(["git", "fetch", "rocm-org", "amd-staging", "--depth=1"], cwd=llvm_dir)
-        exec(["git", "checkout", "rocm-org/amd-staging"], cwd=llvm_dir)
+    # Copy the manifest and sync based on it.
+    manifest_path = THE_ROCK_SRC_DIR / "develop_rocm_manifest.xml"
+    shutil.copyfile(manifest_path, repo_dir / ".repo/manifests/develop_rocm_manifest.xml")
+    exec(["repo", "sync", "-m", "develop_rocm_manifest.xml", "-j16"] + args.projects, cwd=repo_dir)
 
     # Patches.
     if not args.no_patch:
