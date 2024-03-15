@@ -45,7 +45,7 @@ set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 # External project setup
 ################################################################################
 
-set(ALWAYS_BUILD_SUBPROJECTS OFF)
+set(ALWAYS_BUILD_SUBPROJECTS ON)
 set(FIND_PACKAGE_OPTIONS)
 
 macro(add_package_path PackageName path)
