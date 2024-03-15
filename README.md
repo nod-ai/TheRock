@@ -23,7 +23,7 @@ We want ROCm sources checked out into the sources/ directory or if you check it 
 ## Via script
 
 ```
-./build_tools/fetch_sources.sh
+python ./build_tools/fetch_sources.py
 ```
 
 ## Manually
