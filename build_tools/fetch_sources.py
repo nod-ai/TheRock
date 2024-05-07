@@ -24,20 +24,15 @@ def run(args):
         [
             "repo",
             "init",
-            "-u",
-            "https://github.com/RadeonOpenCompute/ROCm.git",
+            "--manifest-url",
+            args.manifest_url,
             "--depth=1",
+            "--manifest-branch",
+            args.manifest_branch
         ],
         cwd=repo_dir,
     )
     exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
-
-    # Fixup LLVM.
-    if "llvm-project" in args.projects:
-        print("Fixing up llvm-project")
-        llvm_dir = repo_dir / "llvm-project"
-        exec(["git", "fetch", "rocm-org", "amd-staging", "--depth=1"], cwd=llvm_dir)
-        exec(["git", "checkout", "rocm-org/amd-staging"], cwd=llvm_dir)
 
     # Patches.
     if not args.no_patch:
@@ -56,7 +51,12 @@ def main(argv):
         "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
     )
     parser.add_argument(
-        "--branch", type=str, help="Branch to sync", default="amd-staging"
+        "--manifest-url", type=str, help="Manifest repository location of ROCm",
+        default="https://github.com/nod-ai/ROCm.git"
+    )
+    parser.add_argument(
+        "--manifest-branch", type=str, help="Branch to sync with repo tool",
+        default="the-rock-main"
     )
     parser.add_argument("--no-patch", action="store_true", help="Disable patching")
     parser.add_argument(
@@ -66,9 +66,13 @@ def main(argv):
         default=[
             "clr",
             "HIP",
+            "HIPIFY",
             "llvm-project",
+            "rccl",
+            "rocm_smi_lib",
             "rocm-cmake",
             "rocm-core",
+            "rocminfo",
             "ROCR-Runtime",
             "ROCT-Thunk-Interface",
         ],

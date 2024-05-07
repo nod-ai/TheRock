@@ -38,3 +38,9 @@ apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-link-dl-libs.patch
 
 stash_changes ROCR-Runtime
 apply_patch ROCR-Runtime ROCR-Runtime-intree-build.patch
+
+stash_changes HIPIFY
+apply_patch HIPIFY hipify-install-headers-in-include-hipify.patch
+
+stash_changes rccl
+apply_patch rccl rccl-overwrite-generated-files.patch
