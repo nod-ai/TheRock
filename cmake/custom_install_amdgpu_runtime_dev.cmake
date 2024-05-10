@@ -6,31 +6,28 @@ if(NOT IS_DIRECTORY "${STAGING_INSTALL_DIR}")
   message(FATAL_ERROR "Did not get STAGING_INSTALL_DIR from super-project")
 endif()
 
-set(LIB_PREFIX "lib")
-set(SO_SUFFIX ".so")
-
-set(RUNTIME_DYNAMIC_STAGING_DIR "${STAGING_INSTALL_DIR}/runtime_dynamic")
-
-file(INSTALL ${RUNTIME_DYNAMIC_STAGING_DIR}/include DESTINATION ${CMAKE_INSTALL_PREFIX})
+file(INSTALL ${STAGING_INSTALL_DIR}/include DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # # Assemble file lists.
 file(
   GLOB_RECURSE DEV_FILES
   LIST_DIRECTORIES FALSE
-  RELATIVE RUNTIME_DYNAMIC_STAGING_DIR
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/bin/hipcc_cmake_linker_helper
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/bin/hipdemangleatp
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/bin/roc-obj
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/bin/roc-obj-extract
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/bin/roc-obj-ls
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/cmake/*
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/pkgconfig/*
+  RELATIVE ${STAGING_INSTALL_DIR}
+  ${STAGING_INSTALL_DIR}/bin/hipcc_cmake_linker_helper
+  ${STAGING_INSTALL_DIR}/bin/hipdemangleatp
+  ${STAGING_INSTALL_DIR}/bin/roc-obj
+  ${STAGING_INSTALL_DIR}/bin/roc-obj-extract
+  ${STAGING_INSTALL_DIR}/bin/roc-obj-ls
+  ${STAGING_INSTALL_DIR}/bin/rocm-smi
+  ${STAGING_INSTALL_DIR}/lib/cmake/*
+  ${STAGING_INSTALL_DIR}/lib/pkgconfig/*
+  ${STAGING_INSTALL_DIR}/libexec/*
 )
 
 foreach(_relpath ${DEV_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
   file(
-    INSTALL ${RUNTIME_DYNAMIC_STAGING_DIR}/${_relpath} 
+    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
     USE_SOURCE_PERMISSIONS
   )

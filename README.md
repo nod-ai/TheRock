@@ -13,7 +13,7 @@ pip install CppHeaderParser
 ```
 sudo apt install \
   repo git-lfs libnuma-dev ninja-build cmake g++ pkg-config libdrm-dev \
-  libelf-dev
+  libelf-dev xxd libgl1-mesa-dev
 ```
 
 # Checkout Sources

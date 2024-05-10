@@ -25,10 +25,12 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 set(ROCM_MAJOR_VERSION 6)
-set(ROCM_MINOR_VERSION 0)
+set(ROCM_MINOR_VERSION 1)
 set(ROCM_PATCH_VERSION 0)
-set(ROCM_VERSION "${ROCM_MAJOR_VERSION}.0.0" CACHE STRING "ROCM version")
-set(AMDGPU_TARGETS "gfx90a gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
+set(ROCM_VERSION
+  "${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
+  CACHE STRING "ROCM version")
+set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
 ################################################################################
 # Global setup
@@ -45,7 +47,9 @@ set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 # External project setup
 ################################################################################
 
-set(ALWAYS_BUILD_SUBPROJECTS OFF)
+option(ALWAYS_BUILD_SUBPROJECTS
+  "Don't let the brittle CMake external project machinery decide if a sub-project needs to rebuild. Always run the underlying build."
+  ON)
 set(FIND_PACKAGE_OPTIONS)
 
 macro(add_package_path PackageName path)
@@ -63,6 +67,8 @@ set(DEFAULT_CMAKE_ARGS
   -DROCM_MINOR_VERSION=${ROCM_MINOR_VERSION}
   -DROCM_PATCH_VERSION=${ROCM_PATCH_VERSION}
   -DROCM_VERSION=${ROCM_VERSION}
+  "-DROCM_PATH=${STAGING_INSTALL_DIR}"
+  "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
   "-DAMDGPU_TARGETS=${AMDGPU_TARGETS}"
   -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
   -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
@@ -78,6 +84,24 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+################################################################################
+# rocm-cmake
+################################################################################
+
+ExternalProject_Add(
+  rocm-cmake
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-cmake
+  SOURCE_DIR "${ROCM_GIT_DIR}/rocm-cmake"
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
+
+add_package_path(ROCM "${STAGING_INSTALL_DIR}/share/rocm/cmake")
 
 ################################################################################
 # LLVM
@@ -87,12 +111,12 @@ ExternalProject_Add(
   amd-llvm
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/amd-llvm
   SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/amd-llvm"
+  DEPENDS
+    rocm-cmake
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
-    -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
     # We install llvm in its own sub-directory.
     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/llvm
   USES_TERMINAL_CONFIGURE TRUE
@@ -114,19 +138,63 @@ ExternalProject_Add(
   rocm-core-libs
   DEPENDS
     amd-llvm
+    rocm-cmake
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-core-libs
   SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/rocm-core-libs"
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/runtime_dynamic
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(hsakmt "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hsakmt")
-add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hsa-runtime64")
+add_package_path(hsakmt "${STAGING_INSTALL_DIR}/lib/cmake/hsakmt")
+add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/lib/cmake/hsa-runtime64")
+
+################################################################################
+# rocminfo
+################################################################################
+
+ExternalProject_Add(
+  rocminfo
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocminfo
+  SOURCE_DIR "${ROCM_GIT_DIR}/rocminfo"
+  DEPENDS
+    rocm-core-libs
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
+
+################################################################################
+# HIPCC
+################################################################################
+
+ExternalProject_Add(
+  hipcc
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/hipcc
+  # Can't build directly as part of LLVM, because we want hipcc staged under
+  # bin, not llvm/bin.
+  SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/hipcc"
+  DEPENDS
+    amd-llvm # runtime
+    rocminfo # runtime
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    # We install llvm in its own sub-directory.
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
 
 ################################################################################
 # CLR
@@ -138,20 +206,19 @@ ExternalProject_Add(
   SOURCE_DIR "${ROCM_GIT_DIR}/clr"
   DEPENDS
     amd-llvm
+    hipcc
     rocm-core-libs
-  BUILD_ALWAYS TRUE
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/runtime_dynamic
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
     -DHIP_PLATFORM=amd
     "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
     "-DHIP_CLANG_PATH=${STAGING_INSTALL_DIR}/llvm/bin"
     # Some junk needs this to be defined but is special cased so if empty,
     # bad things don't happen.
-    "-DHIPCC_BIN_DIR="
+    "-DHIPCC_BIN_DIR=${STAGING_INSTALL_DIR}/bin"
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
-    "-DROCM_PATH=${STAGING_INSTALL_DIR}/runtime_dynamic"
     # What is this?
     -DROCM_PATCH_VERSION=99999
     -D__HIP_ENABLE_PCH=OFF
@@ -160,12 +227,78 @@ ExternalProject_Add(
     "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
 
   USES_TERMINAL_CONFIGURE TRUE
-  USES_TERMINAL_BUILD ${ALWAYS_BUILD_SUBPROJECTS}    
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(HIP "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hip")
-add_package_path(hip-lang "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hip-lang")
-add_package_path(hiprtc "${STAGING_INSTALL_DIR}/runtime_dynamic/lib/cmake/hiprtc")
+add_package_path(HIP "${STAGING_INSTALL_DIR}/lib/cmake/hip")
+add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
+add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
+
+################################################################################
+# ROCm SMI
+################################################################################
+
+ExternalProject_Add(
+  rocm_smi_lib
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi_lib
+  SOURCE_DIR "${ROCM_GIT_DIR}/rocm_smi_lib"
+  DEPENDS
+    rocm-core-libs
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
+
+add_package_path(rocm-smi "${STAGING_INSTALL_DIR}/lib/cmake/rocm-smi")
+
+################################################################################
+# HIPIFY
+################################################################################
+
+ExternalProject_Add(
+  hipify
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/hipify
+  SOURCE_DIR "${ROCM_GIT_DIR}/HIPIFY"
+  DEPENDS
+    amd-llvm
+    clr
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
+
+################################################################################
+# RCCL
+################################################################################
+
+ExternalProject_Add(
+  rccl
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rccl
+  SOURCE_DIR "${ROCM_GIT_DIR}/rccl"
+  DEPENDS
+    clr
+    hipcc
+    hipify
+    rocminfo
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/bin/hipcc
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
 
 ################################################################################
 # Testing
@@ -189,7 +322,7 @@ install(
 )
 
 install(
-  SCRIPT "cmake/custom_install_amdgpu_runtime.cmake" 
+  SCRIPT "cmake/custom_install_amdgpu_runtime.cmake"
   COMPONENT amdgpu-runtime
 )
 
@@ -215,7 +348,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${ROCM_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${ROCM_PATCH_VERSION}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "TheRock-amdgpu")
 set(CPACK_PACKAGE_FILE_NAME "")
-set(CPACK_COMPONENTS_ALL 
+set(CPACK_COMPONENTS_ALL
   amdgpu-compiler
   amdgpu-runtime
   amdgpu-runtime-dev
@@ -225,30 +358,30 @@ set(CPACK_COMPONENTS_ALL
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_ARCHIVE_THREADS 0)
 set(
-  CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME 
+  CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME
   "TheRock-amdgpu-runtime-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
 set(
-  CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME 
+  CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME
   "TheRock-amdgpu-runtime-dev-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
 set(
-  CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME 
+  CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME
   "TheRock-amdgpu-compiler-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
 
 include(CPack)
 
 cpack_add_component(
-  amdgpu-runtime 
+  amdgpu-runtime
   DISPLAY_NAME "AMD GPU Runtime"
   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME}"
 )
 cpack_add_component(
-  amdgpu-runtime-dev 
+  amdgpu-runtime-dev
   DISPLAY_NAME "AMD GPU Development Components"
   DEPENDS amdgpu-runtime
   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME}"
 )
 cpack_add_component(
-  amdgpu-compiler 
+  amdgpu-compiler
   DISPLAY_NAME "AMD GPU Compiler"
   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME}"
 )

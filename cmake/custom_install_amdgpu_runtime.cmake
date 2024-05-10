@@ -9,7 +9,6 @@ endif()
 set(LIB_PREFIX "lib")
 set(SO_SUFFIX ".so")
 set(LLVM_STAGING_DIR "${STAGING_INSTALL_DIR}/llvm")
-set(RUNTIME_DYNAMIC_STAGING_DIR "${STAGING_INSTALL_DIR}/runtime_dynamic")
 
 ################################################################################
 # Dynamic runtime files
@@ -19,9 +18,9 @@ set(RUNTIME_DYNAMIC_STAGING_DIR "${STAGING_INSTALL_DIR}/runtime_dynamic")
 file(
   GLOB_RECURSE LIB_FILES
   LIST_DIRECTORIES FALSE
-  RELATIVE ${RUNTIME_DYNAMIC_STAGING_DIR}
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/*${SO_SUFFIX}
-  ${RUNTIME_DYNAMIC_STAGING_DIR}/lib/*${SO_SUFFIX}.*
+  RELATIVE ${STAGING_INSTALL_DIR}
+  ${STAGING_INSTALL_DIR}/lib/*${SO_SUFFIX}
+  ${STAGING_INSTALL_DIR}/lib/*${SO_SUFFIX}.*
 )
 list(REMOVE_ITEM LIB_FILES
   # TODO: Get the hip team to not install old version downloaded files.
@@ -31,7 +30,7 @@ list(REMOVE_ITEM LIB_FILES
 foreach(_relpath ${LIB_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
   file(
-    INSTALL ${RUNTIME_DYNAMIC_STAGING_DIR}/${_relpath} 
+    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
     USE_SOURCE_PERMISSIONS    
   )

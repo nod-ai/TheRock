@@ -1,0 +1,20 @@
+diff --git a/cmake/Generator.cmake b/cmake/Generator.cmake
+index a38cd80..12cf711 100644
+--- a/cmake/Generator.cmake
++++ b/cmake/Generator.cmake
+@@ -149,6 +149,7 @@ function(gen_device_table)
+   ## Generate device table and list all the functions
+   set(DEVICE_TABLE_H_FILE "${HIPIFY_DIR}/src/collectives/device/device_table.h")
+   message(STATUS "Generating ${DEVICE_TABLE_H_FILE}")
++  file(REMOVE "${DEVICE_TABLE_H_FILE}")
+ 
+   ## Declaration of device functions
+   foreach(func IN LISTS FUNC_LIST)
+@@ -218,6 +219,7 @@ function(gen_device_table)
+   if(COLLTRACE)
+     set(DEVICE_TABLE_FILE "${HIPIFY_DIR}/src/collectives/device/device_table.cpp")
+     message(STATUS "Generating ${DEVICE_TABLE_FILE}")
++    file(REMOVE "${DEVICE_TABLE_FILE}")
+ 
+     file(APPEND ${DEVICE_TABLE_FILE} "#include \"collectives.h\"\n#include \"devcomm.h\"\n\n const char* funcNames[FUNC_INDEX_TOTAL] = {\n")
+     foreach(func ${FUNC_LIST})

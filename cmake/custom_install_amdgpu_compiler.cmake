@@ -16,18 +16,24 @@ set(SO_SUFFIX ".so")
 file(
   GLOB_RECURSE LLVM_FILES
   LIST_DIRECTORIES FALSE
-  RELATIVE ${STAGING_INSTALL_DIR}/llvm
+  # hipcc expects clang++ to be under llvm/bin, not just bin.
+  # but hipcc is in bin.
+  RELATIVE ${STAGING_INSTALL_DIR}
+  ${STAGING_INSTALL_DIR}/bin/hipcc*
+  ${STAGING_INSTALL_DIR}/bin/hipconfig*
+  ${STAGING_INSTALL_DIR}/bin/rocm_agent_enumerator
+  ${STAGING_INSTALL_DIR}/bin/rocminfo
   ${STAGING_INSTALL_DIR}/llvm/amdgcn/*
+  ${STAGING_INSTALL_DIR}/llvm/bin/*lld*
   ${STAGING_INSTALL_DIR}/llvm/bin/amdgpu*
   ${STAGING_INSTALL_DIR}/llvm/bin/clang*
-  ${STAGING_INSTALL_DIR}/llvm/bin/*lld*
   ${STAGING_INSTALL_DIR}/llvm/bin/offload-arch*
 )
 
-foreach(_relpath ${LLVM_FILES})
+foreach(_relpath ${LLVM_FILES} ${HIPCC_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
   file(
-    INSTALL ${STAGING_INSTALL_DIR}/llvm/${_relpath} 
+    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
     USE_SOURCE_PERMISSIONS
   )
