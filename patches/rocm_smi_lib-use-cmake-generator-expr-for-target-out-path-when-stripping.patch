@@ -1,0 +1,26 @@
+diff --git a/oam/CMakeLists.txt b/oam/CMakeLists.txt
+index 6927d24..3718a64 100644
+--- a/oam/CMakeLists.txt
++++ b/oam/CMakeLists.txt
+@@ -87,7 +87,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL Release)
+     if(${BUILD_SHARED_LIBS}) #striping only for .so
+         add_custom_command(
+              TARGET ${OAM_TARGET}
+-             POST_BUILD COMMAND ${CMAKE_STRIP} lib${OAM_TARGET}.so)
++             POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${OAM_TARGET}>")
+     endif()
+ endif ()
+ 
+diff --git a/rocm_smi/CMakeLists.txt b/rocm_smi/CMakeLists.txt
+index 645e598..0b67549 100755
+--- a/rocm_smi/CMakeLists.txt
++++ b/rocm_smi/CMakeLists.txt
+@@ -109,7 +109,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL Release)
+   if(${BUILD_SHARED_LIBS}) #stripping only for .so
+     add_custom_command(
+           TARGET ${ROCM_SMI_TARGET}
+-          POST_BUILD COMMAND ${CMAKE_STRIP} lib${ROCM_SMI_TARGET}.so.${SO_VERSION_STRING})
++          POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${ROCM_SMI_TARGET}>")
+   endif()
+ endif ()
+ 

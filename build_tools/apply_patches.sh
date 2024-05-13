@@ -42,5 +42,8 @@ apply_patch ROCR-Runtime ROCR-Runtime-intree-build.patch
 stash_changes HIPIFY
 apply_patch HIPIFY hipify-install-headers-in-include-hipify.patch
 
+stash_changes rocm_smi_lib
+apply_patch rocm_smi_lib rocm_smi_lib-use-cmake-generator-expr-for-target-out-path-when-stripping.patch
+
 stash_changes rccl
 apply_patch rccl rccl-overwrite-generated-files.patch
