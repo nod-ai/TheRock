@@ -26,13 +26,27 @@ We want ROCm sources checked out into the sources/ directory or if you check it 
 python ./build_tools/fetch_sources.py
 ```
 
+This will use the [repo](https://source.android.com/docs/setup/reference/repo)
+tool with modified ROCm [manifest](https://github.com/nod-ai/ROCm/blob/the-rock-main/default.xml).
+It will also apply patches to some of the repositories.
+
+Alternatively, for a specific ROCm version e.g. 6.1.0
+
+```
+python ./build_tools/fetch_sources.py \
+  --manifest-url https://github.com/ROCm/ROCm.git \
+  --manifest-branch refs/tags/rocm-6.1.0
+```
+
+This will also apply the patches to the downloaded source files.
+
 ## Manually
 
 Checkout the latest development branch with
 ```
 mkdir ~/github/rocm
 cd ~/github/rocm
-repo init -u https://github.com/RadeonOpenCompute/ROCm.git
+repo init -u https://github.com/ROCm/ROCm.git
 repo sync -j16
 ```
 Use `-b roc-6.0.x` if you need a specific branch of ROCm sources.  
