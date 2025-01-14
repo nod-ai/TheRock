@@ -34,9 +34,12 @@ Alternatively, for a specific ROCm version e.g. 6.1.0
 
 ```
 python ./build_tools/fetch_sources.py \
-  --manifest-url https://github.com/ROCm/ROCm.git \
-  --manifest-branch refs/tags/rocm-6.1.0
+  --manifest-url http://github.com/ROCm/ROCm.git \
+  --manifest-name tools/rocm-build/rocm-6.3.1.xml \
+  --manifest-branch roc-6.3.x
 ```
+
+TODO: Figure out why this only works with the http URL.
 
 This will also apply the patches to the downloaded source files.
 
@@ -46,11 +49,9 @@ Checkout the latest development branch with
 ```
 mkdir ~/github/rocm
 cd ~/github/rocm
-repo init -u https://github.com/ROCm/ROCm.git
+repo init -u http://github.com/ROCm/ROCm.git -m tools/rocm-build/rocm-6.3.1.xml -b roc-6.3.x
 repo sync -j16
 ```
-Use `-b roc-6.0.x` if you need a specific branch of ROCm sources.  
-
 Checkout out latest LLVM sources
 
 ```

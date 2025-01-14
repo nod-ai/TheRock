@@ -25,25 +25,7 @@ function apply_patch() {
 
 echo "Running from $PWD"
 
-stash_changes clr
-apply_patch clr clr-disable-hipconfig-check.patch
-apply_patch clr clr-respect-no-versioned-soname.patch
-
-stash_changes rocm-cmake
-apply_patch rocm-cmake rocm-cmake-nocheck.patch
-
-stash_changes ROCT-Thunk-Interface
-apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-header-nest.patch
-apply_patch ROCT-Thunk-Interface ROCT-Thunk-Interface-link-dl-libs.patch
-
-stash_changes ROCR-Runtime
-apply_patch ROCR-Runtime ROCR-Runtime-intree-build.patch
-
-stash_changes HIPIFY
-apply_patch HIPIFY hipify-install-headers-in-include-hipify.patch
-
-stash_changes rocm_smi_lib
-apply_patch rocm_smi_lib rocm_smi_lib-use-cmake-generator-expr-for-target-out-path-when-stripping.patch
-
-stash_changes rccl
-apply_patch rccl rccl-overwrite-generated-files.patch
+# Example:
+# stash_changes clr
+# apply_patch clr clr-disable-hipconfig-check.patch
+# apply_patch clr clr-respect-no-versioned-soname.patch

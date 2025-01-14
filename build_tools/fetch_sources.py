@@ -5,14 +5,16 @@
 
 import argparse
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 
 DEFAULT_SOURCES_DIR = Path(__file__).resolve().parent.parent / "sources"
 
 
-def exec(args: list[str], cwd: Path):
-    print(f"++ Exec: {args} (in {cwd})")
+def exec(args: list[str | Path], cwd: Path):
+    args = [str(arg) for arg in args]
+    print(f"++ Exec [{cwd}]$ {shlex.join(args)}")
     subprocess.check_call(args, cwd=str(cwd))
 
 
@@ -20,16 +22,21 @@ def run(args):
     repo_dir: Path = args.dir
     print(f"Setting up repo in {repo_dir}")
     repo_dir.mkdir(exist_ok=True, parents=True)
+    repo_args = [
+        "repo",
+        "init",
+        "-v",
+        "-u",
+        args.manifest_url,
+        "-m",
+        args.manifest_name,
+        "-b",
+        args.manifest_branch,
+    ]
+    if args.depth:
+        repo_args.extend(["--depth", str(args.depth)])
     exec(
-        [
-            "repo",
-            "init",
-            "--manifest-url",
-            args.manifest_url,
-            "--depth=1",
-            "--manifest-branch",
-            args.manifest_branch
-        ],
+        repo_args,
         cwd=repo_dir,
     )
     exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
@@ -51,14 +58,27 @@ def main(argv):
         "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
     )
     parser.add_argument(
-        "--manifest-url", type=str, help="Manifest repository location of ROCm",
-        default="https://github.com/nod-ai/ROCm.git"
+        "--manifest-url",
+        type=str,
+        help="Manifest repository location of ROCm",
+        default="http://github.com/ROCm/ROCm.git",
     )
     parser.add_argument(
-        "--manifest-branch", type=str, help="Branch to sync with repo tool",
-        default="the-rock-main"
+        "--manifest-name",
+        type=str,
+        help="Repo manifest name",
+        default="tools/rocm-build/rocm-6.3.1.xml",
+    )
+    parser.add_argument(
+        "--manifest-branch",
+        type=str,
+        help="Branch to sync with repo tool",
+        default="roc-6.3.x",
     )
     parser.add_argument("--no-patch", action="store_true", help="Disable patching")
+    parser.add_argument(
+        "--depth", type=int, help="Git depth to pass to repo", default=None
+    )
     parser.add_argument(
         "--projects",
         nargs="+",
@@ -73,8 +93,8 @@ def main(argv):
             "rocm-cmake",
             "rocm-core",
             "rocminfo",
+            "rocprofiler-register",
             "ROCR-Runtime",
-            "ROCT-Thunk-Interface",
         ],
     )
     args = parser.parse_args(argv)
