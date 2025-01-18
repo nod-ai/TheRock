@@ -30,16 +30,14 @@ This will use the [repo](https://source.android.com/docs/setup/reference/repo)
 tool with modified ROCm [manifest](https://github.com/nod-ai/ROCm/blob/the-rock-main/default.xml).
 It will also apply patches to some of the repositories.
 
-Alternatively, for a specific ROCm version e.g. 6.1.0
+Alternatively, for a specific ROCm version e.g. 6.3.0
 
 ```
 python ./build_tools/fetch_sources.py \
-  --manifest-url http://github.com/ROCm/ROCm.git \
+  --manifest-url https://github.com/ROCm/ROCm.git \
   --manifest-name tools/rocm-build/rocm-6.3.1.xml \
   --manifest-branch roc-6.3.x
 ```
-
-TODO: Figure out why this only works with the http URL.
 
 This will also apply the patches to the downloaded source files.
 
@@ -47,9 +45,9 @@ This will also apply the patches to the downloaded source files.
 
 Checkout the latest development branch with
 ```
-mkdir ~/github/rocm
+mkdir -p ~/github/rocm
 cd ~/github/rocm
-repo init -u http://github.com/ROCm/ROCm.git -m tools/rocm-build/rocm-6.3.1.xml -b roc-6.3.x
+repo init -u https://github.com/ROCm/ROCm.git -m tools/rocm-build/rocm-6.3.1.xml -b roc-6.3.x
 repo sync -j16
 ```
 Checkout out latest LLVM sources
