@@ -38,7 +38,7 @@ jobs:
       - name: Setup Environment
         run: |
           echo "/opt/python/cp312-cp312/bin" >> "$GITHUB_PATH"
-          git config --global --add safe.directory /
+          git config --global --add safe.directory '*'
 
       - name: Report Runner Health
         run: |
@@ -50,7 +50,7 @@ jobs:
           echo "Installed Python versions:"
           ls -d /opt/python
           echo "python: $(which python), python3: $(which python3)"
-
+          echo "Git version: $(git --version)"
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
