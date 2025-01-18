@@ -12,7 +12,7 @@ NINJA_VERSION="$1"
 ARCH="$(uname -m)"
 
 curl --silent --fail --show-error --location \
-    "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VERSION}/ninja-linux.zip"
+    "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VERSION}/ninja-linux.zip" \
     --output ninja.zip
 
 unzip ninja.zip
