@@ -4,15 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       package_version:
-        required: true
         type: string
         default: ADHOCBUILD
 
   workflow_call:
     inputs:
       package_version:
-        required: true
         type: string
+        default: ADHOCBUILD
 
 jobs:
   build_linux_packages:
