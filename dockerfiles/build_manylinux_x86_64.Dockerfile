@@ -16,13 +16,6 @@ FROM quay.io/pypa/manylinux_2_28_x86_64@sha256:9042a22d33af2223ff7a3599f236aff1e
 # default use.
 ENV PATH="/opt/python/cp312-cp312/bin:${PATH}"
 
-######## Yum Packages #######
-RUN yum install -y epel-release && \
-    yum install -y clang lld && \
-    yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
-    yum clean all && \
-    rm -rf /var/cache/yum
-
 ######## Pip Packages ########
 RUN pip install CppHeaderParser
 
@@ -45,6 +38,13 @@ WORKDIR /install-ninja
 ENV CMAKE_VERSION="1.12.1"
 COPY install_ninja.sh ./
 RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
+
+######## Yum Packages #######
+RUN yum install -y epel-release && \
+    yum install -y clang lld && \
+    yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
 ######## GIT CONFIGURATION ########
 # Git started enforcing strict user checking, which thwarts version

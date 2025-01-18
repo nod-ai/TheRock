@@ -16,5 +16,4 @@ curl --silent --fail --show-error --location \
     --output ninja.zip
 
 unzip ninja.zip
-chmod +x ninja-installer.sh
 cp ninja /usr/local/bin
