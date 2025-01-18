@@ -61,7 +61,7 @@ def main(argv):
         "--manifest-url",
         type=str,
         help="Manifest repository location of ROCm",
-        default="http://github.com/ROCm/ROCm.git",
+        default="https://github.com/ROCm/ROCm.git",
     )
     parser.add_argument(
         "--manifest-name",

@@ -38,6 +38,7 @@ jobs:
       - name: Setup Environment
         run: |
           echo "/opt/python/cp312-cp312/bin" >> "$GITHUB_PATH"
+          git config --global --add safe.directory /
 
       - name: Report Runner Health
         run: |
