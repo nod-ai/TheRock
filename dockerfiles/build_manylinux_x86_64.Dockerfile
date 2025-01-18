@@ -3,7 +3,9 @@
 #   docker buildx build --file dockerfiles/build_manylinux_x86_64.Dockerfile dockerfiles
 # This will print a SHA image id, which you can run with (or equiv):
 #   sudo docker run --rm -it --entrypoint /bin/bash <<IMAGE>>
-
+#
+# To build and push to a test branch, create a pull request on a branch named:
+#   docker*
 # We build our portable linux releases on the manylinux (RHEL-based)
 # images, with custom additional packages installed. We switch to
 # new upstream versions as needed.
