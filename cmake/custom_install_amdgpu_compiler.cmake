@@ -33,7 +33,7 @@ file(
 foreach(_relpath ${LLVM_FILES} ${HIPCC_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
   file(
-    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
+    INSTALL ${STAGING_INSTALL_DIR}/${_relpath}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
     USE_SOURCE_PERMISSIONS
   )

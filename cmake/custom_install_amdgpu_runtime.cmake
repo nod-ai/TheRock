@@ -30,9 +30,9 @@ list(REMOVE_ITEM LIB_FILES
 foreach(_relpath ${LIB_FILES})
   cmake_path(GET _relpath PARENT_PATH _parent_rel_path)
   file(
-    INSTALL ${STAGING_INSTALL_DIR}/${_relpath} 
+    INSTALL ${STAGING_INSTALL_DIR}/${_relpath}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
-    USE_SOURCE_PERMISSIONS    
+    USE_SOURCE_PERMISSIONS
   )
 endforeach()
 
@@ -58,6 +58,6 @@ foreach(_relpath ${LLVM_LIB_FILES})
   file(
     INSTALL ${STAGING_INSTALL_DIR}/llvm/${_relpath}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${_parent_rel_path}
-    USE_SOURCE_PERMISSIONS    
+    USE_SOURCE_PERMISSIONS
   )
 endforeach()

@@ -9,7 +9,8 @@ int main(int argc, char **argv) {
   char *lib_path = argv[1];
   int rc;
   void *h = dlopen(lib_path, RTLD_NOW);
-  int(*hipRuntimeGetVersion)(int*) = (int(*)(int*))dlsym(h, "hipRuntimeGetVersion");
+  int (*hipRuntimeGetVersion)(int *) =
+      (int (*)(int *))dlsym(h, "hipRuntimeGetVersion");
   if (!hipRuntimeGetVersion) {
     fprintf(stderr, "ERROR: Could not resolve symbol hipRuntimeGetVersion\n");
     return 1;

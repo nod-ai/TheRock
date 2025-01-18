@@ -7,5 +7,5 @@ therock_set_install_rpath(
     hiprtc
   PATHS
     .
-    llvm/lib    
+    llvm/lib
 )

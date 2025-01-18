@@ -34,12 +34,12 @@ SOURCE_DIR = SETUPPY_DIR.parent.parent
 # Note that setuptools always builds into a "build" directory that
 # is a sibling of setup.py, so we just colonize a sub-directory of that
 # by default.
-CMAKE_BUILD_DIR = Path(os.getenv(
-    "THEROCK_CMAKE_BUILD_DIR", SETUPPY_DIR / "build" / "cmake-build"
-))
-CMAKE_INSTALL_DIR = Path(os.getenv(
-    "THEROCK_CMAKE_INSTALL_DIR", SETUPPY_DIR / "build" / "dist-install"
-))
+CMAKE_BUILD_DIR = Path(
+    os.getenv("THEROCK_CMAKE_BUILD_DIR", SETUPPY_DIR / "build" / "cmake-build")
+)
+CMAKE_INSTALL_DIR = Path(
+    os.getenv("THEROCK_CMAKE_INSTALL_DIR", SETUPPY_DIR / "build" / "dist-install")
+)
 
 with open(SETUPPY_DIR / "README.md", "rt") as f:
     README = f.read()
