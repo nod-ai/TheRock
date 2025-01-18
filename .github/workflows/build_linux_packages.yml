@@ -44,16 +44,12 @@ jobs:
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
       - name: Enable cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.CACHE_DIR }}
           key: linux-build-packages-manylinux-v2-${{ github.sha }}
           restore-keys: |
             linux-build-packages-manylinux-v2-
-
-      - name: Install Deps
-        run: |
-          ./build_tools/ci_install_build_deps.sh
 
       - name: Fetch sources
         run: |
@@ -108,7 +104,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Save cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: always()
         with:
           path: ${{ env.CACHE_DIR }}
