@@ -41,6 +41,8 @@ def run(args):
     )
     exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
 
+    populate_ancillary_sources(args)
+
     # Patches.
     if not args.no_patch:
         apply_patches(args)
@@ -52,6 +54,22 @@ def apply_patches(args):
     exec([script], cwd=args.dir)
 
 
+def populate_ancillary_sources(args):
+    """Various subprojects have their own mechanisms for populating ancillary sources
+    needed to build. There is often something in CMake that attempts to automate it,
+    but it is also often broken. So we just do the right thing here as a transitionary
+    step to fixing the underlying software packages."""
+    populate_submodules_if_exists(args.dir / "rocprofiler-register")
+
+
+def populate_submodules_if_exists(git_dir: Path):
+    if not git_dir.exists():
+        print(f"Not populating submodules for {git_dir} (does not exist)")
+        return
+    print(f"Populating submodules for {git_dir}:")
+    exec(["git", "submodule", "update", "--init"], cwd=git_dir)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
     parser.add_argument(
@@ -61,7 +79,7 @@ def main(argv):
         "--manifest-url",
         type=str,
         help="Manifest repository location of ROCm",
-        default="http://github.com/ROCm/ROCm.git",
+        default="https://github.com/ROCm/ROCm.git",
     )
     parser.add_argument(
         "--manifest-name",

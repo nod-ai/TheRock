@@ -19,10 +19,8 @@ concurrency:
 jobs:
   build_linux_packages:
     name: Build Linux Packages
-    needs: setup
     uses: ./.github/workflows/build_linux_packages.yml
 
   build_python_packages:
     name: Build Python Packages
-    needs: setup
     uses: ./.github/workflows/build_python_packages.yml
