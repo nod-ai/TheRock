@@ -25,11 +25,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 set(ROCM_MAJOR_VERSION 6)
-set(ROCM_MINOR_VERSION 1)
-set(ROCM_PATCH_VERSION 0)
+set(ROCM_MINOR_VERSION 3)
+set(ROCM_PATCH_VERSION 1)
 set(ROCM_VERSION
-  "${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
-  CACHE STRING "ROCM version")
+  "${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}")
 set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
 ################################################################################
@@ -49,7 +48,7 @@ set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 
 option(ALWAYS_BUILD_SUBPROJECTS
   "Don't let the brittle CMake external project machinery decide if a sub-project needs to rebuild. Always run the underlying build."
-  ON)
+  OFF)
 set(FIND_PACKAGE_OPTIONS)
 
 macro(add_package_path PackageName path)
@@ -70,12 +69,14 @@ set(DEFAULT_CMAKE_ARGS
   "-DROCM_PATH=${STAGING_INSTALL_DIR}"
   "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
   "-DAMDGPU_TARGETS=${AMDGPU_TARGETS}"
+  -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
   -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
   -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
    # On some distributions, this will install to lib64. We would like
    # consistency in built packages, so hard-code it.
    -DCMAKE_INSTALL_LIBDIR=lib
-   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${CMAKE_CURRENT_SOURCE_DIR}/cmake/external_project_include.cmake
+   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${CMAKE_CURRENT_SOURCE_DIR}/cmake/therock_external_project_include.cmake
 )
 if(CMAKE_C_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_C_VISIBILITY_PRESET})
@@ -104,6 +105,25 @@ ExternalProject_Add(
 add_package_path(ROCM "${STAGING_INSTALL_DIR}/share/rocm/cmake")
 
 ################################################################################
+# rocprofiler-register
+# This is a stub that helps runtime libraries and profiles rendezvous
+################################################################################
+
+ExternalProject_Add(
+  rocprofiler-register
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocprofiler-register
+  SOURCE_DIR "${ROCM_GIT_DIR}/rocprofiler-register"
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
+add_package_path(rocprofiler-register "${STAGING_INSTALL_DIR}/lib/cmake/rocprofiler-register")
+
+################################################################################
 # LLVM
 ################################################################################
 
@@ -118,33 +138,34 @@ ExternalProject_Add(
     ${FIND_PACKAGE_OPTIONS}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     # We install llvm in its own sub-directory.
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/llvm
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/lib/llvm
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
 )
 
-add_package_path(amd_comgr "${STAGING_INSTALL_DIR}/llvm/lib/cmake/amd_comgr")
-add_package_path(Clang "${STAGING_INSTALL_DIR}/llvm/lib/cmake/clang")
-add_package_path(LLD "${STAGING_INSTALL_DIR}/llvm/lib/cmake/lld")
-add_package_path(LLVM "${STAGING_INSTALL_DIR}/llvm/lib/cmake/llvm")
-add_package_path(AMDDeviceLibs "${STAGING_INSTALL_DIR}/llvm/lib/cmake/AMDDeviceLibs")
+add_package_path(amd_comgr "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/amd_comgr")
+add_package_path(Clang "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/clang")
+add_package_path(LLD "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/lld")
+add_package_path(LLVM "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/llvm")
+add_package_path(AMDDeviceLibs "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/AMDDeviceLibs")
 
 ################################################################################
-# rocm-core-libs
+# ROCR-Runtime
 ################################################################################
 
 ExternalProject_Add(
-  rocm-core-libs
+  ROCR-Runtime
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ROCR-Runtime
+  SOURCE_DIR "${ROCM_GIT_DIR}/ROCR-Runtime"
   DEPENDS
-    amd-llvm
-    rocm-cmake
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-core-libs
-  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/rocm-core-libs"
+    amd-llvm  # Build dep only
+    rocprofiler-register
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+    -DBUILD_SHARED_LIBS=ON
   USES_TERMINAL_CONFIGURE TRUE
   USES_TERMINAL_BUILD TRUE
   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
@@ -152,6 +173,28 @@ ExternalProject_Add(
 
 add_package_path(hsakmt "${STAGING_INSTALL_DIR}/lib/cmake/hsakmt")
 add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/lib/cmake/hsa-runtime64")
+
+################################################################################
+# rocm-core
+################################################################################
+
+ExternalProject_Add(
+  rocm-core
+  DEPENDS
+    amd-llvm
+    rocm-cmake
+    ROCR-Runtime
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-core
+  SOURCE_DIR "${ROCM_GIT_DIR}/rocm-core"
+  CMAKE_ARGS
+    ${DEFAULT_CMAKE_ARGS}
+    ${FIND_PACKAGE_OPTIONS}
+    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+    "-DTHEROCK_INSTALL_RPATH=lib$<SEMICOLON>lib/llvm/lib"
+  USES_TERMINAL_CONFIGURE TRUE
+  USES_TERMINAL_BUILD TRUE
+  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+)
 
 ################################################################################
 # rocminfo
@@ -162,7 +205,7 @@ ExternalProject_Add(
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocminfo
   SOURCE_DIR "${ROCM_GIT_DIR}/rocminfo"
   DEPENDS
-    rocm-core-libs
+    rocm-core
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
@@ -207,7 +250,7 @@ ExternalProject_Add(
   DEPENDS
     amd-llvm
     hipcc
-    rocm-core-libs
+    rocm-core
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
@@ -244,7 +287,7 @@ ExternalProject_Add(
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi_lib
   SOURCE_DIR "${ROCM_GIT_DIR}/rocm_smi_lib"
   DEPENDS
-    rocm-core-libs
+    rocm-core
   CMAKE_ARGS
     ${DEFAULT_CMAKE_ARGS}
     ${FIND_PACKAGE_OPTIONS}
@@ -280,25 +323,29 @@ ExternalProject_Add(
 # RCCL
 ################################################################################
 
-ExternalProject_Add(
-  rccl
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rccl
-  SOURCE_DIR "${ROCM_GIT_DIR}/rccl"
-  DEPENDS
-    clr
-    hipcc
-    hipify
-    rocminfo
-  CMAKE_ARGS
-    ${DEFAULT_CMAKE_ARGS}
-    ${FIND_PACKAGE_OPTIONS}
-    -DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/bin/hipcc
-    -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
-  USES_TERMINAL_CONFIGURE TRUE
-  USES_TERMINAL_BUILD TRUE
-  BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-)
+# TODO: Re-enable rccl after adapting to 6.3.x build option differences.
+# Now seems to depend on rocprofiler.
+# ExternalProject_Add(
+#   rccl
+#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rccl
+#   SOURCE_DIR "${ROCM_GIT_DIR}/rccl"
+#   DEPENDS
+#     clr
+#     hipcc
+#     hipify
+#     rocminfo
+#   CMAKE_ARGS
+#     ${DEFAULT_CMAKE_ARGS}
+#     ${FIND_PACKAGE_OPTIONS}
+#     # TODO: Audit how the 6.3.x build finds its C++ compiler.
+#     #-DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/bin/hipcc
+#     -DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/lib/llvm/bin/clang++
+#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
+#     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+#   USES_TERMINAL_CONFIGURE TRUE
+#   USES_TERMINAL_BUILD TRUE
+#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
+# )
 
 ################################################################################
 # Testing
