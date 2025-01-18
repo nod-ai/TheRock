@@ -31,7 +31,6 @@ jobs:
 
       - name: Report Runner Health
         run: |
-          cat /etc/lsb-release
           echo "CCACHE_DIR=${CCACHE_DIR}"
           df -h
           ccache -z
