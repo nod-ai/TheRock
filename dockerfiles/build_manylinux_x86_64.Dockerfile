@@ -17,7 +17,7 @@ ENV PATH="/opt/python/cp312-cp312/bin:${PATH}"
 ######## Yum Packages #######
 RUN yum install -y epel-release && \
     yum install -y clang lld && \
-    yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs \
+    yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
     yum clean all && \
     rm -rf /var/cache/yum
 
