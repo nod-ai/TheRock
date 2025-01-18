@@ -2,7 +2,7 @@ name: Publish build_manylinux_x86_64 image
 on:
   workflow_dispatch:
   push:
-    branches: ['main']
+    branches: ['main', 'docker*']
     paths:
     - dockerfiles/build_manylinux_x86_64.Dockerfile
     - .github/workflows/publish_build_manylinux_x86_64.yml
