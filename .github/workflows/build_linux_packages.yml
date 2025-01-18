@@ -16,7 +16,7 @@ on:
 jobs:
   build_linux_packages:
     name: Build Linux Packages
-    runs-on: nod-ai-shared-cpubuilder-manylinux-x86_64
+    runs-on: azure-cpubuilder-linux-scale
     strategy:
       fail-fast: true
     env:
