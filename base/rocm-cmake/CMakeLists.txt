@@ -3,7 +3,7 @@
 ################################################################################
 
 therock_cmake_subproject_declare(rocm-cmake
-  EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/rocprofiler-register"
+  EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/rocm-cmake"
 )
 therock_cmake_subproject_provide_package(rocm-cmake
   rocm-cmake share/rocmcmakebuildtools/cmake)

@@ -1,16 +1,9 @@
-cmake_minimum_required(VERSION 3.18)
-project(THEROCK-AMD-LLVM)
-
 # Build LLVM and the comgr dependency.
 # Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
 # The flag you want for a shared library build is LLVM_BUILD_LLVM_DYLIB.
 set(BUILD_SHARED_LIBS OFF)
 set(LLVM_BUILD_LLVM_DYLIB ON)
-# TODO: Depending on what is getting released, it may or may not be paying
-# for itself to dynamically link.
-set(LLVM_LINK_LLVM_DYLIB OFF)
-set(LLVM_DIR "${ROCM_GIT_DIR}/llvm-project")
-message(STATUS "LLVM_DIR is set to: ${LLVM_DIR}")
+set(LLVM_LINK_LLVM_DYLIB ON)
 
 # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
 set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
@@ -23,9 +16,6 @@ set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/de
 #set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "llvm/amdgcn-new")
 # hipcc expects bit codes under amdgcn.
 #set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn")
-
-# Now include LLVM's source directory
-add_subdirectory(${LLVM_DIR}/llvm ${CMAKE_BINARY_DIR}/llvm)
 
 # add_custom_target(
 #    amd-bitcodes-symlink ALL

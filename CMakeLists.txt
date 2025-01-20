@@ -92,34 +92,10 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+# Add subdirectories in dependency DAG order.
 add_subdirectory(base)
-
-# ################################################################################
-# # LLVM
-# ################################################################################
-
-# ExternalProject_Add(
-#   amd-llvm
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/amd-llvm
-#   SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/amd-llvm"
-#   DEPENDS
-#     rocm-cmake
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#     # We install llvm in its own sub-directory.
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}/lib/llvm
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# add_package_path(amd_comgr "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/amd_comgr")
-# add_package_path(Clang "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/clang")
-# add_package_path(LLD "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/lld")
-# add_package_path(LLVM "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/llvm")
-# add_package_path(AMDDeviceLibs "${STAGING_INSTALL_DIR}/lib/llvm/lib/cmake/AMDDeviceLibs")
+add_subdirectory(compiler)
+add_subdirectory(core)
 
 # ################################################################################
 # # ROCR-Runtime

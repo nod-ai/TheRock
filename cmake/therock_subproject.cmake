@@ -43,12 +43,20 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
 # DIR_PREFIX: By default, directories named "build", "install", "stamp" are
 # created. But if there are multiple sub-projects in a parent dir, then they
 # all must have a distinct prefix (not recommended).
+# INSTALL_DESTINATION: Sub-directory within the install directory where this
+# sub-project installs. Defaults to empty, meaning that it installs at the top
+# of the namespace.
+# CMAKE_ARGS: Additional CMake configure arguments.
+# BUILD_DEPS: Projects which must build and provide their packages prior to this
+# one.
+# RUNTIME_DEPS: Projects which must build prior to this one and whose install
+# files must be distributed with this project's artifacts in order to function.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL"
-    "EXTERNAL_SOURCE_DIR;DIR_PREFIX"
-    ""
+    "EXTERNAL_SOURCE_DIR;DIR_PREFIX;INSTALL_DESTINATION"
+    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS"
   )
   if(TARGET "${target_name}")
     message(FATAL_ERROR "Cannot declare subproject '${target_name}': a target with that name already exists")
@@ -75,9 +83,13 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
     THEROCK_INSTALL_DIR "${_install_dir}"
+    THEROCK_INSTALL_DESTINATION "${ARG_INSTALL_DESTINATION}"
     THEROCK_STAMP_DIR "${_stamp_dir}"
     THEROCK_CMAKE_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_CMAKE_PROJECT_INIT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${ARG_BUILD_DIR}_init.cmake"
+    THEROCK_CMAKE_ARGS "${ARG_CMAKE_ARGS}"
+    THEROCK_BUILD_DEPS "${ARG_BUILD_DEPS}"
+    THEROCK_RUNTIME_DEPS "${ARG_RUNTIME_DEPS}"
   )
 
   if(ARG_ACTIVATE)
@@ -90,12 +102,15 @@ endfunction()
 # with `find_package(package_name)` at the given path relative to its install
 # directory.
 function(therock_cmake_subproject_provide_package target_name package_name relative_path)
+  string(APPEND CMAKE_MESSAGE_INDENT "  ")
   get_target_property(_existing_packages "${target_name}" THEROCK_PROVIDE_PACKAGES)
-  if(package_name IN_LIST _existing_packages)
+  if(${package_name} IN_LIST _existing_packages)
     message(FATAL_ERROR "Package defined multiple times on sub-project ${target_name}: ${package_name}")
   endif()
   set_property(TARGET "${target_name}" APPEND PROPERTY THEROCK_PROVIDE_PACKAGES "${package_name}")
-  set_property(TARGET "${target_name}" PROPERTY THEROCK_PACKAGE_RELPATH "${relative_path}")
+  set(_relpath_name THEROCK_PACKAGE_RELPATH_${package_name})
+  set_property(TARGET "${target_name}" PROPERTY ${_relpath_name} "${relative_path}")
+  message(STATUS "PROVIDE ${package_name} = ${relative_path} (from ${target_name})")
 endfunction()
 
 # therock_cmake_subproject_activate
@@ -110,10 +125,14 @@ function(therock_cmake_subproject_activate target_name)
 
   # Get properties.
   get_target_property(_binary_dir "${target_name}" THEROCK_BINARY_DIR)
+  get_target_property(_build_deps "${target_name}" THEROCK_BUILD_DEPS)
+  get_target_property(_runtime_deps "${target_name}" THEROCK_RUNTIME_DEPS)
+  get_target_property(_cmake_args "${target_name}" THEROCK_CMAKE_ARGS)
   get_target_property(_cmake_project_init_file "${target_name}" THEROCK_CMAKE_PROJECT_INIT_FILE)
   get_target_property(_cmake_source_dir "${target_name}" THEROCK_CMAKE_SOURCE_DIR)
   get_target_property(_exclude_from_all "${target_name}" THEROCK_EXCLUDE_FROM_ALL)
   get_target_property(_external_source_dir "${target_name}" THEROCK_EXTERNAL_SOURCE_DIR)
+  get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
   get_target_property(_install_dir "${target_name}" THEROCK_INSTALL_DIR)
   get_target_property(_sources "${target_name}" SOURCES)
   get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
@@ -124,12 +143,21 @@ function(therock_cmake_subproject_activate target_name)
   endif()
 
   # Generate the project_init.cmake
+  set(_dep_provider_file)
+  if(_build_deps OR _runtime_deps)
+    set(_dep_provider_file "${THEROCK_SOURCE_DIR}/cmake/therock_subproject_dep_provider.cmake")
+  endif()
   set(_injected_file "${THEROCK_SOURCE_DIR}/cmake/therock_external_project_include.cmake")
   get_property(_mirror_cmake_vars GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS)
   set(_init_contents)
   foreach(_var_name ${_mirror_cmake_vars})
     string(APPEND _init_contents "set(${_var_name} \"@${_var_name}@\" CACHE STRING \"\" FORCE)\n")
   endforeach()
+  _therock_cmake_subproject_setup_deps(_deps_contents ${_build_deps} ${_runtime_deps})
+  string(APPEND _init_contents "${_deps_contents}")
+  if(_dep_provider_file)
+    string(APPEND _init_contents "include(${_dep_provider_file})\n")
+  endif()
   string(APPEND _init_contents "include(${_injected_file})\n")
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
 
@@ -145,6 +173,10 @@ function(therock_cmake_subproject_activate target_name)
   if(THEROCK_INTERACTIVE)
     set(_terminal_option "USES_TERMINAL")
   endif()
+  set(_install_destination_dir "${_install_dir}")
+  if(_install_destination)
+    cmake_path(APPEND _install_destination_dir "${_install_destination}")
+  endif()
   add_custom_command(
     OUTPUT "${_configure_stamp_file}"
     COMMAND "${CMAKE_COMMAND}"
@@ -152,8 +184,9 @@ function(therock_cmake_subproject_activate target_name)
       "-B${_binary_dir}"
       "-S${_cmake_source_dir}"
       "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
-      "-DCMAKE_INSTALL_PREFIX=${_install_dir}"
+      "-DCMAKE_INSTALL_PREFIX=${_install_destination_dir}"
       "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${_cmake_project_init_file}"
+      ${_cmake_args}
     COMMAND "${CMAKE_COMMAND}" -E touch "${_configure_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Configure sub-project ${target_name}"
@@ -164,6 +197,9 @@ function(therock_cmake_subproject_activate target_name)
       "${_cmake_source_dir}/CMakeLists.txt"
       "${_cmake_project_init_file}"
       "${_injected_file}"
+      ${_dep_provider_file}
+      ${_build_deps}
+      ${_runtime_deps}
       # TODO: Have a mechanism for adding more depends for better rebuild ergonomics
     ${_terminal_option}
   )
@@ -254,4 +290,34 @@ function(therock_cmake_subproject_glob_c_sources target_name)
     ${_globs}
   )
   target_sources("${target_name}" PRIVATE ${_files})
+endfunction()
+
+# Builds a CMake language fragment to set up a dependency provider such that
+# it handles super-project provided dependencies locally.
+function(_therock_cmake_subproject_setup_deps out_contents)
+  string(APPEND CMAKE_MESSAGE_INDENT "  ")
+  set(_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
+  foreach(dep_target ${ARGN})
+    get_target_property(_is_subproject "${dep_target}" THEROCK_SUBPROJECT)
+    if(NOT _is_subproject STREQUAL "cmake")
+      message(FATAL_ERROR "Target ${target_name} is not a sub-project but was referenced as a dependency")
+    endif()
+
+    get_target_property(_provides "${dep_target}" THEROCK_PROVIDE_PACKAGES)
+    if(_provides)
+      foreach(_package_name ${_provides})
+        get_target_property(_install_dir "${dep_target}" THEROCK_INSTALL_DIR)
+        set(_relpath_name THEROCK_PACKAGE_RELPATH_${_package_name})
+        get_target_property(_relpath "${dep_target}" ${_relpath_name})
+        if(NOT _install_dir OR NOT _relpath)
+          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_install_dir}' ${_relpath_name}='${_relpath}'")
+        endif()
+        cmake_path(APPEND _install_dir "${_relpath}" OUTPUT_VARIABLE _find_package_path)
+        message(STATUS "REQUIRE ${_package_name} = ${_find_package_path} (from ${dep_target})")
+        string(APPEND _contents "set(THEROCK_PACKAGE_DIR_${_package_name} \"${_find_package_path}\")\n")
+        string(APPEND _contents "list(APPEND THEROCK_PROVIDED_PACKAGES ${_package_name})\n")
+      endforeach()
+    endif()
+  endforeach()
+  set("${out_contents}" "${_contents}" PARENT_SCOPE)
 endfunction()
