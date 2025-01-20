@@ -1,4 +1,5 @@
 # TheRock
+
 The HIP Environment and ROCm Kit - A lightweight open source build system for HIP and ROCm
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -6,6 +7,7 @@ The HIP Environment and ROCm Kit - A lightweight open source build system for HI
 # Install Deps
 
 ## Common
+
 ```
 pip install CppHeaderParser
 ```
@@ -46,22 +48,16 @@ This will also apply the patches to the downloaded source files.
 ## Manually
 
 Checkout the latest development branch with
+
 ```
 mkdir -p ~/github/rocm
 cd ~/github/rocm
 repo init -u https://github.com/ROCm/ROCm.git -m tools/rocm-build/rocm-6.3.1.xml -b roc-6.3.x
 repo sync -j16
 ```
-Checkout out latest LLVM sources
-
-```
-cd ~/github/rocm/llvm-project
-git fetch --all
-llvm-project$ git checkout rocm-org/amd-staging
-```
-Latest `HIP` and `clr` should be on the `develop` branch
 
 Checkout TheRock build tools
+
 ```
 cd ~/github/
 git clone https://github.com/nod-ai/TheRock
