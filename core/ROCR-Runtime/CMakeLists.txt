@@ -10,6 +10,8 @@ therock_cmake_subproject_declare(ROCR-Runtime
     amd-llvm
   RUNTIME_DEPS
     rocprofiler-register
+  INTERFACE_LINK_DIRS
+    "lib"
 )
 therock_cmake_subproject_glob_c_sources(ROCR-Runtime
   SUBDIRS

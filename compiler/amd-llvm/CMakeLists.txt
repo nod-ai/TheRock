@@ -9,6 +9,8 @@ therock_cmake_subproject_declare(amd-llvm
   # The entire LLVM install tree is placed inside of the overall ROCM lib/llvm
   # directory.
   INSTALL_DESTINATION "lib/llvm"
+  INTERFACE_LINK_DIRS
+    "lib/llvm/lib"
 )
 # Note that we do not trigger on LLVM source changes because the monorepo is
 # too large to glob like that. Consider having a project dev mode option for

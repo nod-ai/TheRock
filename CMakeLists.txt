@@ -1,3 +1,7 @@
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory.")
+endif()
+
 cmake_minimum_required(VERSION 3.18)
 
 # Set the default build type to Release if not specified
@@ -96,28 +100,6 @@ endif()
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
-
-# ################################################################################
-# # rocm-core
-# ################################################################################
-
-# ExternalProject_Add(
-#   rocm-core
-#   DEPENDS
-#     amd-llvm
-#     rocm-cmake
-#     ROCR-Runtime
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm-core
-#   SOURCE_DIR "${ROCM_GIT_DIR}/rocm-core"
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#     "-DTHEROCK_INSTALL_RPATH=lib$<SEMICOLON>lib/llvm/lib"
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
 
 # ################################################################################
 # # rocminfo

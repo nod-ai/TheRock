@@ -24,8 +24,14 @@ endfunction()
 
 parse_args()
 
-file(REMOVE_RECURSE "${link_out_dir}")
+# Remove the directory children (we do this vs removing the directory itself
+# so as to cause less churn to tools that may have it as a cwd).
 file(MAKE_DIRECTORY "${link_out_dir}")
+file(GLOB existing_children "${link_out_dir}/*")
+foreach(existing_child ${existing_children})
+  file(REMOVE_RECURSE "${existing_child}")
+endforeach()
+
 foreach(from_dir ${link_from_dirs})
   file(GLOB_RECURSE rel_paths LIST_DIRECTORIES true RELATIVE "${from_dir}"
     "${from_dir}/*")
