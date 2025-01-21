@@ -102,25 +102,6 @@ add_subdirectory(compiler)
 add_subdirectory(core)
 
 # ################################################################################
-# # rocminfo
-# ################################################################################
-
-# ExternalProject_Add(
-#   rocminfo
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocminfo
-#   SOURCE_DIR "${ROCM_GIT_DIR}/rocminfo"
-#   DEPENDS
-#     rocm-core
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# ################################################################################
 # # HIPCC
 # ################################################################################
 
