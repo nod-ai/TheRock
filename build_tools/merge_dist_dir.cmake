@@ -1,3 +1,10 @@
+# Standalone CMake script to merge a list of directories into one output
+# directory, respecting symbolic links and warning on namespace collisions.
+# By default, this hard links files vs copying. The contents of the out
+# directory will be recursively deleted.
+#
+# Usage:
+#   cmake -P merge_dist_dir.cmake {out_directory} {src_directory...}
 # Do not follow symlinks by default.
 cmake_policy(SET CMP0009 NEW)
 
