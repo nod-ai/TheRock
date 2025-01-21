@@ -40,10 +40,10 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
 # therock_cmake_subproject_activate. Do not specify this option if wishing to
 # further configure the sub-project.
 # SOURCE_DIR: Absolute path to the external source directory.
-# DIR_PREFIX: By default, directories named "build", "install", "stamp" are
+# DIR_PREFIX: By default, directories named "build", "stage", "stamp" are
 # created. But if there are multiple sub-projects in a parent dir, then they
 # all must have a distinct prefix (not recommended).
-# INSTALL_DESTINATION: Sub-directory within the install directory where this
+# INSTALL_DESTINATION: Sub-directory within the stage/dist directory where this
 # sub-project installs. Defaults to empty, meaning that it installs at the top
 # of the namespace.
 # CMAKE_ARGS: Additional CMake configure arguments.
@@ -69,9 +69,9 @@ function(therock_cmake_subproject_declare target_name)
   set(_binary_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}build")
   make_directory("${_binary_dir}")
 
-  # Install directory.
-  set(_install_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}install")
-  make_directory("${_install_dir}")
+  # Stage directory.
+  set(_stage_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}stage")
+  make_directory("${_stage_dir}")
 
   # Dist directory.
   set(_dist_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}dist")
@@ -87,7 +87,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
     THEROCK_DIST_DIR "${_dist_dir}"
-    THEROCK_INSTALL_DIR "${_install_dir}"
+    THEROCK_STAGE_DIR "${_stage_dir}"
     THEROCK_INSTALL_DESTINATION "${ARG_INSTALL_DESTINATION}"
     THEROCK_STAMP_DIR "${_stamp_dir}"
     THEROCK_CMAKE_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
@@ -139,7 +139,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_exclude_from_all "${target_name}" THEROCK_EXCLUDE_FROM_ALL)
   get_target_property(_external_source_dir "${target_name}" THEROCK_EXTERNAL_SOURCE_DIR)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
-  get_target_property(_install_dir "${target_name}" THEROCK_INSTALL_DIR)
+  get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
   get_target_property(_sources "${target_name}" SOURCES)
   get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
 
@@ -183,9 +183,9 @@ function(therock_cmake_subproject_activate target_name)
   if(THEROCK_INTERACTIVE)
     set(_terminal_option "USES_TERMINAL")
   endif()
-  set(_install_destination_dir "${_install_dir}")
+  set(_stage_destination_dir "${_stage_dir}")
   if(_install_destination)
-    cmake_path(APPEND _install_destination_dir "${_install_destination}")
+    cmake_path(APPEND _stage_destination_dir "${_install_destination}")
   endif()
   add_custom_command(
     OUTPUT "${_configure_stamp_file}"
@@ -194,7 +194,7 @@ function(therock_cmake_subproject_activate target_name)
       "-B${_binary_dir}"
       "-S${_cmake_source_dir}"
       "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
-      "-DCMAKE_INSTALL_PREFIX=${_install_destination_dir}"
+      "-DCMAKE_INSTALL_PREFIX=${_stage_destination_dir}"
       "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${_cmake_project_init_file}"
       ${_cmake_args}
     COMMAND "${CMAKE_COMMAND}" -E touch "${_configure_stamp_file}"
@@ -263,14 +263,14 @@ function(therock_cmake_subproject_activate target_name)
 
   # dist install target.
   set(_dist_stamp_file "${_stamp_dir}/dist.stamp")
-  set(_link_dist_script "${THEROCK_SOURCE_DIR}/build_tools/link_dist_dir.cmake")
-  _therock_cmake_subproject_get_install_dirs(
+  set(_merge_dist_script "${THEROCK_SOURCE_DIR}/build_tools/merge_dist_dir.cmake")
+  _therock_cmake_subproject_get_stage_dirs(
     _dist_source_dirs "${target_name}" ${_runtime_deps})
   add_custom_command(
     OUTPUT "${_dist_stamp_file}"
-    COMMAND "${CMAKE_COMMAND}" -P "${_link_dist_script}" "${_dist_dir}" ${_dist_source_dirs}
+    COMMAND "${CMAKE_COMMAND}" -P "${_merge_dist_script}" "${_dist_dir}" ${_dist_source_dirs}
     COMMAND "${CMAKE_COMMAND}" -E touch "${_dist_stamp_file}"
-    COMMENT "Linking sub-project dist directory for ${target_name}"
+    COMMENT "Merging sub-project dist directory for ${target_name}"
     DEPENDS
       "${_stage_stamp_file}"
       "${_link_dist_script}"
@@ -288,7 +288,7 @@ function(therock_cmake_subproject_activate target_name)
   add_custom_target(
     "${target_name}+expunge"
     COMMAND
-      ${CMAKE_COMMAND} -E rm -rf "${_binary_dir}" "${_install_dir}" "${_stamp_dir}" "${_dist_dir}"
+      ${CMAKE_COMMAND} -E rm -rf "${_binary_dir}" "${_stage_dir}" "${_stamp_dir}" "${_dist_dir}"
   )
 endfunction()
 
@@ -339,13 +339,13 @@ function(_therock_cmake_subproject_setup_deps out_contents)
     get_target_property(_provides "${dep_target}" THEROCK_PROVIDE_PACKAGES)
     if(_provides)
       foreach(_package_name ${_provides})
-        get_target_property(_install_dir "${dep_target}" THEROCK_INSTALL_DIR)
+        get_target_property(_stage_dir "${dep_target}" THEROCK_STAGE_DIR)
         set(_relpath_name THEROCK_PACKAGE_RELPATH_${_package_name})
         get_target_property(_relpath "${dep_target}" ${_relpath_name})
-        if(NOT _install_dir OR NOT _relpath)
-          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_install_dir}' ${_relpath_name}='${_relpath}'")
+        if(NOT _stage_dir OR NOT _relpath)
+          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_stage_dir}' ${_relpath_name}='${_relpath}'")
         endif()
-        cmake_path(APPEND _install_dir "${_relpath}" OUTPUT_VARIABLE _find_package_path)
+        cmake_path(APPEND _stage_dir "${_relpath}" OUTPUT_VARIABLE _find_package_path)
         message(STATUS "INJECT ${_package_name} = ${_find_package_path} (from ${dep_target})")
         string(APPEND _contents "set(THEROCK_PACKAGE_DIR_${_package_name} \"${_find_package_path}\")\n")
         string(APPEND _contents "list(APPEND THEROCK_PROVIDED_PACKAGES ${_package_name})\n")
@@ -356,14 +356,14 @@ function(_therock_cmake_subproject_setup_deps out_contents)
 endfunction()
 
 # Gets the staging install directories for a list of subproject deps.
-function(_therock_cmake_subproject_get_install_dirs out_dirs)
+function(_therock_cmake_subproject_get_stage_dirs out_dirs)
   set(_dirs)
   foreach(target_name ${ARGN})
-    get_target_property(_install_dir "${target_name}" THEROCK_INSTALL_DIR)
-    if(NOT _install_dir)
-      message(FATAL_ERROR "Sub-project target ${target_name} does not have an install dir")
+    get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
+    if(NOT _stage_dir)
+      message(FATAL_ERROR "Sub-project target ${target_name} does not have a stage install dir")
     endif()
-    list(APPEND _dirs "${_install_dir}")
+    list(APPEND _dirs "${_stage_dir}")
   endforeach()
   set(${out_dirs} "${_dirs}" PARENT_SCOPE)
 endfunction()

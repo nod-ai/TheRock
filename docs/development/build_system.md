@@ -87,7 +87,7 @@ Each sub-project, by default, uses a standard directory layout for its build:
   work on a single component. The `configure` phase populates this directory
   by running the initial `cmake` configure. The `build` phase compiles the
   `all` target.
-- `install/` : Local staging install directory for the sub-project. The
+- `stage/` : Local staging install directory for the sub-project. The
   sub-projects install components (or just default install) will populate
   this directory during the `stage` build phase. Note that for sub-projects
   with runtime deps, this will be a "torn" directory in that it may contain
@@ -96,7 +96,7 @@ Each sub-project, by default, uses a standard directory layout for its build:
   is bundled with its runtime deps.
 - `dist/` : This is populated by the `dist` build phase by hard linking (or
   copying if hard-links are not possible) the cone of all runtime dep project's
-  `install/` and this project's `install/` directory contents. In this way, each
+  `stage/` and this project's `stage/` directory contents. In this way, each
   individual project's `dist/` directory should consist of a self-contained
   slice that is relocatable and usable (for testing, etc). Top-level
   distributions are created in this same way by having runtime deps on all
