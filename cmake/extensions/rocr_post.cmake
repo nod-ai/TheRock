@@ -6,5 +6,4 @@ therock_set_install_rpath(
     hsa-runtime64
   PATHS
     .
-    llvm/lib
 )
