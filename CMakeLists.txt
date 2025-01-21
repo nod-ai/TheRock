@@ -98,30 +98,6 @@ add_subdirectory(compiler)
 add_subdirectory(core)
 
 # ################################################################################
-# # ROCR-Runtime
-# ################################################################################
-
-# ExternalProject_Add(
-#   ROCR-Runtime
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ROCR-Runtime
-#   SOURCE_DIR "${ROCM_GIT_DIR}/ROCR-Runtime"
-#   DEPENDS
-#     amd-llvm  # Build dep only
-#     rocprofiler-register
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#     -DBUILD_SHARED_LIBS=ON
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# add_package_path(hsakmt "${STAGING_INSTALL_DIR}/lib/cmake/hsakmt")
-# add_package_path(hsa-runtime64 "${STAGING_INSTALL_DIR}/lib/cmake/hsa-runtime64")
-
-# ################################################################################
 # # rocm-core
 # ################################################################################
 
