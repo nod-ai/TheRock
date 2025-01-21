@@ -11,6 +11,11 @@ therock_cmake_subproject_declare(ROCR-Runtime
   RUNTIME_DEPS
     rocprofiler-register
 )
+therock_cmake_subproject_glob_c_sources(ROCR-Runtime
+  SUBDIRS
+    libhsakmt
+    runtime
+)
 therock_cmake_subproject_provide_package(ROCR-Runtime hsakmt lib/cmake/hsakmt)
 therock_cmake_subproject_provide_package(ROCR-Runtime hsa-runtime64 lib/cmake/hsa-runtime64)
 therock_cmake_subproject_activate(ROCR-Runtime)

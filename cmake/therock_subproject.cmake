@@ -73,6 +73,10 @@ function(therock_cmake_subproject_declare target_name)
   set(_install_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}install")
   make_directory("${_install_dir}")
 
+  # Dist directory.
+  set(_dist_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}dist")
+  make_directory("${_dist_dir}")
+
   # Stamp directory.
   set(_stamp_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}stamp")
   make_directory("${_stamp_dir}")
@@ -82,6 +86,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
+    THEROCK_DIST_DIR "${_dist_dir}"
     THEROCK_INSTALL_DIR "${_install_dir}"
     THEROCK_INSTALL_DESTINATION "${ARG_INSTALL_DESTINATION}"
     THEROCK_STAMP_DIR "${_stamp_dir}"
@@ -126,6 +131,7 @@ function(therock_cmake_subproject_activate target_name)
   # Get properties.
   get_target_property(_binary_dir "${target_name}" THEROCK_BINARY_DIR)
   get_target_property(_build_deps "${target_name}" THEROCK_BUILD_DEPS)
+  get_target_property(_dist_dir "${target_name}" THEROCK_DIST_DIR)
   get_target_property(_runtime_deps "${target_name}" THEROCK_RUNTIME_DEPS)
   get_target_property(_cmake_args "${target_name}" THEROCK_CMAKE_ARGS)
   get_target_property(_cmake_project_init_file "${target_name}" THEROCK_CMAKE_PROJECT_INIT_FILE)
@@ -160,6 +166,10 @@ function(therock_cmake_subproject_activate target_name)
   endif()
   string(APPEND _init_contents "include(${_injected_file})\n")
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
+
+  # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
+  # on the stage.stamp file). These are a dependency for configure.
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps} ${runtime_deps})
 
   # Target flags.
   set(_all_option)
@@ -198,8 +208,8 @@ function(therock_cmake_subproject_activate target_name)
       "${_cmake_project_init_file}"
       "${_injected_file}"
       ${_dep_provider_file}
-      ${_build_deps}
-      ${_runtime_deps}
+      ${_configure_dep_stamps}
+
       # TODO: Have a mechanism for adding more depends for better rebuild ergonomics
     ${_terminal_option}
   )
@@ -229,7 +239,6 @@ function(therock_cmake_subproject_activate target_name)
     DEPENDS
       "${_build_stamp_file}"
   )
-  add_dependencies("${target_name}+build" "${target_name}+configure")
   add_dependencies("${target_name}" "${target_name}+build")
 
   # stage install target.
@@ -250,12 +259,36 @@ function(therock_cmake_subproject_activate target_name)
     DEPENDS
       "${_stage_stamp_file}"
   )
+  add_dependencies("${target_name}" "${target_name}+stage")
 
-  # clean target
+  # dist install target.
+  set(_dist_stamp_file "${_stamp_dir}/dist.stamp")
+  set(_link_dist_script "${THEROCK_SOURCE_DIR}/build_tools/link_dist_dir.cmake")
+  _therock_cmake_subproject_get_install_dirs(
+    _dist_source_dirs "${target_name}" ${_runtime_deps})
+  add_custom_command(
+    OUTPUT "${_dist_stamp_file}"
+    COMMAND "${CMAKE_COMMAND}" -P "${_link_dist_script}" "${_dist_dir}" ${_dist_source_dirs}
+    COMMAND "${CMAKE_COMMAND}" -E touch "${_dist_stamp_file}"
+    COMMENT "Linking sub-project dist directory for ${target_name}"
+    DEPENDS
+      "${_stage_stamp_file}"
+      "${_link_dist_script}"
+    ${_terminal_option}
+  )
   add_custom_target(
-    "${target_name}+clean"
+    "${target_name}+dist"
+    ${_all_option}
+    DEPENDS
+      "${_dist_stamp_file}"
+  )
+  add_dependencies("${target_name}" "${target_name}+dist")
+
+  # expunge target
+  add_custom_target(
+    "${target_name}+expunge"
     COMMAND
-      ${CMAKE_COMMAND} -E rm -rf "${_binary_dir}" "${_install_dir}" "${_stamp_dir}"
+      ${CMAKE_COMMAND} -E rm -rf "${_binary_dir}" "${_install_dir}" "${_stamp_dir}" "${_dist_dir}"
   )
 endfunction()
 
@@ -313,11 +346,45 @@ function(_therock_cmake_subproject_setup_deps out_contents)
           message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_install_dir}' ${_relpath_name}='${_relpath}'")
         endif()
         cmake_path(APPEND _install_dir "${_relpath}" OUTPUT_VARIABLE _find_package_path)
-        message(STATUS "REQUIRE ${_package_name} = ${_find_package_path} (from ${dep_target})")
+        message(STATUS "INJECT ${_package_name} = ${_find_package_path} (from ${dep_target})")
         string(APPEND _contents "set(THEROCK_PACKAGE_DIR_${_package_name} \"${_find_package_path}\")\n")
         string(APPEND _contents "list(APPEND THEROCK_PROVIDED_PACKAGES ${_package_name})\n")
       endforeach()
     endif()
   endforeach()
   set("${out_contents}" "${_contents}" PARENT_SCOPE)
+endfunction()
+
+# Gets the staging install directories for a list of subproject deps.
+function(_therock_cmake_subproject_get_install_dirs out_dirs)
+  set(_dirs)
+  foreach(target_name ${ARGN})
+    get_target_property(_install_dir "${target_name}" THEROCK_INSTALL_DIR)
+    if(NOT _install_dir)
+      message(FATAL_ERROR "Sub-project target ${target_name} does not have an install dir")
+    endif()
+    list(APPEND _dirs "${_install_dir}")
+  endforeach()
+  set(${out_dirs} "${_dirs}" PARENT_SCOPE)
+endfunction()
+
+# Transforms a list of sub-project targets to corresponding stamp files of
+# `stamp_name`. These are the actual build system deps that are encoded in the
+# commands (whereas the target names are just for humans).
+function(_therock_cmake_subproject_deps_to_stamp out_stamp_files stamp_name)
+  set(_stamp_files)
+  foreach(target_name ${ARGN})
+    # Make sure it is a sub-project.
+    get_target_property(_is_subproject "${target_name}" THEROCK_SUBPROJECT)
+    if(NOT _is_subproject STREQUAL "cmake")
+      message(FATAL_ERROR "Target ${target_name} is not a sub-project")
+    endif()
+    get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
+    if(NOT _stamp_dir)
+      message(FATAL_ERROR "Sub-project is missing a stamp dir: ${target_name}")
+    endif()
+
+    list(APPEND _stamp_files "${_stamp_dir}/${stamp_name}")
+  endforeach()
+  set(${out_stamp_files} "${_stamp_files}" PARENT_SCOPE)
 endfunction()
