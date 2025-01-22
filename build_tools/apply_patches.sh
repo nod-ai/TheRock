@@ -33,4 +33,5 @@ echo "Running from $PWD"
 # apply_patch clr clr-respect-no-versioned-soname.patch
 
 stash_changes HIPIFY
+apply_patch HIPIFY HIPIFY-use-source-permissions.patch
 apply_patch HIPIFY HIPIFY-fix-llvm-link-dylib.patch
