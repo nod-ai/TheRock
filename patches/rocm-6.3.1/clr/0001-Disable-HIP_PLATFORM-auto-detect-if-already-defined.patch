@@ -44,7 +44,7 @@ index cc9cf1654..ad2201073 100644
 +      set(HIPCC_EXECUTABLE "hipcc.exe")
 +      set(HIPCONFIG_EXECUTABLE "hipconfig.exe")
 +    endif()
-
+ 
      # Set default HIPCC_BIN_DIR to /opt/rocm/bin
      if(NOT DEFINED HIPCC_BIN_DIR AND UNIX)
 -        set(HIPCC_BIN_DIR "/opt/rocm/bin" CACHE STRING "Default hipcc directory on linux.")
@@ -52,11 +52,11 @@ index cc9cf1654..ad2201073 100644
      endif()
 -    message(STATUS "HIPCC Binary Directory: ${HIPCC_BIN_DIR}")
 +    message(STATUS "Auto-detect HIP_PLATFORM from HIPCC Binary Directory: ${HIPCC_BIN_DIR}")
-
+ 
      if(NOT EXISTS ${HIPCC_BIN_DIR}/${HIPCONFIG_EXECUTABLE})
          message(FATAL_ERROR "Please pass hipcc/build or hipcc/bin using -DHIPCC_BIN_DIR.")
      endif()
-
+ 
 -    message(STATUS "HIP Common Directory: ${HIP_COMMON_DIR}")
 -    if(NOT DEFINED HIP_COMMON_DIR)
 -        message(FATAL_ERROR "Please pass HIP using -DHIP_COMMON_DIR. HIP_COMMON_DIR is incorrect")
@@ -95,17 +95,17 @@ index 9538dbbad..7babbfc36 100755
 @@ -53,7 +53,8 @@ if(MSVC)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG:FULL")
  endif()
-
+ 
 -set(HIPCC_BIN_DIR "" CACHE STRING "HIPCC and HIPCONFIG binary directories")
 +# Set default HIPCC_BIN_DIR to /opt/rocm/bin
 +set(HIPCC_BIN_DIR "/opt/rocm/bin" CACHE STRING "HIPCC and HIPCONFIG binary directories")
-
+ 
  if(__HIP_ENABLE_PCH)
    set(_pchStatus 1)
 @@ -393,9 +394,11 @@ endif()
  install(FILES ${PROJECT_BINARY_DIR}/include/hip/hip_version.h
          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hip)
-
+ 
 +set(HIP_INSTALLS_HIPCC OFF)
  if (NOT ${HIPCC_BIN_DIR} STREQUAL "")
    file(TO_CMAKE_PATH "${HIPCC_BIN_DIR}" HIPCC_BIN_DIR)
@@ -137,7 +137,7 @@ index 1fcdcd970..d033c09ac 100755
 +    set_and_check(hip_HIPCONFIG_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipconfig")
 +  endif()
  endif()
-
+ 
  if(NOT DEFINED HIP_PLATFORM)
 @@ -140,6 +142,7 @@ set(HIP_LIB_INSTALL_DIR ${hip_LIB_INSTALL_DIR})
  set(HIP_BIN_INSTALL_DIR ${hip_BIN_INSTALL_DIR})
@@ -150,5 +150,6 @@ index 1fcdcd970..d033c09ac 100755
 +  set(HIP_HIPCC_EXECUTABLE ${hip_HIPCC_EXECUTABLE})
 +  set(HIP_HIPCONFIG_EXECUTABLE ${hip_HIPCONFIG_EXECUTABLE})
 +endif()
---
+-- 
 2.43.0
+

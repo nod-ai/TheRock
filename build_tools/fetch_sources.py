@@ -9,13 +9,15 @@ import shlex
 import subprocess
 import sys
 
-DEFAULT_SOURCES_DIR = Path(__file__).resolve().parent.parent / "sources"
+THEROCK_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
+PATCHES_DIR = THEROCK_DIR / "patches"
 
 
 def exec(args: list[str | Path], cwd: Path):
     args = [str(arg) for arg in args]
     print(f"++ Exec [{cwd}]$ {shlex.join(args)}")
-    subprocess.check_call(args, cwd=str(cwd))
+    subprocess.check_call(args, cwd=str(cwd), stdin=subprocess.DEVNULL)
 
 
 def run(args):
@@ -42,16 +44,25 @@ def run(args):
     exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
 
     populate_ancillary_sources(args)
-
-    # Patches.
-    if not args.no_patch:
-        apply_patches(args)
+    apply_patches(args)
 
 
 def apply_patches(args):
-    # TODO: Can just merge this script in here if it survives.
-    script = Path(__file__).resolve().parent / "apply_patches.sh"
-    exec([script], cwd=args.dir)
+    if not args.patch_tag:
+        print("Not patching (no --patch-tag specified)")
+    patch_version_dir: Path = PATCHES_DIR / args.patch_tag
+    if not patch_version_dir.exists():
+        print(f"ERROR: Patch directory {patch_version_dir} does not exist")
+    for patch_project_dir in patch_version_dir.iterdir():
+        print(f"* Processing project patch directory {patch_project_dir}:")
+        project_dir: Path = args.dir / patch_project_dir.name
+        if not project_dir.exists():
+            print(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
+            continue
+        patch_files = list(patch_project_dir.glob("*.patch"))
+        patch_files.sort()
+        print(f"Applying {len(patch_files)} patches")
+        exec(["git", "am"] + patch_files, cwd=project_dir)
 
 
 def populate_ancillary_sources(args):
@@ -93,7 +104,12 @@ def main(argv):
         help="Branch to sync with repo tool",
         default="roc-6.3.x",
     )
-    parser.add_argument("--no-patch", action="store_true", help="Disable patching")
+    parser.add_argument(
+        "--patch-tag",
+        type=str,
+        default="rocm-6.3.1",
+        help="Patch tag to apply to sources after sync",
+    )
     parser.add_argument(
         "--depth", type=int, help="Git depth to pass to repo", default=None
     )

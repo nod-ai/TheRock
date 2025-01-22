@@ -8,6 +8,7 @@ therock_cmake_subproject_declare(rccl
   BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
+    -DROCM_PATH=
   COMPILER_TOOLCHAIN
     amd-llvm
   IGNORE_PACKAGES

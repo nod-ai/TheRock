@@ -1,8 +1,8 @@
-From 8148b2bb064a086a9e947df7dabc6496e6e3d7dd Mon Sep 17 00:00:00 2001
+From bb11a94929ddc927ed2c76ca0d2aff47e0dadb73 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Tue, 21 Jan 2025 17:37:09 -0800
-Subject: [PATCH] Make hipify-clang buildable with an LLVM configured to link
- libLLVM.so.
+Subject: [PATCH 1/2] Make hipify-clang buildable with an LLVM configured to
+ link libLLVM.so.
 
 Without these changes, if building against and LLVM configured with `-DLLVM_LINK_LLVM_DYLIB=ON`, the resulting binary will have ODR violations resulting in the dread duplicate CL option registered errors at runtime.
 
@@ -22,7 +22,7 @@ index 1b51a16e..d2055a01 100755
 @@ -64,7 +64,35 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
    file(GLOB_RECURSE HIPIFY_SOURCES src/*.cpp)
    file(GLOB_RECURSE HIPIFY_HEADERS src/*.h)
-
+ 
 -  add_llvm_executable(hipify-clang ${HIPIFY_SOURCES} ${HIPIFY_HEADERS})
 +  # In order to be compatible with an LLVM that uses LLVM_LINK_LLVM_DYLIB=ON,
 +  # must link core LLVM libraries via LLVM_LINK_COMPONENTS vs directly adding
@@ -54,7 +54,7 @@ index 1b51a16e..d2055a01 100755
 +    ${HIPIFY_SOURCES} ${HIPIFY_HEADERS}
 +  )
    target_link_directories(hipify-clang PRIVATE ${LLVM_LIBRARY_DIRS})
-
+ 
    if(HIPIFY_INCLUDE_IN_HIP_SDK)
 @@ -109,25 +137,8 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
      clangToolingCore
@@ -81,8 +81,9 @@ index 1b51a16e..d2055a01 100755
 -  endif()
 +    ${HIPIFY_ADDL_LINK_LIBS}
 +  )
-
+ 
    if(LLVM_PACKAGE_VERSION VERSION_EQUAL "16.0.0" OR LLVM_PACKAGE_VERSION VERSION_GREATER "16.0.0")
      if(MSVC)
---
+-- 
 2.43.0
+
