@@ -132,7 +132,7 @@ Ninja's built-in directory scoping allows easy partial-builds:
 Example:
 
 ```
-ninja comiler/amd-llvm/all
+ninja compiler/amd-llvm/all
 ```
 
 Dependencies are tracked so if building a leaf project, it will build projects
