@@ -6,6 +6,8 @@ therock_cmake_subproject_declare(rccl
   EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/rccl"
   # High latency LTO link of a single library.
   BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
   COMPILER_TOOLCHAIN
     amd-llvm
   IGNORE_PACKAGES

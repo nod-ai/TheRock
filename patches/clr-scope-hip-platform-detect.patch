@@ -1,15 +1,20 @@
-From d6d4f27de2035490d18a76a6f23a9b370dc19c76 Mon Sep 17 00:00:00 2001
+From 54553db0d22c76c25863b5af9467d03afb94a9d3 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
-Date: Wed, 22 Jan 2025 13:28:47 -0800
+Date: Wed, 22 Jan 2025 14:01:50 -0800
 Subject: [PATCH] Disable HIP_PLATFORM auto-detect if already defined.
 
 This code appears to be old copy-pasta and is effectively just a no-op if -DHIP_PLATFORM=amd is passed explicitly. It has a number of nit-picky checks which will fail in this case for no real reason.
 
 This is actually worse than that because it leaks global variables that establish a different default value/scoping vs the definitions in the inner hipamd/CMakeLists.txt. I opted to rewrite this section to scope the detection logic and keep it from leaking with respect to the inner build file. The detection logic is still not great but at least will not actively cause damage or make control flow hard to reason about. It seems like this is for legacy/compatibility so I opted to simply sequester it vs applying more diligence to it.
+
+Also fixes a bug in hip-config.cmake where it enforces that hipcc exists even if not taking the install branch in the code above.
+
+See: https://github.com/nod-ai/TheRock/issues/21
 ---
- CMakeLists.txt        | 43 +++++++++++++++++++++++++++----------------
- hipamd/CMakeLists.txt |  3 ++-
- 2 files changed, 29 insertions(+), 17 deletions(-)
+ CMakeLists.txt             | 43 ++++++++++++++++++++++++--------------
+ hipamd/CMakeLists.txt      |  5 ++++-
+ hipamd/hip-config.cmake.in | 21 +++++++++++--------
+ 3 files changed, 43 insertions(+), 26 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index cc9cf1654..ad2201073 100644
@@ -84,7 +89,7 @@ index cc9cf1654..ad2201073 100644
      option(BUILD_SHARED_LIBS "Build the shared library" ON)
      if (NOT BUILD_SHARED_LIBS)
 diff --git a/hipamd/CMakeLists.txt b/hipamd/CMakeLists.txt
-index 9538dbbad..18cbb2a70 100755
+index 9538dbbad..7babbfc36 100755
 --- a/hipamd/CMakeLists.txt
 +++ b/hipamd/CMakeLists.txt
 @@ -53,7 +53,8 @@ if(MSVC)
@@ -97,5 +102,53 @@ index 9538dbbad..18cbb2a70 100755
 
  if(__HIP_ENABLE_PCH)
    set(_pchStatus 1)
+@@ -393,9 +394,11 @@ endif()
+ install(FILES ${PROJECT_BINARY_DIR}/include/hip/hip_version.h
+         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hip)
+
++set(HIP_INSTALLS_HIPCC OFF)
+ if (NOT ${HIPCC_BIN_DIR} STREQUAL "")
+   file(TO_CMAKE_PATH "${HIPCC_BIN_DIR}" HIPCC_BIN_DIR)
+   if(EXISTS ${HIPCC_BIN_DIR})
++    set(HIP_INSTALLS_HIPCC ON)
+     install(PROGRAMS ${HIPCC_BIN_DIR}/${HIPCC_EXECUTABLE} DESTINATION bin)
+     install(PROGRAMS ${HIPCC_BIN_DIR}/${HIPCONFIG_EXECUTABLE} DESTINATION bin)
+     install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.pl DESTINATION bin)
+diff --git a/hipamd/hip-config.cmake.in b/hipamd/hip-config.cmake.in
+index 1fcdcd970..d033c09ac 100755
+--- a/hipamd/hip-config.cmake.in
++++ b/hipamd/hip-config.cmake.in
+@@ -101,12 +101,14 @@ set_and_check( hip_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@" )
+ set_and_check( hip_INCLUDE_DIRS "${hip_INCLUDE_DIR}" )
+ set_and_check( hip_LIB_INSTALL_DIR "@PACKAGE_LIB_INSTALL_DIR@" )
+ set_and_check( hip_BIN_INSTALL_DIR "@PACKAGE_BIN_INSTALL_DIR@" )
+-if (WIN32)
+-  set_and_check(hip_HIPCC_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipcc.exe")
+-  set_and_check(hip_HIPCONFIG_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipconfig.exe")
+-else()
+-  set_and_check(hip_HIPCC_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipcc")
+-  set_and_check(hip_HIPCONFIG_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipconfig")
++if("@HIP_INSTALLS_HIPCC@")
++  if (WIN32)
++    set_and_check(hip_HIPCC_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipcc.exe")
++    set_and_check(hip_HIPCONFIG_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipconfig.exe")
++  else()
++    set_and_check(hip_HIPCC_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipcc")
++    set_and_check(hip_HIPCONFIG_EXECUTABLE "${hip_BIN_INSTALL_DIR}/hipconfig")
++  endif()
+ endif()
+
+ if(NOT DEFINED HIP_PLATFORM)
+@@ -140,6 +142,7 @@ set(HIP_LIB_INSTALL_DIR ${hip_LIB_INSTALL_DIR})
+ set(HIP_BIN_INSTALL_DIR ${hip_BIN_INSTALL_DIR})
+ set(HIP_LIBRARIES ${hip_LIBRARIES})
+ set(HIP_LIBRARY ${hip_LIBRARY})
+-set(HIP_HIPCC_EXECUTABLE ${hip_HIPCC_EXECUTABLE})
+-set(HIP_HIPCONFIG_EXECUTABLE ${hip_HIPCONFIG_EXECUTABLE})
+-
++if("@HIP_INSTALLS_HIPCC@")
++  set(HIP_HIPCC_EXECUTABLE ${hip_HIPCC_EXECUTABLE})
++  set(HIP_HIPCONFIG_EXECUTABLE ${hip_HIPCONFIG_EXECUTABLE})
++endif()
 --
 2.43.0
