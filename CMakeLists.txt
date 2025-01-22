@@ -26,7 +26,7 @@ set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-o
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
 # Library specific enable flags.
-option(THEROCK_ENABLE_RCCL "Enable the comm-libs/rccl sub-project" ON)
+option(THEROCK_ENABLE_RCCL "Enable the comm_libs/rccl sub-project" ON)
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

@@ -6,5 +6,4 @@ therock_set_install_rpath(
     rccl
   PATHS
     .
-    llvm/lib
 )
