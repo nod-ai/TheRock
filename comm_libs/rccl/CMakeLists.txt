@@ -8,9 +8,6 @@ therock_cmake_subproject_declare(rccl
   BACKGROUND_BUILD
   COMPILER_TOOLCHAIN
     amd-llvm
-  CMAKE_ARGS
-    # TODO: Do not submit.
-    -DCMAKE_PROGRAM_PATH=/home/stella/rock/TheRock/build/compiler/hipify/dist/bin
   IGNORE_PACKAGES
     # The current version of rccl needs to download a 2y old version of rocm-cmake
     # to work and it will only do so if the system resolver reports it not found

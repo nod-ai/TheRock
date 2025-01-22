@@ -4,6 +4,8 @@
 
 therock_cmake_subproject_declare(hipify
   EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/HIPIFY"
+  INTERFACE_PROGRAM_DIRS
+    bin
   CMAKE_ARGS
     -DHIPIFY_INSTALL_CLANG_HEADERS=OFF
   RUNTIME_DEPS
