@@ -5,9 +5,12 @@
 #     super-project
 #   THEROCK_PACKAGE_DIR_${package_name}: Directory in the super-project to
 #     resolve the dependency.
+#   THEROCK_IGNORE_PACKAGES: Packages to ignore, even if they are in
+#     THEROCK_PROVIDED_PACKAGES, falling back to the system resolver.
 # See: _therock_cmake_subproject_setup_deps which assembles these variables
 macro(therock_dependency_provider method package_name)
-  if("${package_name}" IN_LIST THEROCK_PROVIDED_PACKAGES)
+  if("${package_name}" IN_LIST THEROCK_PROVIDED_PACKAGES AND NOT
+     "${package_name}" IN_LIST THEROCK_IGNORE_PACKAGES)
     # It is quite hard to completely neuter find_package so that for an
     # arbitrary signature it will only attempt to find from one specified path.
     # This is important because it "latches" and if any find_package manages

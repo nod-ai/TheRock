@@ -16,6 +16,7 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
   CMAKE_C_COMPILER_LAUNCHER
   CMAKE_CXX_COMPILER_LAUNCHER
   CMAKE_INSTALL_LIBDIR
+  CMAKE_LINKER
   CMAKE_PLATFORM_NO_VERSIONED_SONAME
   Python3_EXECUTABLE
   Python3_FIND_VIRTUALENV
@@ -27,6 +28,13 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
   ROCM_VERSION
   AMDGPU_TARGETS
 )
+
+if(CMAKE_C_VISIBILITY_PRESET)
+  list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_C_VISIBILITY_PRESET})
+endif()
+if(CMAKE_CXX_VISIBILITY_PRESET)
+  list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_CXX_VISIBILITY_PRESET})
+endif()
 
 # therock_cmake_subproject_declare
 # This declares a cmake based subproject by setting a number of key properties
@@ -53,12 +61,19 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
 # files must be distributed with this project's artifacts in order to function.
 # INTERFACE_LINK_DIRS: Relative paths within the install tree which dependent
 # sub-projects must add to their runtime link library path.
+# IGNORE_PACKAGES: List of find_package package names to ignore, even if they
+# are advertised by the super-project. These packages will always fall-through
+# to the system resolver.
+# COMPILER_TOOLCHAIN: Uses a built compiler toolchain instead of the
+# super-project specified C/C++ compiler. This will add an implicit dep on
+# the named compiler sub-project and reconfigure CMAKE_C(XX)_COMPILER options.
+# Only a fixed set of supported toolchains are supported (currently "amd-llvm").
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL"
-    "EXTERNAL_SOURCE_DIR;DIR_PREFIX;INSTALL_DESTINATION"
-    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS"
+    "EXTERNAL_SOURCE_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN"
+    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES"
   )
   if(TARGET "${target_name}")
     message(FATAL_ERROR "Cannot declare subproject '${target_name}': a target with that name already exists")
@@ -118,6 +133,8 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_PRIVATE_LINK_DIRS "${_private_link_dirs}"
     # That are advertised to dependents
     THEROCK_INTERFACE_LINK_DIRS "${_interface_link_dirs}"
+    THEROCK_IGNORE_PACKAGES "${ARG_IGNORE_PACKAGES}"
+    THEROCK_COMPILER_TOOLCHAIN "${ARG_COMPILER_TOOLCHAIN}"
   )
 
   if(ARG_ACTIVATE)
@@ -150,6 +167,7 @@ function(therock_cmake_subproject_activate target_name)
   # Get properties.
   get_target_property(_binary_dir "${target_name}" THEROCK_BINARY_DIR)
   get_target_property(_build_deps "${target_name}" THEROCK_BUILD_DEPS)
+  get_target_property(_compiler_toolchain "${target_name}" THEROCK_COMPILER_TOOLCHAIN)
   get_target_property(_dist_dir "${target_name}" THEROCK_DIST_DIR)
   get_target_property(_runtime_deps "${target_name}" THEROCK_RUNTIME_DEPS)
   get_target_property(_cmake_args "${target_name}" THEROCK_CMAKE_ARGS)
@@ -157,6 +175,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_cmake_source_dir "${target_name}" THEROCK_CMAKE_SOURCE_DIR)
   get_target_property(_exclude_from_all "${target_name}" THEROCK_EXCLUDE_FROM_ALL)
   get_target_property(_external_source_dir "${target_name}" THEROCK_EXTERNAL_SOURCE_DIR)
+  get_target_property(_ignore_packages "${target_name}" THEROCK_IGNORE_PACKAGES)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
   get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
@@ -184,19 +203,25 @@ function(therock_cmake_subproject_activate target_name)
     message(STATUS "  RUNTIME_DEPS: ${_runtime_deps_pretty}")
   endif()
 
+  get_property(_mirror_cmake_vars GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS)
+
+  # Handle compiler toolchain.
+  set(_compiler_toolchain_addl_depends)
+  _therock_cmake_subproject_setup_toolchain("${_compiler_toolchain}")
+
   # Generate the project_init.cmake
   set(_dep_provider_file)
   if(_build_deps OR _runtime_deps)
     set(_dep_provider_file "${THEROCK_SOURCE_DIR}/cmake/therock_subproject_dep_provider.cmake")
   endif()
   set(_injected_file "${THEROCK_SOURCE_DIR}/cmake/therock_external_project_include.cmake")
-  get_property(_mirror_cmake_vars GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS)
   set(_init_contents)
   foreach(_var_name ${_mirror_cmake_vars})
     string(APPEND _init_contents "set(${_var_name} \"@${_var_name}@\" CACHE STRING \"\" FORCE)\n")
   endforeach()
   _therock_cmake_subproject_setup_deps(_deps_contents ${_build_deps} ${_runtime_deps})
   string(APPEND _init_contents "${_deps_contents}")
+  string(APPEND _init_contents "set(THEROCK_IGNORE_PACKAGES \"@_ignore_packages@\")\n")
   foreach(_private_link_dir ${_private_link_dirs})
     message(STATUS "  LINK_DIR: ${_private_link_dir}")
     string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
@@ -258,6 +283,7 @@ function(therock_cmake_subproject_activate target_name)
       ${_configure_dep_stamps}
       ${_pre_hook_path}
       ${_post_hook_path}
+      ${_compiler_toolchain_addl_depends}
 
       # TODO: Have a mechanism for adding more depends for better rebuild ergonomics
     ${_terminal_option}
@@ -387,12 +413,17 @@ endfunction()
 function(_therock_cmake_subproject_setup_deps out_contents)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
   set(_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
+  set(_already_provided)
   foreach(dep_target ${ARGN})
     _therock_assert_is_cmake_subproject("${dep_target}")
 
     get_target_property(_provides "${dep_target}" THEROCK_PROVIDE_PACKAGES)
     if(_provides)
       foreach(_package_name ${_provides})
+        if(_package_name IN_LIST _already_provided)
+          continue()
+        endif()
+        list(APPEND _already_provided "${_package_name}")
         get_target_property(_stage_dir "${dep_target}" THEROCK_STAGE_DIR)
         set(_relpath_name THEROCK_PACKAGE_RELPATH_${_package_name})
         get_target_property(_relpath "${dep_target}" ${_relpath_name})
@@ -455,4 +486,36 @@ function(_therock_cmake_subproject_collect_runtime_deps out_dirs out_transitive_
   endforeach()
   set("${out_dirs}" "${_dirs}" PARENT_SCOPE)
   set("${out_transitive_deps}" "${_transitive_deps}" PARENT_SCOPE)
+endfunction()
+
+# Sets variables in the parent scope of the therock_cmake_subproject_activate
+# prior to initializing sub-project arguments to configure the toolchain based
+# on the user-provided COMPILER_TOOLCHAIN.
+function(_therock_cmake_subproject_setup_toolchain compiler_toolchain)
+  string(APPEND CMAKE_MESSAGE_INDENT "  ")
+  if(NOT compiler_toolchain)
+    return()
+  endif()
+
+  if(compiler_toolchain STREQUAL "amd-llvm")
+    _therock_assert_is_cmake_subproject("amd-llvm")
+    get_target_property(_dist_dir amd-llvm THEROCK_DIST_DIR)
+    get_target_property(_stamp_dir amd-llvm THEROCK_STAMP_DIR)
+    # Add a dependency on the toolchain's dist
+    set(_compiler_toolchain_addl_depends "${_stamp_dir}/dist.stamp" PARENT_SCOPE)
+    set(CMAKE_C_COMPILER "${_dist_dir}/lib/llvm/bin/clang")
+    set(CMAKE_CXX_COMPILER "${_dist_dir}/lib/llvm/bin/clang++")
+    set(CMAKE_LINKER "${_dist_dir}/lib/llvm/bin/lld")
+    message(STATUS "Compiler toolchain amd-llvm:")
+    string(APPEND CMAKE_MESSAGE_INDENT "  ")
+    message(STATUS "CMAKE_C_COMPILER = ${CMAKE_C_COMPILER}")
+    message(STATUS "CMAKE_CXX_COMPILER = ${CMAKE_CXX_COMPILER}")
+    message(STATUS "CMAKE_LINKER = ${CMAKE_LINKER}")
+  else()
+    message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
+  endif()
+
+  set(CMAKE_C_COMPILER "${CMAKE_C_COMPILER}" PARENT_SCOPE)
+  set(CMAKE_CXX_COMPILER "${CMAKE_CXX_COMPILER}" PARENT_SCOPE)
+  set(CMAKE_LINKER "${CMAKE_LINKER}" PARENT_SCOPE)
 endfunction()

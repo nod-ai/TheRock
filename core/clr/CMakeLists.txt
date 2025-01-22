@@ -8,9 +8,10 @@ therock_cmake_subproject_declare(hip-clr
     -DHIP_PLATFORM=amd
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
     -DCLR_BUILD_HIP=ON
+  BUILD_DEPS
+    rocm-cmake
   RUNTIME_DEPS
     amd-llvm
-    rocm-cmake
     rocprofiler-register
     ROCR-Runtime
   INTERFACE_LINK_DIRS

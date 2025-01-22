@@ -25,6 +25,9 @@ set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string"
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
+# Library specific enable flags.
+option(THEROCK_ENABLE_RCCL "Enable the comm-libs/rccl sub-project" ON)
+
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${THEROCK_SOURCE_DIR}/install" CACHE PATH "" FORCE)
@@ -57,38 +60,7 @@ set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 # consistency in built packages, so hard-code it.
 set(CMAKE_INSTALL_LIBDIR "lib")
 
-option(ALWAYS_BUILD_SUBPROJECTS
-  "Don't let the brittle CMake external project machinery decide if a sub-project needs to rebuild. Always run the underlying build."
-  OFF)
-set(FIND_PACKAGE_OPTIONS)
 
-macro(add_package_path PackageName path)
-  list(APPEND FIND_PACKAGE_OPTIONS "-D${PackageName}_DIR=${path}")
-endmacro()
-
-set(DEFAULT_CMAKE_ARGS
-  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-  -DCMAKE_PLATFORM_NO_VERSIONED_SONAME=${CMAKE_PLATFORM_NO_VERSIONED_SONAME}
-  -DPython3_EXECUTABLE=${Python3_EXECUTABLE}
-  -DPython3_FIND_VIRTUALENV=${Python3_FIND_VIRTUALENV}
-  -DTHEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}
-  -DROCM_GIT_DIR=${ROCM_GIT_DIR}
-  -DROCM_MAJOR_VERSION=${ROCM_MAJOR_VERSION}
-  -DROCM_MINOR_VERSION=${ROCM_MINOR_VERSION}
-  -DROCM_PATCH_VERSION=${ROCM_PATCH_VERSION}
-  -DROCM_VERSION=${ROCM_VERSION}
-  "-DROCM_PATH=${STAGING_INSTALL_DIR}"
-  "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
-  "-DAMDGPU_TARGETS=${AMDGPU_TARGETS}"
-  -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-  -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
-  -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
-   # On some distributions, this will install to lib64. We would like
-   # consistency in built packages, so hard-code it.
-   -DCMAKE_INSTALL_LIBDIR=lib
-   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${CMAKE_CURRENT_SOURCE_DIR}/cmake/therock_external_project_include.cmake
-)
 if(CMAKE_C_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_C_VISIBILITY_PRESET})
 endif()
@@ -101,34 +73,8 @@ endif()
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
+add_subdirectory(comm_libs)
 
-# ################################################################################
-# # RCCL
-# ################################################################################
-
-# # TODO: Re-enable rccl after adapting to 6.3.x build option differences.
-# # Now seems to depend on rocprofiler.
-# # ExternalProject_Add(
-# #   rccl
-# #   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rccl
-# #   SOURCE_DIR "${ROCM_GIT_DIR}/rccl"
-# #   DEPENDS
-# #     clr
-# #     hipcc
-# #     hipify
-# #     rocminfo
-# #   CMAKE_ARGS
-# #     ${DEFAULT_CMAKE_ARGS}
-# #     ${FIND_PACKAGE_OPTIONS}
-# #     # TODO: Audit how the 6.3.x build finds its C++ compiler.
-# #     #-DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/bin/hipcc
-# #     -DCMAKE_CXX_COMPILER=${STAGING_INSTALL_DIR}/lib/llvm/bin/clang++
-# #     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-# #     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
-# #   USES_TERMINAL_CONFIGURE TRUE
-# #   USES_TERMINAL_BUILD TRUE
-# #   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# # )
 
 # ################################################################################
 # # Testing
