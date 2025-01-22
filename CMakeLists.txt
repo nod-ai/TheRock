@@ -14,12 +14,14 @@ project(THEROCK)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(ExternalProject)
 include(therock_subproject)
+include(therock_job_pools)
 
 ################################################################################
 # Options
 ################################################################################
 
 option(THEROCK_INTERACTIVE "Enable interactive build mode which will cause all sub-project invocations to stream to the console (reducing parallelism)" OFF)
+set(THEROCK_BACKGROUND_BUILD_JOBS "0" CACHE STRING "Number of jobs to reserve for projects marked for background building (empty=auto or a number)")
 
 set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string")
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")

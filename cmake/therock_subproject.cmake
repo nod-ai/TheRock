@@ -68,10 +68,13 @@ endif()
 # super-project specified C/C++ compiler. This will add an implicit dep on
 # the named compiler sub-project and reconfigure CMAKE_C(XX)_COMPILER options.
 # Only a fixed set of supported toolchains are supported (currently "amd-llvm").
+# BACKGROUND_BUILD: Option to indicate that the subproject does low concurrency,
+# high latency build steps. It will be run in the backgroun in a job pool that
+# allows some overlapping of work (controlled by THEROCK_BACKGROUND_BUILD_JOBS).
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
-    "ACTIVATE;EXCLUDE_FROM_ALL"
+    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
     "EXTERNAL_SOURCE_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES"
   )
@@ -113,8 +116,15 @@ function(therock_cmake_subproject_declare target_name)
   list(REMOVE_DUPLICATES _interface_link_dirs)
   list(REMOVE_DUPLICATES _transitive_runtime_deps)
 
+  # Build pool determination.
+  set(_build_pool)
+  if(ARG_BACKGROUND_BUILD)
+    set(_build_pool "therock_background")
+  endif()
+
   set_target_properties("${target_name}" PROPERTIES
     THEROCK_SUBPROJECT cmake
+    THEROCK_BUILD_POOL "${_build_pool}"
     THEROCK_EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
@@ -167,6 +177,7 @@ function(therock_cmake_subproject_activate target_name)
   # Get properties.
   get_target_property(_binary_dir "${target_name}" THEROCK_BINARY_DIR)
   get_target_property(_build_deps "${target_name}" THEROCK_BUILD_DEPS)
+  get_target_property(_build_pool "${target_name}" THEROCK_BUILD_POOL)
   get_target_property(_compiler_toolchain "${target_name}" THEROCK_COMPILER_TOOLCHAIN)
   get_target_property(_dist_dir "${target_name}" THEROCK_DIST_DIR)
   get_target_property(_runtime_deps "${target_name}" THEROCK_RUNTIME_DEPS)
@@ -252,8 +263,12 @@ function(therock_cmake_subproject_activate target_name)
   # configure target
   set(_configure_stamp_file "${_stamp_dir}/configure.stamp")
   set(_terminal_option)
+  set(_build_terminal_option "USES_TERMINAL")
   if(THEROCK_INTERACTIVE)
     set(_terminal_option "USES_TERMINAL")
+  elseif(_build_pool)
+    message(STATUS "  JOB_POOL: ${_build_pool}")
+    set(_build_terminal_option JOB_POOL "${_build_pool}")
   endif()
   set(_stage_destination_dir "${_stage_dir}")
   if(_install_destination)
@@ -272,6 +287,7 @@ function(therock_cmake_subproject_activate target_name)
     COMMAND "${CMAKE_COMMAND}" -E touch "${_configure_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Configure sub-project ${target_name}"
+    ${_terminal_option}
     BYPRODUCTS
       "${_binary_dir}/CMakeCache.txt"
       "${_binary_dir}/cmake_install.cmake"
@@ -286,7 +302,6 @@ function(therock_cmake_subproject_activate target_name)
       ${_compiler_toolchain_addl_depends}
 
       # TODO: Have a mechanism for adding more depends for better rebuild ergonomics
-    ${_terminal_option}
   )
   add_custom_target(
     "${target_name}+configure"
@@ -303,10 +318,10 @@ function(therock_cmake_subproject_activate target_name)
     COMMAND "${CMAKE_COMMAND}" -E touch "${_build_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Building sub-project ${target_name}"
+    ${_build_terminal_option}
     DEPENDS
       "${_configure_stamp_file}"
       ${_sources}
-    USES_TERMINAL  # Always use the terminal for the build as we want to serialize
   )
   add_custom_target(
     "${target_name}+build"
@@ -324,9 +339,9 @@ function(therock_cmake_subproject_activate target_name)
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stage_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Stage installing sub-project ${target_name}"
+    ${_terminal_option}
     DEPENDS
       "${_build_stamp_file}"
-    ${_terminal_option}
   )
   add_custom_target(
     "${target_name}+stage"
@@ -346,10 +361,10 @@ function(therock_cmake_subproject_activate target_name)
     COMMAND "${CMAKE_COMMAND}" -P "${_merge_dist_script}" "${_dist_dir}" ${_dist_source_dirs}
     COMMAND "${CMAKE_COMMAND}" -E touch "${_dist_stamp_file}"
     COMMENT "Merging sub-project dist directory for ${target_name}"
+    ${_terminal_option}
     DEPENDS
       "${_stage_stamp_file}"
       "${_merge_dist_script}"
-    ${_terminal_option}
   )
   add_custom_target(
     "${target_name}+dist"
