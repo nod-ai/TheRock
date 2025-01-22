@@ -8,6 +8,9 @@ therock_cmake_subproject_declare(hip-clr
     -DHIP_PLATFORM=amd
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
     -DCLR_BUILD_HIP=ON
+    # Legacy: Disable various auto-detection logic that breaks out of jail
+    # and can use local machine tools.
+    -DHIPCC_BIN_DIR=
   BUILD_DEPS
     rocm-cmake
   RUNTIME_DEPS

@@ -35,3 +35,7 @@ echo "Running from $PWD"
 stash_changes HIPIFY
 apply_patch HIPIFY HIPIFY-use-source-permissions.patch
 apply_patch HIPIFY HIPIFY-fix-llvm-link-dylib.patch
+
+stash_changes clr
+# https://github.com/nod-ai/TheRock/issues/21
+apply_patch clr clr-scope-hip-platform-detect.patch
