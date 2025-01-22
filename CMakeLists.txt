@@ -102,30 +102,6 @@ add_subdirectory(compiler)
 add_subdirectory(core)
 
 # ################################################################################
-# # HIPCC
-# ################################################################################
-
-# ExternalProject_Add(
-#   hipcc
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/hipcc
-#   # Can't build directly as part of LLVM, because we want hipcc staged under
-#   # bin, not llvm/bin.
-#   SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/hipcc"
-#   DEPENDS
-#     amd-llvm # runtime
-#     rocminfo # runtime
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#     # We install llvm in its own sub-directory.
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# ################################################################################
 # # CLR
 # ################################################################################
 
@@ -163,27 +139,6 @@ add_subdirectory(core)
 # add_package_path(HIP "${STAGING_INSTALL_DIR}/lib/cmake/hip")
 # add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
 # add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
-
-# ################################################################################
-# # ROCm SMI
-# ################################################################################
-
-# ExternalProject_Add(
-#   rocm_smi_lib
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi_lib
-#   SOURCE_DIR "${ROCM_GIT_DIR}/rocm_smi_lib"
-#   DEPENDS
-#     rocm-core
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# add_package_path(rocm-smi "${STAGING_INSTALL_DIR}/lib/cmake/rocm-smi")
 
 # ################################################################################
 # # HIPIFY
