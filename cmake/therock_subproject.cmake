@@ -94,6 +94,7 @@ function(therock_cmake_subproject_declare target_name)
   # The link dirs that we advertise combine interface link dirs of runtime deps
   # and any that we declared.
   list(APPEND _interface_link_dirs ${_private_link_dirs} ${_declared_link_dirs})
+  list(REMOVE_DUPLICATES _private_link_dirs)
   list(REMOVE_DUPLICATES _interface_link_dirs)
   list(REMOVE_DUPLICATES _transitive_runtime_deps)
 

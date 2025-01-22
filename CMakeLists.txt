@@ -96,69 +96,12 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
-# Add subdirectories in dependency DAG order.
+# Add subdirectories in dependency DAG order (which happens to be semi-alpha:
+# don't be fooled).
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
-
-# ################################################################################
-# # CLR
-# ################################################################################
-
-# ExternalProject_Add(
-#   clr
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/clr
-#   SOURCE_DIR "${ROCM_GIT_DIR}/clr"
-#   DEPENDS
-#     amd-llvm
-#     hipcc
-#     rocm-core
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#     -DHIP_PLATFORM=amd
-#     "-DOFFLOAD_ARCH_STR=${AMDGPU_TARGETS}"
-#     "-DHIP_CLANG_PATH=${STAGING_INSTALL_DIR}/llvm/bin"
-#     # Some junk needs this to be defined but is special cased so if empty,
-#     # bad things don't happen.
-#     "-DHIPCC_BIN_DIR=${STAGING_INSTALL_DIR}/bin"
-#     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
-#     # What is this?
-#     -DROCM_PATCH_VERSION=99999
-#     -D__HIP_ENABLE_PCH=OFF
-#     -DCLR_BUILD_HIP=ON
-#     # Force CMake to reconfigure if key values change.
-#     "-D_STAMP=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
-
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
-
-# add_package_path(HIP "${STAGING_INSTALL_DIR}/lib/cmake/hip")
-# add_package_path(hip-lang "${STAGING_INSTALL_DIR}/lib/cmake/hip-lang")
-# add_package_path(hiprtc "${STAGING_INSTALL_DIR}/lib/cmake/hiprtc")
-
-# ################################################################################
-# # HIPIFY
-# ################################################################################
-
-# ExternalProject_Add(
-#   hipify
-#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/hipify
-#   SOURCE_DIR "${ROCM_GIT_DIR}/HIPIFY"
-#   DEPENDS
-#     amd-llvm
-#     clr
-#   CMAKE_ARGS
-#     ${DEFAULT_CMAKE_ARGS}
-#     ${FIND_PACKAGE_OPTIONS}
-#     -DCMAKE_INSTALL_PREFIX=${STAGING_INSTALL_DIR}
-#   USES_TERMINAL_CONFIGURE TRUE
-#   USES_TERMINAL_BUILD TRUE
-#   BUILD_ALWAYS ${ALWAYS_BUILD_SUBPROJECTS}
-# )
+add_subdirectory(hip)
 
 # ################################################################################
 # # RCCL

@@ -2,6 +2,8 @@
 # Applies patches that we are maintaining on the ROCM sources.
 # These are developed against HEAD.
 # Must be run from the repo checkout dir.
+# To get a patch from a git commit, use a command like:
+#  git format-patch -1 8148b2bb064a086a9e947df7dabc6496e6e3d7dd --stdout > ~/some.patch
 set -euxo pipefail
 
 repo_dir="$(pwd)"
@@ -29,3 +31,6 @@ echo "Running from $PWD"
 # stash_changes clr
 # apply_patch clr clr-disable-hipconfig-check.patch
 # apply_patch clr clr-respect-no-versioned-soname.patch
+
+stash_changes HIPIFY
+apply_patch HIPIFY HIPIFY-fix-llvm-link-dylib.patch
