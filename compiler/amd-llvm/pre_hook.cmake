@@ -14,20 +14,3 @@ set(LLVM_EXTERNAL_PROJECTS "amddevice-libs;amdcomgr;hipcc" CACHE STRING "Enable 
 set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs")
 set(LLVM_EXTERNAL_AMDCOMGR_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/comgr")
 set(LLVM_EXTERNAL_HIPCC_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/hipcc")
-
-#set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "llvm/amdgcn-new")
-# hipcc expects bit codes under amdgcn.
-#set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn")
-
-# add_custom_target(
-#    amd-bitcodes-symlink ALL
-#    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-#    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/..
-#    COMMAND ${CMAKE_COMMAND} -E create_symlink amdgcn ${CMAKE_INSTALL_PREFIX}/../amdgcn
-# )
-# install(CODE "execute_process( \
-#     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/.. \
-#     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm/amdgcn ${CMAKE_INSTALL_PREFIX}/../amdgcn \
-#     COMMAND_ERROR_IS_FATAL ANY \
-#     )"
-# )
