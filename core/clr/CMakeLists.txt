@@ -8,6 +8,7 @@ therock_cmake_subproject_declare(hip-clr
     -DHIP_PLATFORM=amd
     "-DHIP_COMMON_DIR=${ROCM_GIT_DIR}/HIP"
     -DCLR_BUILD_HIP=ON
+    -DHIPCC_BIN_DIR="${THEROCK_BINARY_DIR}/compiler/hipify/dist/lib/llvm/bin/"
   BUILD_DEPS
     rocm-cmake
   RUNTIME_DEPS
