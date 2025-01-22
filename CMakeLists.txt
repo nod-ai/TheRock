@@ -101,7 +101,6 @@ endif()
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
-add_subdirectory(hip)
 
 # ################################################################################
 # # RCCL
