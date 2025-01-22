@@ -215,7 +215,7 @@ function(therock_cmake_subproject_activate target_name)
 
   # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
   # on the stage.stamp file). These are a dependency for configure.
-  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps} ${runtime_deps})
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps} ${_runtime_deps})
 
   # Target flags.
   set(_all_option)
