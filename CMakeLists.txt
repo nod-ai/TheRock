@@ -19,6 +19,7 @@ include(therock_job_pools)
 ################################################################################
 # Options
 ################################################################################
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(THEROCK_INTERACTIVE "Enable interactive build mode which will cause all sub-project invocations to stream to the console (reducing parallelism)" OFF)
 set(THEROCK_BACKGROUND_BUILD_JOBS "0" CACHE STRING "Number of jobs to reserve for projects marked for background building (empty=auto or a number)")
@@ -76,7 +77,7 @@ endif()
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
-add_subdirectory(comm_libs)
+add_subdirectory(comm-libs)
 
 
 # ################################################################################
@@ -89,3 +90,8 @@ add_executable(
 )
 target_link_libraries(dlopen-hip dl)
 
+
+################################################################################
+# Finalization
+################################################################################
+therock_subproject_merge_compile_commands()

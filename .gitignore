@@ -12,3 +12,4 @@ _deps
 build/
 install/
 sources/
+.vscode/

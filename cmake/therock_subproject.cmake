@@ -20,6 +20,8 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
   AMDGPU_TARGETS
 )
 
+set_property(GLOBAL PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES)
+
 if(CMAKE_C_VISIBILITY_PRESET)
   list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_C_VISIBILITY_PRESET})
 endif()
@@ -64,34 +66,56 @@ endif()
 # BACKGROUND_BUILD: Option to indicate that the subproject does low concurrency,
 # high latency build steps. It will be run in the backgroun in a job pool that
 # allows some overlapping of work (controlled by THEROCK_BACKGROUND_BUILD_JOBS).
+# CMAKE_LISTS_RELPATH: Relative path within the source directory to the
+# CMakeLists.txt.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
-    "EXTERNAL_SOURCE_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS"
+    "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES"
   )
   if(TARGET "${target_name}")
     message(FATAL_ERROR "Cannot declare subproject '${target_name}': a target with that name already exists")
   endif()
 
-  message(STATUS "Including subproject ${target_name} (from ${ARG_EXTERNAL_SOURCE_DIR})")
+  cmake_path(IS_ABSOLUTE ARG_EXTERNAL_SOURCE_DIR _source_is_absolute)
+  if(_source_is_absolute)
+    if(NOT ARG_BINARY_DIR)
+      # TODO: Swap these lines once moved.
+      set(ARG_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+      # message(FATAL_ERROR "If specifying an absolute SOURCE_DIR, BINARY_DIR must be specified")
+    endif()
+  else()
+    if(NOT ARG_BINARY_DIR)
+      set(ARG_BINARY_DIR "${ARG_EXTERNAL_SOURCE_DIR}")
+    endif()
+    cmake_path(ABSOLUTE_PATH ARG_EXTERNAL_SOURCE_DIR)
+    cmake_path(ABSOLUTE_PATH ARG_BINARY_DIR BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+  endif()
+
+  set(_cmake_source_dir "${ARG_EXTERNAL_SOURCE_DIR}")
+  if(ARG_CMAKE_LISTS_RELPATH)
+    cmake_path(APPEND _cmake_source_dir "${ARG_CMAKE_LISTS_RELPATH}")
+  endif()
+
+  message(STATUS "Including subproject ${target_name} (from ${_cmake_source_dir})")
   add_custom_target("${target_name}" COMMENT "Top level target to build the ${target_name} sub-project")
 
   # Build directory.
-  set(_binary_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}build")
+  set(_binary_dir "${ARG_BINARY_DIR}/${ARG_DIR_PREFIX}build")
   make_directory("${_binary_dir}")
 
   # Stage directory.
-  set(_stage_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}stage")
+  set(_stage_dir "${ARG_BINARY_DIR}/${ARG_DIR_PREFIX}stage")
   make_directory("${_stage_dir}")
 
   # Dist directory.
-  set(_dist_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}dist")
+  set(_dist_dir "${ARG_BINARY_DIR}/${ARG_DIR_PREFIX}dist")
   make_directory("${_dist_dir}")
 
   # Stamp directory.
-  set(_stamp_dir "${CMAKE_CURRENT_BINARY_DIR}/${ARG_DIR_PREFIX}stamp")
+  set(_stamp_dir "${ARG_BINARY_DIR}/${ARG_DIR_PREFIX}stamp")
   make_directory("${_stamp_dir}")
 
   # Collect LINK_DIRS and PROGRAM_DIRS from explicit args and RUNTIME_DEPS.
@@ -135,9 +159,9 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_STAGE_DIR "${_stage_dir}"
     THEROCK_INSTALL_DESTINATION "${ARG_INSTALL_DESTINATION}"
     THEROCK_STAMP_DIR "${_stamp_dir}"
-    THEROCK_CMAKE_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
-    THEROCK_CMAKE_PROJECT_INIT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${ARG_BUILD_DIR}_init.cmake"
-    THEROCK_CMAKE_PROJECT_TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/${ARG_BUILD_DIR}_toolchain.cmake"
+    THEROCK_CMAKE_SOURCE_DIR "${_cmake_source_dir}"
+    THEROCK_CMAKE_PROJECT_INIT_FILE "${ARG_BINARY_DIR}/${ARG_BUILD_DIR}_init.cmake"
+    THEROCK_CMAKE_PROJECT_TOOLCHAIN_FILE "${ARG_BINARY_DIR}/${ARG_BUILD_DIR}_toolchain.cmake"
     THEROCK_CMAKE_ARGS "${ARG_CMAKE_ARGS}"
     # Non-transitive build deps.
     THEROCK_BUILD_DEPS "${ARG_BUILD_DEPS}"
@@ -216,11 +240,11 @@ function(therock_cmake_subproject_activate target_name)
   set(_build_comment_suffix)
 
   # Detect pre/post hooks.
-  set(_pre_hook_path "${CMAKE_CURRENT_SOURCE_DIR}/pre_hook.cmake")
+  set(_pre_hook_path "${CMAKE_CURRENT_SOURCE_DIR}/pre_hook_${target_name}.cmake")
   if(NOT EXISTS "${_pre_hook_path}")
     set(_pre_hook_path)
   endif()
-  set(_post_hook_path "${CMAKE_CURRENT_SOURCE_DIR}/post_hook.cmake")
+  set(_post_hook_path "${CMAKE_CURRENT_SOURCE_DIR}/post_hook_${target_name}.cmake")
   if(NOT EXISTS "${_post_hook_path}")
     set(_post_hook_path)
   endif()
@@ -307,6 +331,7 @@ function(therock_cmake_subproject_activate target_name)
   if(_install_destination)
     cmake_path(APPEND _stage_destination_dir "${_install_destination}")
   endif()
+  set(_compile_commands_file "${PROJECT_BINARY_DIR}/compile_commands_fragment_${target_name}.json")
   add_custom_command(
     OUTPUT "${_configure_stamp_file}"
     COMMAND "${CMAKE_COMMAND}"
@@ -318,13 +343,18 @@ function(therock_cmake_subproject_activate target_name)
       "-DCMAKE_TOOLCHAIN_FILE=${_cmake_project_toolchain_file}"
       "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${_cmake_project_init_file}"
       ${_cmake_args}
+    # CMake doesn't always generate a compile_commands.json so touch one to keep
+    # the build graph sane.
+    COMMAND "${CMAKE_COMMAND}" -E touch "${_binary_dir}/compile_commands.json"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_configure_stamp_file}"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${_binary_dir}/compile_commands.json" "${_compile_commands_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Configure sub-project ${target_name}${_configure_comment_suffix}"
     ${_terminal_option}
     BYPRODUCTS
       "${_binary_dir}/CMakeCache.txt"
       "${_binary_dir}/cmake_install.cmake"
+      "${_compile_commands_file}"
     DEPENDS
       "${_cmake_source_dir}/CMakeLists.txt"
       "${_cmake_project_toolchain_file}"
@@ -345,6 +375,9 @@ function(therock_cmake_subproject_activate target_name)
     DEPENDS "${_configure_stamp_file}"
   )
   add_dependencies("${target_name}" "${target_name}+configure")
+  set_property(GLOBAL APPEND PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES
+    "${_compile_commands_file}"
+  )
 
   # build target.
   set(_build_stamp_file "${_stamp_dir}/build.stamp")
@@ -449,6 +482,42 @@ function(therock_cmake_subproject_glob_c_sources target_name)
     ${_globs}
   )
   target_sources("${target_name}" PRIVATE ${_files})
+endfunction()
+
+# Merges all compile_commands.json files and exports them.
+function(therock_subproject_merge_compile_commands)
+  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS)
+    return()
+  endif()
+
+  message(STATUS "Setting up compile_commands.json export")
+  get_property(_fragment_files GLOBAL PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES)
+  if(EXISTS "${CMAKE_BINARY_DIR}/compile_commands.json")
+    list(APPEND _fragment_files "${CMAKE_BINARY_DIR}/compile_commands.json")
+  endif()
+
+  set(_merged_file "${PROJECT_BINARY_DIR}/compile_commands_merged.json")
+  set(_merged_file_in_source_dir "${PROJECT_SOURCE_DIR}/compile_commands.json")
+
+  set(_merge_script "${THEROCK_SOURCE_DIR}/build_tools/merge_compile_commands.py")
+  add_custom_command(
+    OUTPUT "${_merged_file}"
+    COMMENT "Merging compile_commands.json"
+    COMMAND "${Python3_EXECUTABLE}"
+      "${_merge_script}" "${_merged_file}" ${_fragment_files}
+    COMMAND "${CMAKE_COMMAND}" -E copy "${_merged_file}" "${_merged_file_in_source_dir}"
+    BYPRODUCTS
+       "${_merged_file_in_source_dir}"
+    DEPENDS
+      "${_merge_script}"
+      ${_fragment_files}
+  )
+  add_custom_target(therock_merged_compile_commands ALL
+    DEPENDS
+      "${_merged_file}"
+      "${_merge_script}"
+      ${_fragment_files}
+  )
 endfunction()
 
 function(_therock_assert_is_cmake_subproject target_name)
@@ -587,6 +656,7 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
   set(_toolchain_contents)
 
   # General settings applicable to all toolchains.
+  string(APPEND _toolchain_contents "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n")
   string(APPEND _toolchain_contents "set(CMAKE_INSTALL_LIBDIR @CMAKE_INSTALL_LIBDIR@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_PLATFORM_NO_VERSIONED_SONAME @CMAKE_PLATFORM_NO_VERSIONED_SONAME@)\n")
 
