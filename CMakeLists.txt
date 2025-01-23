@@ -39,7 +39,10 @@ endif()
 set(ROCM_MAJOR_VERSION 6)
 set(ROCM_MINOR_VERSION 3)
 set(ROCM_PATCH_VERSION 1)
-set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
+# set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
+# TODO: Shard jobs by gfx family and have better ergonomics for multiple family
+# specific packages.
+set(AMDGPU_TARGETS "gfx1100" CACHE STRING "AMDGPU Targets")
 
 ################################################################################
 # Global setup
@@ -80,84 +83,9 @@ add_subdirectory(comm_libs)
 # # Testing
 # ################################################################################
 
-# add_executable(
-#   dlopen-hip
-#   tests/dlopen-hip.c
-# )
-# target_link_libraries(dlopen-hip dl)
+add_executable(
+  dlopen-hip
+  tests/dlopen-hip.c
+)
+target_link_libraries(dlopen-hip dl)
 
-# ################################################################################
-# # Packaging
-# # Since our notion of packaging does not follow the actual sub-projects,
-# # we repackage based on what they have installed.
-# ################################################################################
-
-# install(
-#   CODE "set(STAGING_INSTALL_DIR ${STAGING_INSTALL_DIR})"
-#   ALL_COMPONENTS
-# )
-
-# install(
-#   SCRIPT "cmake/custom_install_amdgpu_runtime.cmake"
-#   COMPONENT amdgpu-runtime
-# )
-
-# install(
-#   SCRIPT "cmake/custom_install_amdgpu_runtime_dev.cmake"
-#   COMPONENT amdgpu-runtime-dev
-# )
-
-# install(
-#   SCRIPT "cmake/custom_install_amdgpu_compiler.cmake"
-#   COMPONENT amdgpu-compiler
-# )
-
-# string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}" _package_sysarch)
-# message(STATUS "CPack: SYSARCH=${_package_sysarch}, PACKAGE_VERSION=${THEROCK_PACKAGE_VERSION}")
-
-# set(CPACK_PACKAGE_NAME "TheRock")
-# set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices")
-# set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Standalone amdgpu runtime packages")
-# set(CPACK_PACKAGE_VERSION "${THEROCK_PACKAGE_VERSION}")
-# set(CPACK_PACKAGE_VERSION_MAJOR "${ROCM_MAJOR_VERSION}")
-# set(CPACK_PACKAGE_VERSION_MINOR "${ROCM_MINOR_VERSION}")
-# set(CPACK_PACKAGE_VERSION_PATCH "${ROCM_PATCH_VERSION}")
-# set(CPACK_PACKAGE_INSTALL_DIRECTORY "TheRock-amdgpu")
-# set(CPACK_PACKAGE_FILE_NAME "")
-# set(CPACK_COMPONENTS_ALL
-#   amdgpu-compiler
-#   amdgpu-runtime
-#   amdgpu-runtime-dev
-# )
-
-# # CPack Archive Generation Options.
-# set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-# set(CPACK_ARCHIVE_THREADS 0)
-# set(
-#   CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME
-#   "TheRock-amdgpu-runtime-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
-# set(
-#   CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME
-#   "TheRock-amdgpu-runtime-dev-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
-# set(
-#   CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME
-#   "TheRock-amdgpu-compiler-${_package_sysarch}-${THEROCK_PACKAGE_VERSION}")
-
-# include(CPack)
-
-# cpack_add_component(
-#   amdgpu-runtime
-#   DISPLAY_NAME "AMD GPU Runtime"
-#   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME_FILE_NAME}"
-# )
-# cpack_add_component(
-#   amdgpu-runtime-dev
-#   DISPLAY_NAME "AMD GPU Development Components"
-#   DEPENDS amdgpu-runtime
-#   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-RUNTIME-DEV_FILE_NAME}"
-# )
-# cpack_add_component(
-#   amdgpu-compiler
-#   DISPLAY_NAME "AMD GPU Compiler"
-#   ARCHIVE_FILE "${CPACK_ARCHIVE_AMDGPU-COMPILER_FILE_NAME}"
-# )
