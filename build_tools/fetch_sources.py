@@ -129,6 +129,9 @@ def main(argv):
             "rocminfo",
             "rocprofiler-register",
             "ROCR-Runtime",
+            # Math Libraries
+            "hipBLAS-common",
+            "hipBLASLt",
         ],
     )
     args = parser.parse_args(argv)

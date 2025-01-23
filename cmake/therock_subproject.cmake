@@ -484,6 +484,13 @@ function(therock_cmake_subproject_glob_c_sources target_name)
   target_sources("${target_name}" PRIVATE ${_files})
 endfunction()
 
+# Gets the dist/ directory for a sub-project.
+function(therock_cmake_subproject_dist_dir out_var target_name)
+  _therock_assert_is_cmake_subproject("${target_name}")
+  get_target_property(_dir "${target_name}" THEROCK_DIST_DIR)
+  set("${out_var}" "${_dir}" PARENT_SCOPE)
+endfunction()
+
 # Merges all compile_commands.json files and exports them.
 function(therock_subproject_merge_compile_commands)
   if(NOT CMAKE_EXPORT_COMPILE_COMMANDS)

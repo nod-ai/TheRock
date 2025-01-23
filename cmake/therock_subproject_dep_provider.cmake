@@ -51,7 +51,7 @@ function(therock_reparse_super_project_find_package superproject_path package_na
   endif()
 
   set(_rewritten ${UNUSED_UNPARSED_ARGUMENTS})
-  list(APPEND _rewritten CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS ${superproject_path})
+  list(APPEND _rewritten BYPASS_PROVIDER NO_DEFAULT_PATH PATHS ${superproject_path})
   list(JOIN _rewritten " " _rewritten_pretty)
   message(STATUS "Resolving super-project find_package(${_rewritten_pretty})")
   set(_therock_rewritten_superproject_find_package_sig ${_rewritten} PARENT_SCOPE)
