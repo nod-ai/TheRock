@@ -53,6 +53,8 @@ jobs:
 
       - name: Fetch sources
         run: |
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
           ./build_tools/fetch_sources.py --depth 1
 
       # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
@@ -75,9 +77,9 @@ jobs:
             -DTHEROCK_PACKAGE_VERSION="${package_version}"
           cmake --build build
 
-      - name: Build Tarballs
-        run: |
-          (cd build && cpack -G TXZ)
+      # - name: Build Tarballs
+      #   run: |
+      #     (cd build && cpack -G TXZ)
 
       - name: Report
         if: ${{ !cancelled() }}
@@ -85,23 +87,23 @@ jobs:
           ls -lh build
           ccache -s
 
-      - name: Upload runtime artifacts
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: TheRock-runtime-linux-x86_64-tarball
-          path: |
-            build/TheRock-amdgpu-runtime-*.tar.xz
-          if-no-files-found: warn
+      # - name: Upload runtime artifacts
+      #   uses: actions/upload-artifact@v4
+      #   if: ${{ !cancelled() }}
+      #   with:
+      #     name: TheRock-runtime-linux-x86_64-tarball
+      #     path: |
+      #       build/TheRock-amdgpu-runtime-*.tar.xz
+      #     if-no-files-found: warn
 
-      - name: Upload compiler artifacts
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: TheRock-compiler-linux-x86_64-tarball
-          path: |
-            build/TheRock-amdgpu-compiler*.tar.xz
-          if-no-files-found: warn
+      # - name: Upload compiler artifacts
+      #   uses: actions/upload-artifact@v4
+      #   if: ${{ !cancelled() }}
+      #   with:
+      #     name: TheRock-compiler-linux-x86_64-tarball
+      #     path: |
+      #       build/TheRock-amdgpu-compiler*.tar.xz
+      #     if-no-files-found: warn
 
       - name: Save cache
         uses: actions/cache/save@v4

@@ -21,6 +21,6 @@ jobs:
     name: Build Linux Packages
     uses: ./.github/workflows/build_linux_packages.yml
 
-  build_python_packages:
-    name: Build Python Packages
-    uses: ./.github/workflows/build_python_packages.yml
+  # build_python_packages:
+  #   name: Build Python Packages
+  #   uses: ./.github/workflows/build_python_packages.yml

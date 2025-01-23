@@ -1,9 +1,6 @@
 name: Nightly Staging Release
 
 on:
-  schedule:
-    - cron: "0 10 * * *"
-
   workflow_dispatch:
     inputs:
 

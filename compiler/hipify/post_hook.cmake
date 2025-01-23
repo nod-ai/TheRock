@@ -3,8 +3,7 @@ include(therock_rpath)
 
 therock_set_install_rpath(
   TARGETS
-    hsa-runtime64
+    hipify-clang
   PATHS
-    .
-    llvm/lib
+    ../lib/llvm/lib
 )

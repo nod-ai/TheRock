@@ -3,9 +3,7 @@ include(therock_rpath)
 
 therock_set_install_rpath(
   TARGETS
-    amdhip64
-    hiprtc
+    rocminfo
   PATHS
-    .
-    llvm/lib
+    ../lib
 )

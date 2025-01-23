@@ -1,0 +1,23 @@
+################################################################################
+# ROCR-Runtime
+################################################################################
+
+therock_cmake_subproject_declare(ROCR-Runtime
+  EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/ROCR-Runtime"
+  CMAKE_ARGS
+    "-DBUILD_SHARED_LIBS=ON"
+  BUILD_DEPS
+    amd-llvm
+  RUNTIME_DEPS
+    rocprofiler-register
+  INTERFACE_LINK_DIRS
+    "lib"
+)
+therock_cmake_subproject_glob_c_sources(ROCR-Runtime
+  SUBDIRS
+    libhsakmt
+    runtime
+)
+therock_cmake_subproject_provide_package(ROCR-Runtime hsakmt lib/cmake/hsakmt)
+therock_cmake_subproject_provide_package(ROCR-Runtime hsa-runtime64 lib/cmake/hsa-runtime64)
+therock_cmake_subproject_activate(ROCR-Runtime)
