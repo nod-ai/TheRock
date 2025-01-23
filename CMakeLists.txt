@@ -39,8 +39,6 @@ endif()
 set(ROCM_MAJOR_VERSION 6)
 set(ROCM_MINOR_VERSION 3)
 set(ROCM_PATCH_VERSION 1)
-set(ROCM_VERSION
-  "${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}")
 set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
 
 ################################################################################

@@ -6,6 +6,8 @@ therock_cmake_subproject_declare(amd-llvm
   # Note that LLVM top level CMakeLists.txt is in the llvm subdir of the
   # monorepo.
   EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/llvm"
+  INTERFACE_PROGRAM_DIRS
+    lib/llvm/bin
   BUILD_DEPS
     rocm-cmake
   # The entire LLVM install tree is placed inside of the overall ROCM lib/llvm
