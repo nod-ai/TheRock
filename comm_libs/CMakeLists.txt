@@ -1,5 +1,0 @@
-if(THEROCK_ENABLE_RCCL)
-  add_subdirectory(rccl)
-else()
-  message(STATUS "Not building RCCL (THEROCK_ENABLE_RCCL=OFF)")
-endif()
