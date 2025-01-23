@@ -12,7 +12,7 @@ therock_cmake_subproject_declare(rccl
     -DROCM_DIR=
     "-DEXPLICIT_ROCM_VERSION=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
   COMPILER_TOOLCHAIN
-    amd-llvm
+    amd-hip
   IGNORE_PACKAGES
     # The current version of rccl needs to download a 2y old version of rocm-cmake
     # to work and it will only do so if the system resolver reports it not found

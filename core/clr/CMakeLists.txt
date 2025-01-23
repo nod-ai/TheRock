@@ -15,6 +15,7 @@ therock_cmake_subproject_declare(hip-clr
     rocm-cmake
   RUNTIME_DEPS
     amd-llvm
+    rocm-core
     rocprofiler-register
     ROCR-Runtime
   INTERFACE_LINK_DIRS

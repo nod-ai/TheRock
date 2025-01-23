@@ -239,6 +239,7 @@ function(therock_cmake_subproject_activate target_name)
 
   # Handle compiler toolchain.
   set(_compiler_toolchain_addl_depends)
+  set(_compiler_toolchain_init_contents)
   _therock_cmake_subproject_setup_toolchain("${_compiler_toolchain}")
 
   # Customize any other super-project CMake variables that are captured by
@@ -268,6 +269,7 @@ function(therock_cmake_subproject_activate target_name)
     string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
     string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
   endforeach()
+  string(APPEND _init_contents "${_compiler_toolchain_init_contents}")
   if(_dep_provider_file)
     string(APPEND _init_contents "include(${_dep_provider_file})\n")
   endif()
@@ -574,22 +576,30 @@ endfunction()
 # Sets variables in the parent scope of the therock_cmake_subproject_activate
 # prior to initializing sub-project arguments to configure the toolchain based
 # on the user-provided COMPILER_TOOLCHAIN.
+#
+# Toolchain menemonics:
+#   * amd-llvm: Locally build compiler/amd-llvm toolchain as a standalone
+#     tool. While this can compiler HIP code, it does not natively have access
+#     to a ROCM installation for headers, etc.
+#   * amd-hip: Extends the amd-llvm toolchain to also depend on HIP, making
+#     it ready to use to compile HIP code.
 function(_therock_cmake_subproject_setup_toolchain compiler_toolchain)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
   if(NOT compiler_toolchain)
     return()
   endif()
 
-  if(compiler_toolchain STREQUAL "amd-llvm")
+  if(compiler_toolchain STREQUAL "amd-llvm" OR compiler_toolchain STREQUAL "amd-hip")
+    # amd-llvm toolchain: The private built LLVM in isolation.
     _therock_assert_is_cmake_subproject("amd-llvm")
     get_target_property(_dist_dir amd-llvm THEROCK_DIST_DIR)
     get_target_property(_stamp_dir amd-llvm THEROCK_STAMP_DIR)
     # Add a dependency on the toolchain's dist
-    set(_compiler_toolchain_addl_depends "${_stamp_dir}/dist.stamp" PARENT_SCOPE)
+    list(APPEND _compiler_toolchain_addl_depends "${_stamp_dir}/dist.stamp")
     set(CMAKE_C_COMPILER "${_dist_dir}/lib/llvm/bin/clang")
     set(CMAKE_CXX_COMPILER "${_dist_dir}/lib/llvm/bin/clang++")
     set(CMAKE_LINKER "${_dist_dir}/lib/llvm/bin/lld")
-    message(STATUS "Compiler toolchain amd-llvm:")
+    message(STATUS "Compiler toolchain ${compiler_toolchain}:")
     string(APPEND CMAKE_MESSAGE_INDENT "  ")
     message(STATUS "CMAKE_C_COMPILER = ${CMAKE_C_COMPILER}")
     message(STATUS "CMAKE_CXX_COMPILER = ${CMAKE_CXX_COMPILER}")
@@ -598,6 +608,20 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain)
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
   endif()
 
+  # Configure additional HIP dependencies.
+  if (compiler_toolchain STREQUAL "amd-hip")
+    get_target_property(_hip_dist_dir hip-clr THEROCK_DIST_DIR)
+    get_target_property(_hip_stamp_dir hip-clr THEROCK_STAMP_DIR)
+    # Add a dependency on HIP's stamp.
+    list(APPEND _compiler_toolchain_addl_depends "${_hip_stamp_dir}/dist.stamp")
+    message(STATUS "HIP_DIR = ${_hip_dist_dir}")
+    string(APPEND _compiler_toolchain_init_contents
+      "set(ENV{HIP_PATH} \"${_hip_dist_dir}\")\n"
+    )
+  endif()
+
+  set(_compiler_toolchain_addl_depends "${_compiler_toolchain_addl_depends}" PARENT_SCOPE)
+  set(_compiler_toolchain_init_contents "${_compiler_toolchain_init_contents}" PARENT_SCOPE)
   set(CMAKE_C_COMPILER "${CMAKE_C_COMPILER}" PARENT_SCOPE)
   set(CMAKE_CXX_COMPILER "${CMAKE_CXX_COMPILER}" PARENT_SCOPE)
   set(CMAKE_LINKER "${CMAKE_LINKER}" PARENT_SCOPE)
