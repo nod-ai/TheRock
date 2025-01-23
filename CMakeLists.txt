@@ -19,9 +19,9 @@ include(therock_job_pools)
 ################################################################################
 # Options
 ################################################################################
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(THEROCK_INTERACTIVE "Enable interactive build mode which will cause all sub-project invocations to stream to the console (reducing parallelism)" OFF)
-option(CMAKE_EXPORT_COMPILE_COMMANDS "Exports compile commands for all projects" ON)
 set(THEROCK_BACKGROUND_BUILD_JOBS "0" CACHE STRING "Number of jobs to reserve for projects marked for background building (empty=auto or a number)")
 
 set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string")
