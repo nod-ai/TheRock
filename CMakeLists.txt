@@ -12,6 +12,7 @@ endif()
 project(THEROCK)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(CMakeDependentOption)
 include(ExternalProject)
 include(therock_subproject)
 include(therock_job_pools)
@@ -31,6 +32,7 @@ message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 # Library specific enable flags.
 option(THEROCK_ENABLE_RCCL "Enable the comm_libs/rccl sub-project" ON)
 option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON)
+cmake_dependent_option(THEROCK_ENABLE_ML_FRAMEWORKS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -81,6 +83,9 @@ add_subdirectory(core)
 add_subdirectory(comm-libs)
 if(THEROCK_ENABLE_MATH_LIBS)
   add_subdirectory(math-libs)
+endif()
+if(THEROCK_ENABLE_ML_FRAMEWORKS)
+  add_subdirectory(ml-frameworks)
 endif()
 
 # ################################################################################
