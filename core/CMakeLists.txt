@@ -48,7 +48,11 @@ therock_cmake_subproject_declare(hip-clr
 )
 therock_cmake_subproject_glob_c_sources(hip-clr SUBDIRS .)
 therock_cmake_subproject_provide_package(hip-clr hip lib/cmake/hip)
+# TODO: Some projects resolve "hip" vs "HIP" so we advertise both, but this isn't
+# great.
 therock_cmake_subproject_provide_package(hip-clr HIP lib/cmake/hip)
+therock_cmake_subproject_provide_package(hip-clr hip-lang lib/cmake/hip-lang)
+therock_cmake_subproject_provide_package(hip-clr hiprtc lib/cmake/hiprtc)
 therock_cmake_subproject_activate(hip-clr)
 
 
