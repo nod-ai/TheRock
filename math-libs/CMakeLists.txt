@@ -100,3 +100,29 @@ therock_cmake_subproject_glob_c_sources(rocBLAS
 )
 therock_cmake_subproject_provide_package(rocBLAS rocblas lib/cmake/rocblas)
 therock_cmake_subproject_activate(rocBLAS)
+
+#################################################################################
+# hipBLAS
+#################################################################################
+
+therock_cmake_subproject_declare(hipBLAS
+  EXTERNAL_SOURCE_DIR "hipBLAS"
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    -DBUILD_WITH_SOLVER=OFF  # TODO: add/enable rocSOLVER
+  COMPILER_TOOLCHAIN
+    amd-hip
+  BUILD_DEPS
+    hipBLAS-common
+  RUNTIME_DEPS
+    hip-clr
+    rocBLAS
+)
+therock_cmake_subproject_glob_c_sources(hipBLAS
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(hipBLAS hipblas lib/cmake/hipblas)
+therock_cmake_subproject_activate(hipBLAS)

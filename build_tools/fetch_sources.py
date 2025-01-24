@@ -158,6 +158,7 @@ def main(argv):
         type=str,
         default=[
             "hipBLAS-common",
+            "hipBLAS",
             "hipBLASLt",
             "rocBLAS",
         ],
