@@ -20,10 +20,13 @@ therock_cmake_subproject_declare(MIOpen
   COMPILER_TOOLCHAIN
     amd-hip
   BUILD_DEPS
+    hipBLAS-common
     nlohmann-json
     rocm-cmake
   RUNTIME_DEPS
     hip-clr
+    hipBLAS
+    hipBLASLt
     rocBLAS
 )
 
