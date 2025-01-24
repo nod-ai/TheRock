@@ -68,12 +68,13 @@ endif()
 # allows some overlapping of work (controlled by THEROCK_BACKGROUND_BUILD_JOBS).
 # CMAKE_LISTS_RELPATH: Relative path within the source directory to the
 # CMakeLists.txt.
+# EXTRA_DEPENDS: Extra target dependencies to add to the configure command.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
     "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
-    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES"
+    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
   if(TARGET "${target_name}")
     message(FATAL_ERROR "Cannot declare subproject '${target_name}': a target with that name already exists")
@@ -179,6 +180,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_COMPILER_TOOLCHAIN "${ARG_COMPILER_TOOLCHAIN}"
     # Any extra depend files that must be added to the configure phase of dependents.
     THEROCK_INTERFACE_CONFIGURE_DEPEND_FILES "${_transitive_configure_depend_files}"
+    THEROCK_EXTRA_DEPENDS "${ARG_EXTRA_DEPENDS}"
   )
 
   if(ARG_ACTIVATE)
@@ -222,6 +224,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_cmake_source_dir "${target_name}" THEROCK_CMAKE_SOURCE_DIR)
   get_target_property(_exclude_from_all "${target_name}" THEROCK_EXCLUDE_FROM_ALL)
   get_target_property(_external_source_dir "${target_name}" THEROCK_EXTERNAL_SOURCE_DIR)
+  get_target_property(_extra_depends "${target_name}" THEROCK_EXTRA_DEPENDS)
   get_target_property(_ignore_packages "${target_name}" THEROCK_IGNORE_PACKAGES)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
@@ -356,6 +359,7 @@ function(therock_cmake_subproject_activate target_name)
       "${_binary_dir}/cmake_install.cmake"
       "${_compile_commands_file}"
     DEPENDS
+      "${_extra_depends}"
       "${_cmake_source_dir}/CMakeLists.txt"
       "${_cmake_project_toolchain_file}"
       "${_cmake_project_init_file}"

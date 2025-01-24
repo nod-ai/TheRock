@@ -11,6 +11,8 @@ endif()
 
 project(THEROCK)
 
+cmake_policy(SET CMP0135 NEW)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
 include(ExternalProject)
@@ -77,6 +79,7 @@ endif()
 
 # Add subdirectories in dependency DAG order (which happens to be semi-alpha:
 # don't be fooled).
+add_subdirectory(third-party)
 add_subdirectory(base)
 add_subdirectory(compiler)
 add_subdirectory(core)
