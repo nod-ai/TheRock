@@ -5,6 +5,8 @@
 # of the subprojects are expected to be modified as part of the super-project
 # development flow.
 
+include(ExternalProject)
+
 # Global properties.
 # THEROCK_DEFAULT_CMAKE_VARS:
 # List of CMake variables that will be injected by default into the
@@ -28,6 +30,52 @@ endif()
 if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
+
+# therock_subproject_fetch
+# Fetches arbitrary content. This mostly defers to ExternalProject_Add to get
+# content but it performs no actual building.
+# All unrecognized options are passed to ExternalProject_Add
+function(therock_subproject_fetch target_name)
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARG
+    "CMAKE_PROJECT"
+    "SOURCE_DIR;EXCLUDE_FROM_ALL;PREFIX"
+    ""
+  )
+
+  if(NOT DEFINED ARG_EXCLUDE_FROM_ALL)
+    set(ARG_EXCLUDE_FROM_ALL TRUE)
+  endif()
+  if(NOT DEFINED ARG_PREFIX)
+    set(ARG_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_fetch")
+  endif()
+  if(NOT DEFINED ARG_SOURCE_DIR)
+    set(ARG_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source")
+  endif()
+
+  # In order to interop with therock_cmake_subproject_declare, the CMakeLists.txt
+  # file must exist so we mark this as a by-product. This serves as the dependency
+  # anchor and causes proper ordering of fetch->configure.
+  set(_byproducts)
+  if(ARG_CMAKE_PROJECT)
+    set(_byproducts
+      INSTALL_COMMAND "${CMAKE_COMMAND}" -E touch "${ARG_SOURCE_DIR}/CMakeLists.txt"
+      INSTALL_BYPRODUCTS "${ARG_SOURCE_DIR}/CMakeLists.txt"
+    )
+  endif()
+
+  ExternalProject_Add(
+    "${target_name}"
+    EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
+    PREFIX "${ARG_PREFIX}"
+    SOURCE_DIR "${ARG_SOURCE_DIR}"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    ${_byproducts}
+    ${ARG_UNPARSED_ARGUMENTS}
+  )
+endfunction()
 
 # therock_cmake_subproject_declare
 # This declares a cmake based subproject by setting a number of key properties

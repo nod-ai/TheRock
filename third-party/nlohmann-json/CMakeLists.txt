@@ -1,19 +1,5 @@
-# TODO: Extract this into a therock_cmake_subproject_fetch
-ExternalProject_Add(
-  nlohmann-json-sources
-  EXCLUDE_FROM_ALL TRUE
-  PREFIX "${CMAKE_CURRENT_BINARY_DIR}/fetch"
-  SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  TEST_COMMAND ""
-  # therock_cmake_subproject_declare adds a dependency on CMakeLists.txt in
-  # the source, so we have to make it known to CMake. This establishes the
-  # command-level dependency chain to download the sources.
-  INSTALL_COMMAND
-    "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_BINARY_DIR}/source/CMakeLists.txt"
-  INSTALL_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/source/CMakeLists.txt"
-
+therock_subproject_fetch(nlohmann-json-sources
+  CMAKE_PROJECT
   # Note: For some reason the corresponding git repo is hundreds of MB, even
   # when shallow-fetched. So just use a source snapshot.
   URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
