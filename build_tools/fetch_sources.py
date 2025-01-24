@@ -132,6 +132,7 @@ def main(argv):
             # Math Libraries
             "hipBLAS-common",
             "hipBLASLt",
+            "rocBLAS",
         ],
     )
     args = parser.parse_args(argv)

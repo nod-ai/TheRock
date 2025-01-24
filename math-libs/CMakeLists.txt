@@ -61,4 +61,41 @@ therock_cmake_subproject_glob_c_sources(hipBLASLt
   SUBDIRS
     .
 )
+therock_cmake_subproject_provide_package(hipBLASLt hipblaslt lib/cmake/hipblaslt)
 therock_cmake_subproject_activate(hipBLASLt)
+
+#################################################################################
+# rocBLAS
+#################################################################################
+
+therock_cmake_subproject_declare(rocBLAS
+  EXTERNAL_SOURCE_DIR "rocBLAS"
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    # TODO: Fix passing TENSILE_ROCM_ASSEMBLER_PATH.
+    #       Enable building with hipBLASLt afterwards.
+    -DBUILD_WITH_TENSILE=OFF
+    -DBUILD_WITH_HIPBLASLT=OFF
+    # -DTensile_LOGIC=
+    # -DTensile_CODE_OBJECT_VERSION=default
+    # -DTensile_CPU_THREADS=
+    # -DTensile_LIBRARY_FORMAT=msgpack
+    # "-DTensile_ROCM_ASSEMBLER_PATH=${_toolchain_dir}/bin/clang++"
+    # "-DTensile_ROCM_OFFLOAD_BUNDLER_PATH=${_toolchain_dir}/bin/clang-offload-bundler"
+    # TODO: Enable clients.
+  IGNORE_PACKAGES
+    ROCM
+  COMPILER_TOOLCHAIN
+    amd-hip
+  RUNTIME_DEPS
+    #hipBLAS-common
+    #hipBLASLt
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocBLAS
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_activate(rocBLAS)
