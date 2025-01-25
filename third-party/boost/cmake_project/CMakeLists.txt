@@ -7,8 +7,10 @@ if(THEROCK_INTERACTIVE)
   set(_terminal_option "USES_TERMINAL")
 endif()
 
+set(_cflags "-fPIC")
 set(_bootstrap_exec bash "bootstrap.sh")
 if(WIN32)
+  set(_cflags)
   set(_bootstrap_exec "cmd.exe" "/C" "bootstrap.bat")
 endif()
 
@@ -19,7 +21,7 @@ add_custom_target(
   COMMAND
     ${_bootstrap_exec} "--with-libraries=${THEROCK_BOOST_LIBRARIES}"
   COMMAND
-    "${BOOST_SOURCE_DIR}/b2" link=static threading=multi
+    "${BOOST_SOURCE_DIR}/b2" "cflags=${_cflags}" link=static threading=multi
   COMMAND
     "${BOOST_SOURCE_DIR}/b2" headers
   COMMAND

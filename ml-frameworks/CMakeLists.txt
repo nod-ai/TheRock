@@ -34,6 +34,7 @@ therock_cmake_subproject_declare(MIOpen
     hipBLAS
     hipBLASLt
     rocBLAS
+    rocRAND
 )
 
 therock_cmake_subproject_activate(MIOpen)

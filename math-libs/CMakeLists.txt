@@ -102,6 +102,28 @@ therock_cmake_subproject_provide_package(rocBLAS rocblas lib/cmake/rocblas)
 therock_cmake_subproject_activate(rocBLAS)
 
 #################################################################################
+# rocRAND
+#################################################################################
+
+therock_cmake_subproject_declare(rocRAND
+  EXTERNAL_SOURCE_DIR "rocRAND"
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+  COMPILER_TOOLCHAIN
+    amd-hip
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocRAND
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocRAND rocrand lib/cmake/rocrand)
+therock_cmake_subproject_activate(rocRAND)
+
+#################################################################################
 # hipBLAS
 #################################################################################
 

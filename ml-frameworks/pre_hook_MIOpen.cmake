@@ -11,3 +11,6 @@ include_directories("${THEROCK_BINARY_DIR}/math-libs/hipBLAS/stage/include")
 
 # TODO: Ditto for hipBLAS-common
 include_directories("${THEROCK_BINARY_DIR}/math-libs/hipBLAS-common/stage/include")
+
+# TODO: Ditto for rocrand
+include_directories("${THEROCK_BINARY_DIR}/math-libs/rocRAND/stage/include")

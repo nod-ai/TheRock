@@ -162,6 +162,7 @@ def main(argv):
             "hipBLAS",
             "hipBLASLt",
             "rocBLAS",
+            "rocRAND",
         ],
     )
     parser.add_argument(
