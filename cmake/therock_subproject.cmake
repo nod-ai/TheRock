@@ -34,13 +34,17 @@ endif()
 # therock_subproject_fetch
 # Fetches arbitrary content. This mostly defers to ExternalProject_Add to get
 # content but it performs no actual building.
-# All unrecognized options are passed to ExternalProject_Add
+# All unrecognized options are passed to ExternalProject_Add.
+# This can interoperate with therock_cmake_subproject_declare by adding the
+# CMAKE_PROJECT option, which makes the CMakeLists.txt in the archive visible
+# to CMake (which the subproject depends on). Additional touch byproducts
+# can be generated with TOUCH.
 function(therock_subproject_fetch target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "CMAKE_PROJECT"
     "SOURCE_DIR;EXCLUDE_FROM_ALL;PREFIX"
-    ""
+    "TOUCH"
   )
 
   if(NOT DEFINED ARG_EXCLUDE_FROM_ALL)
@@ -53,15 +57,20 @@ function(therock_subproject_fetch target_name)
     set(ARG_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source")
   endif()
 
+  set(_extra)
   # In order to interop with therock_cmake_subproject_declare, the CMakeLists.txt
   # file must exist so we mark this as a by-product. This serves as the dependency
   # anchor and causes proper ordering of fetch->configure.
-  set(_byproducts)
   if(ARG_CMAKE_PROJECT)
-    set(_byproducts
-      INSTALL_COMMAND "${CMAKE_COMMAND}" -E touch "${ARG_SOURCE_DIR}/CMakeLists.txt"
-      INSTALL_BYPRODUCTS "${ARG_SOURCE_DIR}/CMakeLists.txt"
+    list(APPEND ARG_TOUCH "${ARG_SOURCE_DIR}/CMakeLists.txt")
+  endif()
+  if(ARG_TOUCH)
+    list(APPEND _extra
+      INSTALL_COMMAND "${CMAKE_COMMAND}" -E touch ${ARG_TOUCH}
+      INSTALL_BYPRODUCTS ${ARG_TOUCH}
     )
+  else()
+    list(APPEND _extra "INSTALL_COMMAND" "")
   endif()
 
   ExternalProject_Add(
@@ -72,7 +81,7 @@ function(therock_subproject_fetch target_name)
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     TEST_COMMAND ""
-    ${_byproducts}
+    ${_extra}
     ${ARG_UNPARSED_ARGUMENTS}
   )
 endfunction()
@@ -389,7 +398,6 @@ function(therock_cmake_subproject_activate target_name)
       "-G${CMAKE_GENERATOR}"
       "-B${_binary_dir}"
       "-S${_cmake_source_dir}"
-      "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
       "-DCMAKE_INSTALL_PREFIX=${_stage_destination_dir}"
       "-DCMAKE_TOOLCHAIN_FILE=${_cmake_project_toolchain_file}"
       "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${_cmake_project_init_file}"
@@ -407,11 +415,11 @@ function(therock_cmake_subproject_activate target_name)
       "${_binary_dir}/cmake_install.cmake"
       "${_compile_commands_file}"
     DEPENDS
-      "${_extra_depends}"
       "${_cmake_source_dir}/CMakeLists.txt"
       "${_cmake_project_toolchain_file}"
       "${_cmake_project_init_file}"
       "${_injected_file}"
+      ${_extra_depends}
       ${_dep_provider_file}
       ${_configure_dep_stamps}
       ${_pre_hook_path}

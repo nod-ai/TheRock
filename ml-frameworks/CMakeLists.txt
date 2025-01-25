@@ -21,8 +21,9 @@ therock_cmake_subproject_declare(MIOpen
     amd-hip
   BUILD_DEPS
     hipBLAS-common
-    nlohmann-json
     rocm-cmake
+    therock-boost
+    therock-nlohmann-json
   RUNTIME_DEPS
     hip-clr
     hipBLAS
