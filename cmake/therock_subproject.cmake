@@ -5,6 +5,8 @@
 # of the subprojects are expected to be modified as part of the super-project
 # development flow.
 
+include(ExternalProject)
+
 # Global properties.
 # THEROCK_DEFAULT_CMAKE_VARS:
 # List of CMake variables that will be injected by default into the
@@ -16,6 +18,7 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
   Python3_EXECUTABLE
   Python3_FIND_VIRTUALENV
   THEROCK_SOURCE_DIR
+  THEROCK_BINARY_DIR
   ROCM_GIT_DIR
   AMDGPU_TARGETS
 )
@@ -28,6 +31,61 @@ endif()
 if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
+
+# therock_subproject_fetch
+# Fetches arbitrary content. This mostly defers to ExternalProject_Add to get
+# content but it performs no actual building.
+# All unrecognized options are passed to ExternalProject_Add.
+# This can interoperate with therock_cmake_subproject_declare by adding the
+# CMAKE_PROJECT option, which makes the CMakeLists.txt in the archive visible
+# to CMake (which the subproject depends on). Additional touch byproducts
+# can be generated with TOUCH.
+function(therock_subproject_fetch target_name)
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARG
+    "CMAKE_PROJECT"
+    "SOURCE_DIR;EXCLUDE_FROM_ALL;PREFIX"
+    "TOUCH"
+  )
+
+  if(NOT DEFINED ARG_EXCLUDE_FROM_ALL)
+    set(ARG_EXCLUDE_FROM_ALL TRUE)
+  endif()
+  if(NOT DEFINED ARG_PREFIX)
+    set(ARG_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_fetch")
+  endif()
+  if(NOT DEFINED ARG_SOURCE_DIR)
+    set(ARG_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source")
+  endif()
+
+  set(_extra)
+  # In order to interop with therock_cmake_subproject_declare, the CMakeLists.txt
+  # file must exist so we mark this as a by-product. This serves as the dependency
+  # anchor and causes proper ordering of fetch->configure.
+  if(ARG_CMAKE_PROJECT)
+    list(APPEND ARG_TOUCH "${ARG_SOURCE_DIR}/CMakeLists.txt")
+  endif()
+  if(ARG_TOUCH)
+    list(APPEND _extra
+      INSTALL_COMMAND "${CMAKE_COMMAND}" -E touch ${ARG_TOUCH}
+      INSTALL_BYPRODUCTS ${ARG_TOUCH}
+    )
+  else()
+    list(APPEND _extra "INSTALL_COMMAND" "")
+  endif()
+
+  ExternalProject_Add(
+    "${target_name}"
+    EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
+    PREFIX "${ARG_PREFIX}"
+    SOURCE_DIR "${ARG_SOURCE_DIR}"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    ${_extra}
+    ${ARG_UNPARSED_ARGUMENTS}
+  )
+endfunction()
 
 # therock_cmake_subproject_declare
 # This declares a cmake based subproject by setting a number of key properties
@@ -68,12 +126,13 @@ endif()
 # allows some overlapping of work (controlled by THEROCK_BACKGROUND_BUILD_JOBS).
 # CMAKE_LISTS_RELPATH: Relative path within the source directory to the
 # CMakeLists.txt.
+# EXTRA_DEPENDS: Extra target dependencies to add to the configure command.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
     "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
-    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES"
+    "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
   if(TARGET "${target_name}")
     message(FATAL_ERROR "Cannot declare subproject '${target_name}': a target with that name already exists")
@@ -179,6 +238,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_COMPILER_TOOLCHAIN "${ARG_COMPILER_TOOLCHAIN}"
     # Any extra depend files that must be added to the configure phase of dependents.
     THEROCK_INTERFACE_CONFIGURE_DEPEND_FILES "${_transitive_configure_depend_files}"
+    THEROCK_EXTRA_DEPENDS "${ARG_EXTRA_DEPENDS}"
   )
 
   if(ARG_ACTIVATE)
@@ -222,6 +282,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_cmake_source_dir "${target_name}" THEROCK_CMAKE_SOURCE_DIR)
   get_target_property(_exclude_from_all "${target_name}" THEROCK_EXCLUDE_FROM_ALL)
   get_target_property(_external_source_dir "${target_name}" THEROCK_EXTERNAL_SOURCE_DIR)
+  get_target_property(_extra_depends "${target_name}" THEROCK_EXTRA_DEPENDS)
   get_target_property(_ignore_packages "${target_name}" THEROCK_IGNORE_PACKAGES)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
@@ -338,7 +399,6 @@ function(therock_cmake_subproject_activate target_name)
       "-G${CMAKE_GENERATOR}"
       "-B${_binary_dir}"
       "-S${_cmake_source_dir}"
-      "-DCPACK_PACKAGING_INSTALL_PREFIX=${STAGING_INSTALL_DIR}"
       "-DCMAKE_INSTALL_PREFIX=${_stage_destination_dir}"
       "-DCMAKE_TOOLCHAIN_FILE=${_cmake_project_toolchain_file}"
       "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${_cmake_project_init_file}"
@@ -360,6 +420,7 @@ function(therock_cmake_subproject_activate target_name)
       "${_cmake_project_toolchain_file}"
       "${_cmake_project_init_file}"
       "${_injected_file}"
+      ${_extra_depends}
       ${_dep_provider_file}
       ${_configure_dep_stamps}
       ${_pre_hook_path}

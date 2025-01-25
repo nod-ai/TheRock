@@ -20,6 +20,15 @@ def exec(args: list[str | Path], cwd: Path):
     subprocess.check_call(args, cwd=str(cwd), stdin=subprocess.DEVNULL)
 
 
+def get_enabled_projects(args) -> list[str]:
+    projects = list(args.projects)
+    if args.include_math_libs:
+        projects.extend(args.math_lib_projects)
+    if args.include_ml_frameworks:
+        projects.extend(args.ml_framework_projects)
+    return projects
+
+
 def run(args):
     repo_dir: Path = args.dir
     print(f"Setting up repo in {repo_dir}")
@@ -41,7 +50,7 @@ def run(args):
         repo_args,
         cwd=repo_dir,
     )
-    exec(["repo", "sync", "-j16"] + args.projects, cwd=repo_dir)
+    exec(["repo", "sync", "-j16"] + get_enabled_projects(args), cwd=repo_dir)
 
     populate_ancillary_sources(args)
     apply_patches(args)
@@ -62,7 +71,7 @@ def apply_patches(args):
         patch_files = list(patch_project_dir.glob("*.patch"))
         patch_files.sort()
         print(f"Applying {len(patch_files)} patches")
-        exec(["git", "am"] + patch_files, cwd=project_dir)
+        exec(["git", "am", "--whitespace=nowarn"] + patch_files, cwd=project_dir)
 
 
 def populate_ancillary_sources(args):
@@ -114,11 +123,24 @@ def main(argv):
         "--depth", type=int, help="Git depth to pass to repo", default=None
     )
     parser.add_argument(
+        "--include-math-libs",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Include supported math libraries",
+    )
+    parser.add_argument(
+        "--include-ml-frameworks",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Include machine learning frameworks that are part of ROCM",
+    )
+    parser.add_argument(
         "--projects",
         nargs="+",
         type=str,
         default=[
             "clr",
+            "half",
             "HIP",
             "HIPIFY",
             "llvm-project",
@@ -129,10 +151,26 @@ def main(argv):
             "rocminfo",
             "rocprofiler-register",
             "ROCR-Runtime",
-            # Math Libraries
+        ],
+    )
+    parser.add_argument(
+        "--math-lib-projects",
+        nargs="+",
+        type=str,
+        default=[
             "hipBLAS-common",
+            "hipBLAS",
             "hipBLASLt",
             "rocBLAS",
+            "rocRAND",
+        ],
+    )
+    parser.add_argument(
+        "--ml-framework-projects",
+        nargs="+",
+        type=str,
+        default=[
+            "MIOpen",
         ],
     )
     args = parser.parse_args(argv)
