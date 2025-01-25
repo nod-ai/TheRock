@@ -17,13 +17,18 @@ therock_cmake_subproject_declare(MIOpen
     -DROCM_DIR=
     -DMIOPEN_USE_COMPOSABLEKERNEL=OFF  # TODO: enable
     -DMIOPEN_USE_MLIR=OFF # TODO: enable
+    -DMIOPEN_BUILD_DRIVER=OFF # TODO: enable
   COMPILER_TOOLCHAIN
     amd-hip
   BUILD_DEPS
     hipBLAS-common
     rocm-cmake
+    rocm-half
     therock-boost
+    therock-eigen
+    therock-frugally-deep
     therock-nlohmann-json
+    therock-FunctionalPlus
   RUNTIME_DEPS
     hip-clr
     hipBLAS

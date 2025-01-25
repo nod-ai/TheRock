@@ -9,8 +9,11 @@
 #     THEROCK_PROVIDED_PACKAGES, falling back to the system resolver.
 # See: _therock_cmake_subproject_setup_deps which assembles these variables
 macro(therock_dependency_provider method package_name)
+  cmake_policy(PUSH)
+  cmake_policy(SET CMP0057 NEW)
   if("${package_name}" IN_LIST THEROCK_PROVIDED_PACKAGES AND NOT
      "${package_name}" IN_LIST THEROCK_IGNORE_PACKAGES)
+    cmake_policy(POP)
     # It is quite hard to completely neuter find_package so that for an
     # arbitrary signature it will only attempt to find from one specified path.
     # This is important because it "latches" and if any find_package manages
@@ -26,6 +29,7 @@ macro(therock_dependency_provider method package_name)
       "${THEROCK_PACKAGE_DIR_${package_name}}" "${package_name}" ${ARGN})
     find_package(${_therock_rewritten_superproject_find_package_sig})
   else()
+    cmake_policy(POP)
     message(STATUS "Resolving system find_package(${package_name}) (not found in super-project ${THEROCK_PROVIDED_PACKAGES})")
     find_package(${package_name} ${ARGN} BYPASS_PROVIDER)
   endif()

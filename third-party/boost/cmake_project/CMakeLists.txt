@@ -22,6 +22,14 @@ add_custom_target(
     "${BOOST_SOURCE_DIR}/b2" link=static threading=multi
   COMMAND
     "${BOOST_SOURCE_DIR}/b2" headers
+  COMMAND
+    # Boost is dumb. It assumes that it's "stage" directory is one level up from
+    # where the headers are. This is hard-coded in the cmake config. So we take
+    # advantage of the fact that our library install location is into our stage/
+    # directory, which is one level up from our build directory. There may be
+    # a better way to do this... but have I said before that Boost's build is
+    # bonkers?
+    "${CMAKE_COMMAND}" -E create_symlink "${BOOST_SOURCE_DIR}/boost" "${CMAKE_CURRENT_BINARY_DIR}/../boost"
 )
 
 install(DIRECTORY "${BOOST_SOURCE_DIR}/stage/lib" DESTINATION ".")

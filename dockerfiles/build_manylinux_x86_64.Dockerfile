@@ -45,7 +45,7 @@ RUN yum install -y epel-release && \
     yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
     yum install -y msgpack-devel && \
     yum install -y bzip2-devel && \
-    yum install -y gtest && \
+    yum install -y gtest-devel && \
     yum clean all && \
     rm -rf /var/cache/yum
 

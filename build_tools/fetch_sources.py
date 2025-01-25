@@ -140,6 +140,7 @@ def main(argv):
         type=str,
         default=[
             "clr",
+            "half",
             "HIP",
             "HIPIFY",
             "llvm-project",
