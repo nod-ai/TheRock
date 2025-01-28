@@ -5,6 +5,7 @@ therock_subproject_fetch(therock-frugally-deep-sources
 )
 
 therock_cmake_subproject_declare(therock-frugally-deep
+  BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
   BUILD_DEPS

@@ -21,9 +21,9 @@ therock_subproject_fetch(boost-sources
 
 therock_cmake_subproject_declare(therock-boost
   EXTERNAL_SOURCE_DIR "cmake_project"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     "-DBOOST_SOURCE_DIR=${_source_dir}"
-    "-DTHEROCK_INTERACTIVE=${THEROCK_INTERACTIVE}"
     "-DTHEROCK_BOOST_LIBRARIES=atomic,filesystem,system"
   EXTRA_DEPENDS
     "${_download_stamp}"

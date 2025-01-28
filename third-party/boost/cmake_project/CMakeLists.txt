@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.18)
 project(BOOST_BUILD)
 
 set(_terminal_option)
-if(THEROCK_INTERACTIVE)
+if("$ENV{THEROCK_INTERACTIVE}")
   set(_terminal_option "USES_TERMINAL")
 endif()
 

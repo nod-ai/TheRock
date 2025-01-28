@@ -11,6 +11,7 @@ cmake_path(APPEND _toolchain_dir lib/llvm)
 
 therock_cmake_subproject_declare(hipBLAS-common
   EXTERNAL_SOURCE_DIR "hipBLAS-common"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DROCM_PATH=
     -DROCM_DIR=
@@ -39,6 +40,7 @@ therock_cmake_subproject_activate(hipBLAS-common)
 
 therock_cmake_subproject_declare(hipBLASLt
   EXTERNAL_SOURCE_DIR "hipBLASLt"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
@@ -70,6 +72,7 @@ therock_cmake_subproject_activate(hipBLASLt)
 
 therock_cmake_subproject_declare(rocBLAS
   EXTERNAL_SOURCE_DIR "rocBLAS"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
@@ -107,6 +110,7 @@ therock_cmake_subproject_activate(rocBLAS)
 
 therock_cmake_subproject_declare(rocRAND
   EXTERNAL_SOURCE_DIR "rocRAND"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
@@ -129,6 +133,7 @@ therock_cmake_subproject_activate(rocRAND)
 
 therock_cmake_subproject_declare(hipBLAS
   EXTERNAL_SOURCE_DIR "hipBLAS"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=

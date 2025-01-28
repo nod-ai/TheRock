@@ -380,7 +380,7 @@ function(therock_cmake_subproject_activate target_name)
   set(_configure_comment_suffix " (in background)")
   set(_terminal_option)
   set(_build_terminal_option "USES_TERMINAL")
-  if(THEROCK_INTERACTIVE)
+  if("$ENV{THEROCK_INTERACTIVE}")
     set(_terminal_option "USES_TERMINAL")
     set(_configure_comment_suffix)
   elseif(_build_pool)
@@ -721,6 +721,7 @@ endfunction()
 #     it ready to use to compile HIP code.
 function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_file)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
+  set(_build_env_pairs "${_build_env_pairs}")
   set(_toolchain_contents)
 
   # General settings applicable to all toolchains.

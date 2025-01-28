@@ -35,6 +35,7 @@ therock_cmake_subproject_activate(amd-llvm)
 
 therock_cmake_subproject_declare(hipify
   EXTERNAL_SOURCE_DIR "hipify"
+  BACKGROUND_BUILD
   INTERFACE_PROGRAM_DIRS
     bin
   CMAKE_ARGS

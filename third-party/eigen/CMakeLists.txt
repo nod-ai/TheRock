@@ -5,6 +5,7 @@ therock_subproject_fetch(therock-eigen-sources
 )
 
 therock_cmake_subproject_declare(therock-eigen
+  BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
 )

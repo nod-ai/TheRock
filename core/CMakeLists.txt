@@ -4,6 +4,7 @@
 
 therock_cmake_subproject_declare(ROCR-Runtime
   EXTERNAL_SOURCE_DIR "ROCR-Runtime"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     "-DBUILD_SHARED_LIBS=ON"
   BUILD_DEPS
@@ -29,6 +30,7 @@ therock_cmake_subproject_activate(ROCR-Runtime)
 
 therock_cmake_subproject_declare(hip-clr
   EXTERNAL_SOURCE_DIR "clr"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     "-DHIP_COMMON_DIR=${CMAKE_CURRENT_SOURCE_DIR}/HIP"
@@ -62,6 +64,7 @@ therock_cmake_subproject_activate(hip-clr)
 
 therock_cmake_subproject_declare(rocminfo
   EXTERNAL_SOURCE_DIR "rocminfo"
+  BACKGROUND_BUILD
   RUNTIME_DEPS
     ROCR-Runtime
 )

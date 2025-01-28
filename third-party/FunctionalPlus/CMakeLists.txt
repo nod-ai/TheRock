@@ -5,6 +5,7 @@ therock_subproject_fetch(therock-FunctionalPlus-sources
 )
 
 therock_cmake_subproject_declare(therock-FunctionalPlus
+  BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
 )

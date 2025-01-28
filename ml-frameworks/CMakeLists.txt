@@ -11,6 +11,7 @@ cmake_path(APPEND _toolchain_dir lib/llvm)
 
 therock_cmake_subproject_declare(MIOpen
   EXTERNAL_SOURCE_DIR "MIOpen"
+  BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
