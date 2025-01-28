@@ -74,6 +74,7 @@ jobs:
           # Build.
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}"
           ./build_tools/watch_top_processes.sh &
           cmake --build build

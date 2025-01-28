@@ -16,6 +16,7 @@ cmake_policy(SET CMP0135 NEW)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
 include(ExternalProject)
+include(therock_amdgpu_targets)
 include(therock_subproject)
 include(therock_job_pools)
 
@@ -44,10 +45,32 @@ endif()
 set(ROCM_MAJOR_VERSION 6)
 set(ROCM_MINOR_VERSION 3)
 set(ROCM_PATCH_VERSION 1)
-# set(AMDGPU_TARGETS "gfx90a gfx940 gfx942 gfx1100" CACHE STRING "AMDGPU Targets")
-# TODO: Shard jobs by gfx family and have better ergonomics for multiple family
-# specific packages.
-set(AMDGPU_TARGETS "gfx1100" CACHE STRING "AMDGPU Targets")
+
+################################################################################
+# GPU target selection
+#
+# GPU target selection can be done by specifying one of THEROCK_AMDGPU_FAMILIES
+# or THEROCK_AMDGPU_TARGETS. Most targets are bundled into families that include
+# several related targets.
+#
+# If exactly one family or target is specified, then that is also taken to be
+# the THEROCK_AMDGPU_DIST_BUNDLE_NAME, if omitted (this is the identifier
+# embedded into package names). If more than one family or discrete target is
+# specified, then the bundle name must be specified manually.
+#
+# Once cache variable validation is done, THEROCK_AMDGPU_TARGETS will be the
+# fully expanded list of targets (as a local variable). For convenience and
+# because some parts of the tree use a space separated list,
+# THEROCK_AMDGPU_TARGETS_SPACES will also be set.
+#
+# See therock_amdgpu_targets.cmake for further details.
+################################################################################
+
+set(THEROCK_AMDGPU_FAMILIES "" CACHE STRING "AMDGPU target families to build for")
+set(THEROCK_AMDGPU_TARGETS "" CACHE STRING "AMDGPU targets to build for")
+set(THEROCK_AMDGPU_DIST_BUNDLE_NAME "" CACHE STRING "Distribution bundle name for AMDGPU packages")
+
+therock_validate_amdgpu_targets()
 
 ################################################################################
 # Global setup
