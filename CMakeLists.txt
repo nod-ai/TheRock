@@ -70,7 +70,7 @@ set(THEROCK_AMDGPU_FAMILIES "" CACHE STRING "AMDGPU target families to build for
 set(THEROCK_AMDGPU_TARGETS "" CACHE STRING "AMDGPU targets to build for")
 set(THEROCK_AMDGPU_DIST_BUNDLE_NAME "" CACHE STRING "Distribution bundle name for AMDGPU packages")
 
-therock_validate_amdbpu_targets()
+therock_validate_amdgpu_targets()
 
 ################################################################################
 # Global setup

@@ -5,7 +5,7 @@
 function cycle() {
   echo ""
   echo ":::: TOP PROCESSES $(date) ::::"
-  ps --no-headers aux | sort -nrk 3,3 | head -n 5 | cut -c -256
+  ps --no-headers aux | sort -nrk 3,3 | head -n 5 | cut -c -768
   echo ""
   echo ""
 }

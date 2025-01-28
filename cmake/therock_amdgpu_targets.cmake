@@ -58,7 +58,7 @@ therock_add_amdgpu_target(gfx1151 "AMD Strix Halo iGPU" FAMILY igpu-all gfx110X-
 
 
 # Validates and normalizes AMDGPU target selection cache variables.
-function(therock_validate_amdbpu_targets)
+function(therock_validate_amdgpu_targets)
   message(STATUS "Configured AMDGPU Targets:")
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
   set(_expanded_targets)

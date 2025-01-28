@@ -761,7 +761,7 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     message(STATUS "CMAKE_C_COMPILER = ${AMD_LLVM_C_COMPILER}")
     message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
     message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
-    message(STATUS "AMDGPU_TARGETS = ${_amdgpu_targets_spaces}")
+    message(STATUS "AMDGPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
   else()
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
   endif()
