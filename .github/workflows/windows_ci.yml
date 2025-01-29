@@ -1,0 +1,69 @@
+# Copyright 2024 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+name: CI - Windows
+
+on:
+  push:
+    branches:
+      - eliasj42/windows-ci
+  schedule:
+    # Weekday mornings at 09:15 UTC = 01:15 PST (UTC - 8).
+    - cron: "15 9 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  # A PR number if a pull request and otherwise the commit hash. This cancels
+  # queued and in-progress runs for the same PR (presubmit) or commit
+  # (postsubmit)
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  windows_x64_msvc:
+    runs-on: azure-windows-scale-nod-ai
+    env:
+      BASE_BUILD_DIR_POWERSHELL: C:\mnt\azure\b
+    steps:
+      - name: "Checking out repository"
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          submodules: true
+      - name: "Create build dir"
+        run: |
+          $currentTime = (Get-Date).ToString('HHmmss')
+          $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
+          echo "BUILD_DIR_POWERSHELL=$buildDir" >> $env:GITHUB_ENV
+          mkdir "$buildDir"
+          Write-Host "Generated Build Directory: $buildDir"
+          $bashBuildDir = $buildDir -replace '\\', '/' -replace '^C:', '/c'
+          echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
+          Write-Host "Converted Build Directory For Bash: $bashBuildDir"
+      - name: "Setting up Python"
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.1.0
+        with:
+          python-version: "3.11"
+      - name: "Installing Python packages"
+        run: |
+          python3 -m venv .venv
+          .venv/Scripts/activate.bat
+      - name: "Installing requirements"
+        run: choco install ccache --yes
+      - name: "Configuring MSVC"
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      - name: "Installing TheRock requirements"
+        run: |
+          choco install cmake
+          choco install ninja
+          Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+          refreshenv
+      - name: "Building TheRock"
+        run: |
+          echo "Building in ${{ env.BUILD_DIR_BASH }}"
+          bash cmake -B build -GNinja ${{ env.BUILD_DIR_BASH }}
+      - name: "Clean up build dir"
+        if: always()
+        run: if (Test-Path -Path "$Env:BUILD_DIR_POWERSHELL") {Remove-Item -Path "$Env:BUILD_DIR_POWERSHELL" -Recurse -Force}
