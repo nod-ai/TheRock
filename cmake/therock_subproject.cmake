@@ -729,11 +729,11 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
   string(APPEND _toolchain_contents "set(CMAKE_PLATFORM_NO_VERSIONED_SONAME @CMAKE_PLATFORM_NO_VERSIONED_SONAME@)\n")
 
   # Propagate super-project flags to the sub-project by default.
-  string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER @CMAKE_C_COMPILER@)\n")
-  string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER @CMAKE_CXX_COMPILER@)\n")
-  string(APPEND _toolchain_contents "set(CMAKE_LINKER @CMAKE_LINKER@)\n")
-  string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER_LAUNCHER @CMAKE_C_COMPILER_LAUNCHER@)\n")
-  string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER_LAUNCHER @CMAKE_CXX_COMPILER_LAUNCHER@)\n")
+  string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER \"@CMAKE_C_COMPILER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER \"@CMAKE_CXX_COMPILER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_LINKER \"@CMAKE_LINKER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER_LAUNCHER \"@CMAKE_C_COMPILER_LAUNCHER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER_LAUNCHER \"@CMAKE_CXX_COMPILER_LAUNCHER@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_C_FLAGS_INIT @CMAKE_C_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_CXX_FLAGS_INIT @CMAKE_CXX_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_EXE_LINKER_FLAGS_INIT @CMAKE_EXE_LINKER_FLAGS@)\n")
