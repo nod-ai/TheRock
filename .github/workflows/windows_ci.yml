@@ -64,6 +64,8 @@ jobs:
         run: |
           echo "Building in ${{ env.BASE_BUILD_DIR_POWERSHELL }}"
           dir
+          dir base
+          dir base/rocm-cmake
           cmake -B -GNinja . -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
           cmake --build "${{ env.BASE_BUILD_DIR_POWERSHELL }}"
       - name: "Clean up build dir"
