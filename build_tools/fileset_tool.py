@@ -6,7 +6,7 @@ archiving, etc. This is ultimately inspired by the fileset manipulation behavior
 of Ant, which uses recursive glob include/exclude patterns rooted on some
 base directory to manage artifact moving and packaging.
 
-This is based on a limited form othe pathlib.Path pattern language introduced
+This is based on a limited form of the pathlib.Path pattern language introduced
 in Python 3.13 (https://docs.python.org/3/library/pathlib.html#pattern-language)
 with the following changes:
 
