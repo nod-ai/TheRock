@@ -482,18 +482,18 @@ function(therock_cmake_subproject_activate target_name)
 
   # dist install target.
   set(_dist_stamp_file "${_stamp_dir}/dist.stamp")
-  set(_merge_dist_script "${THEROCK_SOURCE_DIR}/build_tools/merge_dist_dir.cmake")
+  set(_fileset_tool "${THEROCK_SOURCE_DIR}/build_tools/fileset_tool.py")
   _therock_cmake_subproject_get_stage_dirs(
     _dist_source_dirs "${target_name}" ${_runtime_deps})
   add_custom_command(
     OUTPUT "${_dist_stamp_file}"
-    COMMAND "${CMAKE_COMMAND}" -P "${_merge_dist_script}" "${_dist_dir}" ${_dist_source_dirs}
+    COMMAND "${Python3_EXECUTABLE}" "${_fileset_tool}" copy "${_dist_dir}" ${_dist_source_dirs}
     COMMAND "${CMAKE_COMMAND}" -E touch "${_dist_stamp_file}"
     COMMENT "Merging sub-project dist directory for ${target_name}"
     ${_terminal_option}
     DEPENDS
       "${_stage_stamp_file}"
-      "${_merge_dist_script}"
+      "${_fileset_tool}"
   )
   add_custom_target(
     "${target_name}+dist"
