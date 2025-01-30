@@ -63,6 +63,7 @@ jobs:
       - name: "Building TheRock"
         run: |
           echo "Building in ${{ env.BASE_BUILD_DIR_POWERSHELL }}"
+          cd "${{ env.BASE_BUILD_DIR_POWERSHELL }}"
           cmake -B build -GNinja "${{ env.BASE_BUILD_DIR_POWERSHELL }}" -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
           cmake --build build
       - name: "Clean up build dir"
