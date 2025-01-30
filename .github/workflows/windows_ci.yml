@@ -63,9 +63,7 @@ jobs:
       - name: "Building TheRock"
         run: |
           echo "Building in ${{ env.BUILD_DIR_BASH }}"
-          dir
-          dir base
-          dir base/rocm-cmake
+          dir C:/mnt/azure/b/011055/third-party/eigen/source
           cmake -B "${{ env.BUILD_DIR_BASH }}" -GNinja . -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
           cmake --build "${{ env.BUILD_DIR_BASH }}"
       - name: "Clean up build dir"
