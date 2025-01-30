@@ -117,11 +117,17 @@ endif()
 # # Testing
 # ################################################################################
 
-add_executable(
-  dlopen-hip
-  tests/dlopen-hip.c
-)
-target_link_libraries(dlopen-hip dl)
+if(NOT WIN32)
+  add_executable(
+    dlopen-hip
+    tests/dlopen-hip.c
+  )
+  target_link_libraries(dlopen-hip dl)
+else()
+  # TODO: Test that is compatible with Windows (LoadLibraryA instead of dlopen)
+  #   then add instructions in the README to run with a command like
+  #   `./build/dlopen-hip install/amdhip64.dll`
+endif()
 
 
 ################################################################################
