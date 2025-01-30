@@ -63,10 +63,9 @@ jobs:
       - name: "Building TheRock"
         run: |
           echo "Building in ${{ env.BASE_BUILD_DIR_POWERSHELL }}"
-          cd "${{ env.BASE_BUILD_DIR_POWERSHELL }}"
-          mkdir build
-          cmake -B build -GNinja "${{ env.BASE_BUILD_DIR_POWERSHELL }}" -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
-          cmake --build build
+          dir
+          cmake -B -GNinja . -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
+          cmake --build "${{ env.BASE_BUILD_DIR_POWERSHELL }}"
       - name: "Clean up build dir"
         if: always()
         run: if (Test-Path -Path "$Env:BUILD_DIR_POWERSHELL") {Remove-Item -Path "$Env:BUILD_DIR_POWERSHELL" -Recurse -Force}
