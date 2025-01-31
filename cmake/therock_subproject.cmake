@@ -66,11 +66,11 @@ function(therock_subproject_fetch target_name)
   endif()
   if(ARG_TOUCH)
     list(APPEND _extra
-      INSTALL_COMMAND "${CMAKE_COMMAND}" -E touch ${ARG_TOUCH}
-      INSTALL_BYPRODUCTS ${ARG_TOUCH}
+      BUILD_COMMAND "${CMAKE_COMMAND}" -E touch ${ARG_TOUCH}
+      BUILD_BYPRODUCTS ${ARG_TOUCH}
     )
   else()
-    list(APPEND _extra "INSTALL_COMMAND" "")
+    list(APPEND _extra "BUILD_COMMAND" "")
   endif()
 
   ExternalProject_Add(
@@ -79,7 +79,7 @@ function(therock_subproject_fetch target_name)
     PREFIX "${ARG_PREFIX}"
     SOURCE_DIR "${ARG_SOURCE_DIR}"
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
     TEST_COMMAND ""
     ${_extra}
     ${ARG_UNPARSED_ARGUMENTS}
