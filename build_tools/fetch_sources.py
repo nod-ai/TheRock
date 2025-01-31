@@ -4,6 +4,7 @@
 # the CI uses to get to a clean state.
 
 import argparse
+import os
 from pathlib import Path
 import shlex
 import shutil
@@ -34,6 +35,7 @@ def setup_repo_tool() -> Path:
     urllib.request.urlretrieve(
         "https://storage.googleapis.com/git-repo-downloads/repo", repo_path
     )
+    os.chmod(repo_path, 0o744)
     return repo_path
 
 
