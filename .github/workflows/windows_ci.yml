@@ -62,7 +62,7 @@ jobs:
           refreshenv
       - name: "Building TheRock"
         run: |
-          dir
+          dir ${{ env.BUILD_DIR_POWERSHELL }}"
           python .\build_tools\fetch_sources.py --depth 1
           echo "Building in ${{ env.BUILD_DIR_BASH }}"
           cmake --build "${{ env.BUILD_DIR_BASH }}"
