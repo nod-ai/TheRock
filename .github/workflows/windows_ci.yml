@@ -64,7 +64,7 @@ jobs:
       - name: "Building TheRock"
         run: |
           dir
-          python .\build_tools\fetch_sources.py
+          python .\build_tools\fetch_sources.py --depth 1
           echo "Building in ${{ env.BUILD_DIR_BASH }}"
           cmake --build "${{ env.BUILD_DIR_BASH }}"
       - name: "Clean up build dir"
