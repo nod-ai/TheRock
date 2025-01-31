@@ -32,6 +32,18 @@ if(THEROCK_ENABLE_RCCL)
       src
   )
   therock_cmake_subproject_activate(rccl)
+
+  therock_provide_artifact(rccl
+    DESCRIPTOR artifact-rccl.toml
+    COMPONENTS
+      dbg
+      dev
+      doc
+      lib
+      run
+    SUBPROJECT_DEPS
+      rccl
+  )
 else()
   message(STATUS "Not building RCCL (THEROCK_ENABLE_RCCL=OFF)")
 endif()

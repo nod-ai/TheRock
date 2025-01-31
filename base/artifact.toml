@@ -5,6 +5,7 @@
 # rocm_smi_lib
 [components.dev."base/rocm_smi_lib/stage"]
 [components.doc."base/rocm_smi_lib/stage"]
+[components.lib."base/rocm_smi_lib/stage"]
 [components.run."base/rocm_smi_lib/stage"]
 include = [
   "bin/**",
@@ -17,17 +18,19 @@ include = [
 
 # rocm-core
 [components.dev."base/rocm-core/stage"]
-include = "include/**"
+include = "lib/rocmmod"
 [components.doc."base/rocm-core/stage"]
-[components.run."base/rocm-core/stage"]
+[components.lib."base/rocm-core/stage"]
 include = [
-  "libexec/**",
-  "lib/rocmmod",
+  ".info/**",
 ]
+[components.run."base/rocm-core/stage"]
+include = "libexec/**"
 
 # rocprofiler-register
 [components.dev."base/rocprofiler-register/stage"]
 [components.doc."base/rocprofiler-register/stage"]
+[components.lib."base/rocprofiler-register/stage"]
 [components.run."base/rocprofiler-register/stage"]
 [components.test."base/rocprofiler-register/stage"]
 include = [

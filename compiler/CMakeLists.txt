@@ -60,10 +60,11 @@ therock_provide_artifact(amd-llvm
   TARGET_NEUTRAL
   DESCRIPTOR artifact-amd-llvm.toml
   COMPONENTS
-    run
-    dev
     dbg
+    dev
     doc
+    lib
+    run
   SUBPROJECT_DEPS
     amd-llvm
 )

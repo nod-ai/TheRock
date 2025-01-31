@@ -25,66 +25,71 @@ import sys
 class ComponentDefaults:
     """Defaults for to apply to artifact merging by component name."""
 
-    def __init__(self, includes=(), excludes=()):
+    ALL: dict[str, "ComponentDefaults"] = {}
+
+    def __init__(self, name: str = "", includes=(), excludes=()):
         self.includes = list(includes)
         self.excludes = list(excludes)
+        if name:
+            if name in ComponentDefaults.ALL:
+                raise KeyError(f"ComponentDefaults {name} already defined")
+            ComponentDefaults.ALL[name] = self
+
+    @staticmethod
+    def get(name: str) -> "ComponentDefaults":
+        return ComponentDefaults.ALL.get(name) or ComponentDefaults(name)
 
 
-COMPONENT_DEFAULTS: dict[str, ComponentDefaults] = {
-    # Debug components collect all platform specific dbg file patterns.
-    "dbg": ComponentDefaults(
-        includes=[
-            "**/*.dbg",
-        ],
-    ),
-    # Run components by default include all name-based executables in the tree.
-    # Descriptors should explicitly include bin/ directories and other places
-    # that include runnable artifacts (Python files, etc).
-    "run": ComponentDefaults(
-        includes=[
-            # Must be synced with "dev" excludes.
-            "**/*.exe",
-            "**/*.dll",
-            "**/*.dylib",
-            "**/*.dylib.*",
-            "**/*.so",
-            "**/*.so.*",
-            "**/share/modulefiles/**",
-        ],
-        excludes=[
-            "**/*.a",
-            "**/*.dbg",
-            "**/cmake/**",
-        ],
-    ),
-    # Dev components include all static library based file patterns and
-    # exclude file name patterns implicitly included for "run".
-    # Descriptors should explicitly include header file any package file
-    # sub-trees that do not have an explicit "cmake" path component in
-    # them.
-    "dev": ComponentDefaults(
-        includes=[
-            "**/*.a",
-            "**/cmake/**",
-            "**/include/**",
-        ],
-        excludes=[
-            # Must be synced with "run" includes.
-            "**/*.exe",
-            "**/*.dll",
-            "**/*.dylib",
-            "**/*.dylib.*",
-            "**/*.so",
-            "**/*.so.*",
-            "**/share/modulefiles/**",
-        ],
-    ),
-    "doc": ComponentDefaults(
-        includes=[
-            "**/share/doc/**",
-        ],
-    ),
-}
+# Debug components collect all platform specific dbg file patterns.
+ComponentDefaults("dbg", includes=["**/*.dbg"])
+# Dev components include all static library based file patterns and
+# exclude file name patterns implicitly included for "run" and "lib".
+# Descriptors should explicitly include header file any package file
+# sub-trees that do not have an explicit "cmake" or "include" path components
+# in them.
+ComponentDefaults(
+    "dev",
+    includes=[
+        "**/*.a",
+        "**/cmake/**",
+        "**/include/**",
+        "**/share/modulefiles/**",
+        "**/pkgconfig/**",
+    ],
+    excludes=[],
+)
+# Lib components include shared libraries, dlls and any assets needed for use
+# of shared libraries at runtime. Files are included by name pattern and
+# descriptors should include/exclude non-standard variations.
+ComponentDefaults(
+    "lib",
+    includes=[
+        "**/*.dll",
+        "**/*.dylib",
+        "**/*.dylib.*",
+        "**/*.so",
+        "**/*.so.*",
+    ],
+    excludes=[],
+)
+# Run components layer on top of 'lib' components and also include executables
+# and tools that are not needed by library consumers. Descriptors should
+# explicitly include "bin" directory contents as needed.
+ComponentDefaults("run")
+ComponentDefaults("doc", includes=["**/share/doc/**"])
+
+# To help layering, we make lib/dev/run default patterns exclude patterns
+# that the others define. This makes it easier for one of these to do directory
+# level includes and have the files sorted into the proper component.
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("lib").includes)
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("run").includes)
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("doc").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("dev").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("run").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("doc").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("dev").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("lib").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("doc").includes)
 
 
 class RecursiveGlobPattern:
@@ -292,13 +297,13 @@ def do_artifact(args):
         # Includes.
         includes = _dup_list_or_str(basedir_record.get("include"))
         includes.extend(
-            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).includes
+            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
         )
 
         # Excludes.
         excludes = _dup_list_or_str(basedir_record.get("exclude"))
         excludes.extend(
-            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).excludes
+            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
         )
 
         pm = PatternMatcher(
