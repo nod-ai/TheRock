@@ -58,13 +58,14 @@ jobs:
         run: |
           choco install cmake
           choco install ninja
+          choco install repo
           Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
           refreshenv
       - name: "Building TheRock"
         run: |
+          dir
           python .\build_tools\fetch_sources.py
           echo "Building in ${{ env.BUILD_DIR_BASH }}"
-          dir C:/mnt/azure/b/011055/third-party/eigen/source
           cmake --build "${{ env.BUILD_DIR_BASH }}"
       - name: "Clean up build dir"
         if: always()
