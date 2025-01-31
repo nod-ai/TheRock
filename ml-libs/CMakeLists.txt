@@ -1,10 +1,3 @@
-# Many things need to be configured with paths to additional LLVM tools.
-# If a project is using an amd-hip or amd-llvm toolchain, then it will already
-# have an implicit dep on the toolchain, so it is safe to reference binaries
-# here without worrying about build deps.
-therock_cmake_subproject_dist_dir(_toolchain_dir amd-llvm)
-cmake_path(APPEND _toolchain_dir lib/llvm)
-
 #################################################################################
 # MIOpen
 #################################################################################
@@ -39,3 +32,15 @@ therock_cmake_subproject_declare(MIOpen
 )
 
 therock_cmake_subproject_activate(MIOpen)
+
+therock_provide_artifact(miopen
+  DESCRIPTOR artifact-miopen.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS
+    MIOpen
+)
