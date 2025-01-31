@@ -81,3 +81,25 @@ therock_cmake_subproject_glob_c_sources(rocm-half
     include
 )
 therock_cmake_subproject_activate(rocm-half)
+
+
+################################################################################
+# Artifacts
+################################################################################
+
+therock_provide_artifact(base
+  TARGET_NEUTRAL
+  DESCRIPTOR artifact.toml
+  COMPONENTS
+    run
+    dev
+    dbg
+    doc
+    test
+  SUBPROJECT_DEPS
+    rocm-cmake
+    rocm-core
+    rocm_smi_lib
+    rocprofiler-register
+    rocm-half
+)

@@ -22,6 +22,71 @@ import shutil
 import sys
 
 
+class ComponentDefaults:
+    """Defaults for to apply to artifact merging by component name."""
+
+    def __init__(self, includes=(), excludes=()):
+        self.includes = list(includes)
+        self.excludes = list(excludes)
+
+
+COMPONENT_DEFAULTS: dict[str, ComponentDefaults] = {
+    # Debug components collect all platform specific dbg file patterns.
+    "dbg": ComponentDefaults(
+        includes=[
+            "**/*.dbg",
+        ],
+    ),
+    # Run components by default include all name-based executables in the tree.
+    # Descriptors should explicitly include bin/ directories and other places
+    # that include runnable artifacts (Python files, etc).
+    "run": ComponentDefaults(
+        includes=[
+            # Must be synced with "dev" excludes.
+            "**/*.exe",
+            "**/*.dll",
+            "**/*.dylib",
+            "**/*.dylib.*",
+            "**/*.so",
+            "**/*.so.*",
+            "**/share/modulefiles/**",
+        ],
+        excludes=[
+            "**/*.a",
+            "**/*.dbg",
+            "**/cmake/**",
+        ],
+    ),
+    # Dev components include all static library based file patterns and
+    # exclude file name patterns implicitly included for "run".
+    # Descriptors should explicitly include header file any package file
+    # sub-trees that do not have an explicit "cmake" path component in
+    # them.
+    "dev": ComponentDefaults(
+        includes=[
+            "**/*.a",
+            "**/cmake/**",
+            "**/include/**",
+        ],
+        excludes=[
+            # Must be synced with "run" includes.
+            "**/*.exe",
+            "**/*.dll",
+            "**/*.dylib",
+            "**/*.dylib.*",
+            "**/*.so",
+            "**/*.so.*",
+            "**/share/modulefiles/**",
+        ],
+    ),
+    "doc": ComponentDefaults(
+        includes=[
+            "**/share/doc/**",
+        ],
+    ),
+}
+
+
 class RecursiveGlobPattern:
     def __init__(self, glob: str):
         self.glob = glob
@@ -91,6 +156,77 @@ class PatternMatcher:
             if not excluded:
                 yield match_path, direntry
 
+    def copy_to(
+        self,
+        *,
+        destdir: Path,
+        destprefix: str = "",
+        verbose: bool = False,
+        always_copy: bool = False,
+        remove_dest: bool = True,
+    ):
+        if remove_dest and destdir.exists():
+            if verbose:
+                print(f"rmtree {destdir}", file=sys.stderr)
+            shutil.rmtree(destdir)
+        destdir.mkdir(parents=True, exist_ok=True)
+
+        for relpath, direntry in self.matches():
+            try:
+                destpath = destdir / PurePosixPath(destprefix + relpath)
+                if direntry.is_dir(follow_symlinks=False):
+                    # Directory.
+                    if verbose:
+                        print(f"mkdir {destpath}", file=sys.stderr, end="")
+                    destpath.mkdir(parents=True, exist_ok=True)
+                elif direntry.is_symlink():
+                    # Symlink.
+                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                        os.unlink(destpath)
+                    targetpath = os.readlink(direntry.path)
+                    if verbose:
+                        print(
+                            f"symlink {targetpath} -> {destpath}",
+                            file=sys.stderr,
+                            end="",
+                        )
+                    destpath.parent.mkdir(parents=True, exist_ok=True)
+                    os.symlink(targetpath, destpath)
+                else:
+                    # Regular file.
+                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                        os.unlink(destpath)
+                    destpath.parent.mkdir(parents=True, exist_ok=True)
+                    linked_file = False
+                    if not always_copy:
+                        # Attempt to link
+                        try:
+                            if verbose:
+                                print(
+                                    f"hardlink {direntry.path} -> {destpath}",
+                                    file=sys.stderr,
+                                    end="",
+                                )
+                            os.link(direntry.path, destpath, follow_symlinks=False)
+                            linked_file = True
+                        except OSError:
+                            if verbose:
+                                print(
+                                    " (falling back to copy) ", file=sys.stderr, end=""
+                                )
+                    if not linked_file:
+                        # Make a copy instead.
+                        if verbose:
+                            print(
+                                f"copy {direntry.path} -> {destpath}",
+                                file=sys.stderr,
+                                end="",
+                            )
+                        shutil.copy2(direntry.path, destpath, follow_symlinks=False)
+            finally:
+                if verbose:
+                    print("", file=sys.stderr)
+
 
 def do_list(args: argparse.Namespace, pm: PatternMatcher):
     for relpath, direntry in pm.matches():
@@ -100,61 +236,106 @@ def do_list(args: argparse.Namespace, pm: PatternMatcher):
 def do_copy(args: argparse.Namespace, pm: PatternMatcher):
     verbose = args.verbose
     destdir: Path = args.dest_dir
-    if args.remove_dest and destdir.exists():
-        if verbose:
-            print(f"rmtree {destdir}", file=sys.stderr)
-        shutil.rmtree(destdir)
-    destdir.mkdir(parents=True, exist_ok=True)
-    for relpath, direntry in pm.matches():
-        try:
-            destpath = destdir / PurePosixPath(relpath)
-            if direntry.is_dir(follow_symlinks=False):
-                # Directory.
-                if verbose:
-                    print(f"mkdir {destpath}", file=sys.stderr, end="")
-                destpath.mkdir(parents=True, exist_ok=True)
-            elif direntry.is_symlink():
-                # Symlink.
-                if not args.remove_dest and destpath.exists(follow_symlinks=False):
-                    os.unlink(destpath)
-                targetpath = os.readlink(direntry.path)
-                if verbose:
-                    print(
-                        f"symlink {targetpath} -> {destpath}", file=sys.stderr, end=""
-                    )
-                os.symlink(targetpath, destpath)
-            else:
-                # Regular file.
-                if not args.remove_dest and destpath.exists(follow_symlinks=False):
-                    os.unlink(destpath)
-                destpath.parent.mkdir(parents=True, exist_ok=True)
-                linked_file = False
-                if not args.always_copy:
-                    # Attempt to link
-                    try:
-                        if verbose:
-                            print(
-                                f"hardlink {direntry.path} -> {destpath}",
-                                file=sys.stderr,
-                                end="",
-                            )
-                        os.link(direntry.path, destpath, follow_symlinks=False)
-                        linked_file = True
-                    except OSError:
-                        if verbose:
-                            print(" (falling back to copy) ", file=sys.stderr, end="")
-                if not linked_file:
-                    # Make a copy instead.
-                    if verbose:
-                        print(
-                            f"copy {direntry.path} -> {destpath}",
-                            file=sys.stderr,
-                            end="",
-                        )
-                    shutil.copy2(direntry.path, destpath, follow_symlinks=False)
-        finally:
-            if verbose:
-                print("", file=sys.stderr)
+    pm.copy_to(
+        destdir=destdir,
+        verbose=verbose,
+        always_copy=args.always_copy,
+        remove_dest=args.remove_dest,
+    )
+
+
+def do_artifact(args):
+    """Produces an 'artifact directory', which is a slice of installed stage/
+    directories, split into components (i.e. run, dev, dbg, doc, test).
+
+    The primary input is the artifact.toml file, which defines records like:
+
+        "components" : dict of covered component names
+            "{component_name}": dict of build/ relative paths to materialize
+                "{stage_directory}":
+                    "include": str or list[str] of include patterns
+                    "exclude": str or list[str] of exclude patterns
+                    "optional": if true and the directory does not exist, it
+                      is not an error. Use for optionally built projects
+
+    Most sections can typically be blank because by default they use
+    component specific include/exclude patterns (see `COMPONENT_DEFAULTS` above)
+    that cover most common cases. Local deviations must be added explicitly
+    in the descriptor.
+
+    This is called once per component and will create a directory for that
+    component.
+    """
+    descriptor = load_toml_file(args.descriptor) or {}
+    component_name = args.component
+    # Set up output dir.
+    output_dir: Path = args.output_dir
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get metadata for the component we are merging.
+    try:
+        component_record = descriptor["components"][component_name]
+    except KeyError:
+        # No components.
+        component_record = {}
+
+    all_basedir_relpaths = []
+    for basedir_relpath, basedir_record in component_record.items():
+        basedir = args.root_dir / Path(basedir_relpath)
+        optional = basedir_record.get("optional")
+        if optional and not basedir.exists():
+            continue
+        all_basedir_relpaths.append(basedir_relpath)
+
+        # Includes.
+        includes = _dup_list_or_str(basedir_record.get("include"))
+        includes.extend(
+            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).includes
+        )
+
+        # Excludes.
+        excludes = _dup_list_or_str(basedir_record.get("exclude"))
+        excludes.extend(
+            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).excludes
+        )
+
+        pm = PatternMatcher(
+            includes=includes,
+            excludes=excludes,
+        )
+        pm.add_basedir(basedir)
+        pm.copy_to(
+            destdir=output_dir,
+            destprefix=basedir_relpath + "/",
+            remove_dest=False,
+        )
+
+    # Write a manifest containing relative paths of all base directories.
+    manifest_path = args.manifest
+    if manifest_path is None:
+        manifest_path = output_dir / "artifact_manifest.txt"
+    if manifest_path:
+        manifest_path.write_text("\n".join(all_basedir_relpaths) + "\n")
+
+
+def _dup_list_or_str(v: list[str] | str) -> list[str]:
+    if not v:
+        return []
+    if isinstance(v, str):
+        return [v]
+    return list(v)
+
+
+def load_toml_file(p: Path):
+    try:
+        import tomllib
+    except ModuleNotFoundError:
+        # Python <= 3.10 compatibility (requires install of 'toml' package)
+        import toml as tomllib
+    with open(p, "rb") as f:
+        return tomllib.load(f)
 
 
 def main(cl_args: list[str]):
@@ -201,6 +382,35 @@ def main(cl_args: list[str]):
     list_p = sub_p.add_parser("list", help="List matching files to stdout")
     add_pattern_matcher_args(list_p)
     list_p.set_defaults(func=pattern_matcher_action(do_list))
+
+    # 'artifact' command
+    artifact_p = sub_p.add_parser(
+        "artifact", help="Merge artifacts based on a descriptor"
+    )
+    artifact_p.add_argument(
+        "--output-dir", type=Path, required=True, help="Artifact output directory"
+    )
+    artifact_p.add_argument(
+        "--root-dir",
+        type=Path,
+        required=True,
+        help="Source directory to which all descriptor directories are relative",
+    )
+    artifact_p.add_argument(
+        "--descriptor",
+        type=Path,
+        required=True,
+        help="TOML file describing the artifact",
+    )
+    artifact_p.add_argument(
+        "--component", required=True, help="Component within the descriptor to merge"
+    )
+    artifact_p.add_argument(
+        "--manifest",
+        type=Path,
+        help="Manifest text file to write (contains base paths)",
+    )
+    artifact_p.set_defaults(func=do_artifact)
 
     args = p.parse_args(cl_args)
     args.func(args)

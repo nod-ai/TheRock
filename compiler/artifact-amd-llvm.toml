@@ -1,0 +1,13 @@
+[components.dev."compiler/amd-llvm/stage"]
+exclude = [
+  "lib/llvm/lib/clang/**",
+]
+[components.doc."compiler/amd-llvm/stage"]
+[components.run."compiler/amd-llvm/stage"]
+include = [
+  "lib/llvm/bin/**",
+  "lib/llvm/amdgcn/**",
+  "lib/llvm/libexec/**",
+  "lib/llvm/hip/**",
+  "lib/llvm/lib/clang/**",
+]

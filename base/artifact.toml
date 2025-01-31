@@ -1,0 +1,35 @@
+# half
+[components.dev."base/half/stage"]
+[components.doc."base/half/stage"]
+
+# rocm_smi_lib
+[components.dev."base/rocm_smi_lib/stage"]
+[components.doc."base/rocm_smi_lib/stage"]
+[components.run."base/rocm_smi_lib/stage"]
+include = [
+  "bin/**",
+  "libexec/**",
+]
+
+# rocm-cmake
+[components.dev."base/rocm-cmake/stage"]
+[components.doc."base/rocm-cmake/stage"]
+
+# rocm-core
+[components.dev."base/rocm-core/stage"]
+include = "include/**"
+[components.doc."base/rocm-core/stage"]
+[components.run."base/rocm-core/stage"]
+include = [
+  "libexec/**",
+  "lib/rocmmod",
+]
+
+# rocprofiler-register
+[components.dev."base/rocprofiler-register/stage"]
+[components.doc."base/rocprofiler-register/stage"]
+[components.run."base/rocprofiler-register/stage"]
+[components.test."base/rocprofiler-register/stage"]
+include = [
+  "share/rocprofiler-register/tests/**",
+]
