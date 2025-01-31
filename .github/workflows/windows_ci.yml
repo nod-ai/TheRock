@@ -60,9 +60,10 @@ jobs:
           choco install ninja
           Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
           refreshenv
+      - name: "Run Dir"
+        run: dir "${{ env.BUILD_DIR_POWERSHELL }}"
       - name: "Building TheRock"
         run: |
-          dir "${{ env.BUILD_DIR_POWERSHELL }}"
           python .\build_tools\fetch_sources.py --depth 1
           echo "Building in ${{ env.BUILD_DIR_BASH }}"
           cmake --build "${{ env.BUILD_DIR_BASH }}"
