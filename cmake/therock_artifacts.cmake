@@ -55,7 +55,6 @@ function(therock_provide_artifact slice_name)
   endforeach()
 
   # Set up command.
-  message(STATUS "FOOMANIFEST: ${_manifest_files}")
   add_custom_command(
     OUTPUT ${_manifest_files}
     COMMENT "Merging artifact ${slice_name}"
