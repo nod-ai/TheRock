@@ -4,7 +4,7 @@ on:
   push:
     branches: ['main', 'docker*']
     paths:
-    - dockerfiles/build_manylinux_x86_64.Dockerfile
+    - "dockerfiles/**"
     - .github/workflows/publish_build_manylinux_x86_64.yml
 
 env:
