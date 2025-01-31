@@ -65,8 +65,8 @@ jobs:
       - name: "Building TheRock"
         run: |
           python .\build_tools\fetch_sources.py --depth 1
-          echo "Building in ${{ env.BUILD_DIR_BASH }}"
-          cmake --build "${{ env.BUILD_DIR_BASH }}"
+          echo "Building in ${{ env.BUILD_DIR_POWERSHELL }}"
+          cmake --build "${{ env.BUILD_DIR_POWERSHELL }}"
       - name: "Clean up build dir"
         if: always()
         run: if (Test-Path -Path "$Env:BUILD_DIR_POWERSHELL") {Remove-Item -Path "$Env:BUILD_DIR_POWERSHELL" -Recurse -Force}
