@@ -58,7 +58,6 @@ jobs:
         run: |
           choco install cmake
           choco install ninja
-          choco install repo
           Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
           refreshenv
       - name: "Building TheRock"
