@@ -70,3 +70,35 @@ therock_cmake_subproject_declare(rocminfo
 )
 therock_cmake_subproject_glob_c_sources(rocminfo SUBDIRS .)
 therock_cmake_subproject_activate(rocminfo)
+
+
+################################################################################
+# Artifacts
+################################################################################
+
+therock_provide_artifact(core-runtime
+  TARGET_NEUTRAL
+  DESCRIPTOR artifact-core-runtime.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS
+    ROCR-Runtime
+    rocminfo
+)
+
+therock_provide_artifact(core-hip
+  TARGET_NEUTRAL
+  DESCRIPTOR artifact-core-hip.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS
+    hip-clr
+)

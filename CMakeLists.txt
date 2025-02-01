@@ -32,10 +32,13 @@ set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string"
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
+set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
+set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
+
 # Library specific enable flags.
 option(THEROCK_ENABLE_RCCL "Enable the comm_libs/rccl sub-project" ON)
 option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON)
-cmake_dependent_option(THEROCK_ENABLE_ML_FRAMEWORKS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
+cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -110,8 +113,8 @@ add_subdirectory(comm-libs)
 if(THEROCK_ENABLE_MATH_LIBS)
   add_subdirectory(math-libs)
 endif()
-if(THEROCK_ENABLE_ML_FRAMEWORKS)
-  add_subdirectory(ml-frameworks)
+if(THEROCK_ENABLE_ML_LIBS)
+  add_subdirectory(ml-libs)
 endif()
 
 

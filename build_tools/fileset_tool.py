@@ -13,78 +13,86 @@ with the following changes:
 * It does not support character classes.
 """
 
-from typing import Callable, Generator
+from typing import Callable, Generator, Sequence
 import argparse
+import hashlib
 import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
 import sys
+import tarfile
+import zipfile
 
 
 class ComponentDefaults:
     """Defaults for to apply to artifact merging by component name."""
 
-    def __init__(self, includes=(), excludes=()):
+    ALL: dict[str, "ComponentDefaults"] = {}
+
+    def __init__(self, name: str = "", includes=(), excludes=()):
         self.includes = list(includes)
         self.excludes = list(excludes)
+        if name:
+            if name in ComponentDefaults.ALL:
+                raise KeyError(f"ComponentDefaults {name} already defined")
+            ComponentDefaults.ALL[name] = self
+
+    @staticmethod
+    def get(name: str) -> "ComponentDefaults":
+        return ComponentDefaults.ALL.get(name) or ComponentDefaults(name)
 
 
-COMPONENT_DEFAULTS: dict[str, ComponentDefaults] = {
-    # Debug components collect all platform specific dbg file patterns.
-    "dbg": ComponentDefaults(
-        includes=[
-            "**/*.dbg",
-        ],
-    ),
-    # Run components by default include all name-based executables in the tree.
-    # Descriptors should explicitly include bin/ directories and other places
-    # that include runnable artifacts (Python files, etc).
-    "run": ComponentDefaults(
-        includes=[
-            # Must be synced with "dev" excludes.
-            "**/*.exe",
-            "**/*.dll",
-            "**/*.dylib",
-            "**/*.dylib.*",
-            "**/*.so",
-            "**/*.so.*",
-            "**/share/modulefiles/**",
-        ],
-        excludes=[
-            "**/*.a",
-            "**/*.dbg",
-            "**/cmake/**",
-        ],
-    ),
-    # Dev components include all static library based file patterns and
-    # exclude file name patterns implicitly included for "run".
-    # Descriptors should explicitly include header file any package file
-    # sub-trees that do not have an explicit "cmake" path component in
-    # them.
-    "dev": ComponentDefaults(
-        includes=[
-            "**/*.a",
-            "**/cmake/**",
-            "**/include/**",
-        ],
-        excludes=[
-            # Must be synced with "run" includes.
-            "**/*.exe",
-            "**/*.dll",
-            "**/*.dylib",
-            "**/*.dylib.*",
-            "**/*.so",
-            "**/*.so.*",
-            "**/share/modulefiles/**",
-        ],
-    ),
-    "doc": ComponentDefaults(
-        includes=[
-            "**/share/doc/**",
-        ],
-    ),
-}
+# Debug components collect all platform specific dbg file patterns.
+ComponentDefaults("dbg", includes=["**/*.dbg"])
+# Dev components include all static library based file patterns and
+# exclude file name patterns implicitly included for "run" and "lib".
+# Descriptors should explicitly include header file any package file
+# sub-trees that do not have an explicit "cmake" or "include" path components
+# in them.
+ComponentDefaults(
+    "dev",
+    includes=[
+        "**/*.a",
+        "**/cmake/**",
+        "**/include/**",
+        "**/share/modulefiles/**",
+        "**/pkgconfig/**",
+    ],
+    excludes=[],
+)
+# Lib components include shared libraries, dlls and any assets needed for use
+# of shared libraries at runtime. Files are included by name pattern and
+# descriptors should include/exclude non-standard variations.
+ComponentDefaults(
+    "lib",
+    includes=[
+        "**/*.dll",
+        "**/*.dylib",
+        "**/*.dylib.*",
+        "**/*.so",
+        "**/*.so.*",
+    ],
+    excludes=[],
+)
+# Run components layer on top of 'lib' components and also include executables
+# and tools that are not needed by library consumers. Descriptors should
+# explicitly include "bin" directory contents as needed.
+ComponentDefaults("run")
+ComponentDefaults("doc", includes=["**/share/doc/**"])
+
+# To help layering, we make lib/dev/run default patterns exclude patterns
+# that the others define. This makes it easier for one of these to do directory
+# level includes and have the files sorted into the proper component.
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("lib").includes)
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("run").includes)
+ComponentDefaults.get("dev").excludes.extend(ComponentDefaults.get("doc").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("dev").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("run").includes)
+ComponentDefaults.get("lib").excludes.extend(ComponentDefaults.get("doc").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("dev").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("lib").includes)
+ComponentDefaults.get("run").excludes.extend(ComponentDefaults.get("doc").includes)
 
 
 class RecursiveGlobPattern:
@@ -109,11 +117,11 @@ class RecursiveGlobPattern:
 
 
 class PatternMatcher:
-    def __init__(self, includes: list[str], excludes: list[str]):
+    def __init__(self, includes: Sequence[str] = (), excludes: Sequence[str] = ()):
         self.includes = [RecursiveGlobPattern(p) for p in includes]
         self.excludes = [RecursiveGlobPattern(p) for p in excludes]
         # Dictionary of relative posix-style path to DirEntry.
-        # Last relative path wins.
+        # Last relative path to entry.
         self.all: dict[str, os.DirEntry[str]] = {}
 
     def add_basedir(self, basedir: Path):
@@ -292,13 +300,13 @@ def do_artifact(args):
         # Includes.
         includes = _dup_list_or_str(basedir_record.get("include"))
         includes.extend(
-            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).includes
+            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
         )
 
         # Excludes.
         excludes = _dup_list_or_str(basedir_record.get("exclude"))
         excludes.extend(
-            COMPONENT_DEFAULTS.get(component_name, ComponentDefaults()).excludes
+            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
         )
 
         pm = PatternMatcher(
@@ -318,6 +326,55 @@ def do_artifact(args):
         manifest_path = output_dir / "artifact_manifest.txt"
     if manifest_path:
         manifest_path.write_text("\n".join(all_basedir_relpaths) + "\n")
+
+
+def do_artifact_archive(args):
+    output_path: Path = args.o
+    if output_path.exists():
+        output_path.unlink()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with _open_archive(output_path, archive_type=args.type) as arc:
+        for artifact_path in args.artifact:
+            manifest_path: Path = artifact_path / "artifact_manifest.txt"
+            relpaths = manifest_path.read_text().splitlines()
+            for relpath in relpaths:
+                if not relpath:
+                    continue
+                source_dir = artifact_path / relpath
+                if not source_dir.exists():
+                    continue
+                pm = PatternMatcher()
+                pm.add_basedir(source_dir)
+                for relpath, dir_entry in pm.all.items():
+                    if isinstance(arc, zipfile.ZipFile):
+                        # zip file.
+                        if dir_entry.is_dir(follow_symlinks=False):
+                            arc.mkdir(relpath)
+                        else:
+                            arc.write(dir_entry.path, arcname=relpath)
+                    else:
+                        # tar file
+                        arc.add(dir_entry.path, arcname=relpath, recursive=False)
+
+    if args.hash_file:
+        with open(output_path, "rb") as f:
+            digest = hashlib.file_digest(f, args.hash_algorithm)
+        with open(args.hash_file, "wt") as hash_file:
+            hash_file.write(digest.hexdigest())
+            hash_file.write("\n")
+
+
+def _open_archive(p: Path, archive_type: str) -> tarfile.TarFile | zipfile.ZipFile:
+    if archive_type == "tar.xz":
+        return tarfile.TarFile.open(p, mode="x:xz")
+    elif archive_type == "tar.gz":
+        return tarfile.TarFile.open(p, mode="x:gz")
+    elif archive_type == "tar.bz2":
+        return tarfile.TarFile.open(p, mode="x:bz2")
+    elif archive_type == "zip":
+        return zipfile.ZipFile.open(str(p), mode="x", force_zip64=True)
+    raise ValueError("Expected one of tar.xz, tar.gz, tar.bz2 for archive type")
 
 
 def _dup_list_or_str(v: list[str] | str) -> list[str]:
@@ -411,6 +468,30 @@ def main(cl_args: list[str]):
         help="Manifest text file to write (contains base paths)",
     )
     artifact_p.set_defaults(func=do_artifact)
+
+    # 'artifact-archive' command
+    artifact_archive_p = sub_p.add_parser(
+        "artifact-archive",
+        help="Creates an archive file from one or more artifact directories",
+    )
+    artifact_archive_p.add_argument(
+        "artifact", nargs="+", type=Path, help="Artifact directory"
+    )
+    artifact_archive_p.add_argument(
+        "-o", type=Path, required=True, help="Output archive name"
+    )
+    artifact_archive_p.add_argument(
+        "--type", default="tar.xz", help="Archive type (tar.xz, tar.gz, tar.bz2, zip)"
+    )
+    artifact_archive_p.add_argument(
+        "--hash-file",
+        type=Path,
+        help="Hash file to write representing the archive contents",
+    )
+    artifact_archive_p.add_argument(
+        "--hash-algorithm", default="sha256", help="Hash algorithm"
+    )
+    artifact_archive_p.set_defaults(func=do_artifact_archive)
 
     args = p.parse_args(cl_args)
     args.func(args)

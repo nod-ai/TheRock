@@ -11,8 +11,12 @@ function(therock_provide_artifact slice_name)
 
   # Normalize arguments.
   set(_target_name "therock-artifact-${slice_name}")
+  set(_archive_target_name "therock-archive-${slice_name}")
   if(TARGET "${_target_name}")
     message(FATAL_ERROR "Artifact slice '${slice_name}' provided more than once")
+  endif()
+  if(TARGET "${_archive_target_name}")
+    message(FATAL_ERROR "Archive slice '${slice_name}' provided more than once")
   endif()
 
   if(NOT ARG_DESCRIPTOR)
@@ -24,6 +28,9 @@ function(therock_provide_artifact slice_name)
   if(NOT TARGET therock-artifacts)
     add_custom_target(therock-artifacts)
   endif()
+  if(NOT TARGET therock-archives)
+    add_custom_target(therock-archives)
+  endif()
 
   # Determine top-level name.
   if(ARG_TARGET_NEUTRAL)
@@ -33,6 +40,7 @@ function(therock_provide_artifact slice_name)
   endif()
   set(_artifact_base_name "${slice_name}_${_bundle_name}")
 
+  ### Generate artifact directories.
   # Determine dependencies.
   set(_stamp_file_deps)
   _therock_cmake_subproject_deps_to_stamp(_stamp_file_deps "stage.stamp" ${ARG_SUBPROJECT_DEPS})
@@ -69,4 +77,33 @@ function(therock_provide_artifact slice_name)
     DEPENDS ${_manifest_files}
   )
   add_dependencies(therock-artifacts "${_target_name}")
+
+  ### Generate archives.
+  set(_archive_files)
+  foreach(_component ${ARG_COMPONENTS})
+    foreach(_archive_type ${THEROCK_ARTIFACT_ARCHIVE_TYPES})
+      set(_component_dir "${THEROCK_BINARY_DIR}/artifacts/${_artifact_base_name}_${_component}")
+      set(_manifest_file "${_component_dir}/artifact_manifest.txt")
+      set(_archive_file "${THEROCK_BINARY_DIR}/archives/${_artifact_base_name}_${_component}${THEROCK_ARTIFACT_ARCHIVE_SUFFIX}.${_archive_type}")
+      list(APPEND _archive_files "${_archive_file}")
+      set(_archive_sha_file "${_archive_file}.sha256sum")
+      add_custom_command(
+        OUTPUT
+          "${_archive_file}"
+          "${_archive_sha_file}"
+        COMMENT "Creating archive ${_archive_file}"
+        COMMAND
+          "${Python3_EXECUTABLE}" "${_fileset_tool}"
+          artifact-archive "${_component_dir}"
+            -o "${_archive_file}" --type "${_archive_type}"
+            --hash-file "${_archive_sha_file}" --hash-algorithm sha256
+        DEPENDS
+          "${_manifest_file}"
+          "${_fileset_tool}"
+      )
+    endforeach()
+  endforeach()
+
+  add_custom_target("${_archive_target_name}" DEPENDS ${_archive_files})
+  add_dependencies(therock-archives "${_archive_target_name}")
 endfunction()
