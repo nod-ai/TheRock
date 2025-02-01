@@ -335,6 +335,7 @@ def do_artifact_archive(args):
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with _open_archive(output_path, archive_type=args.type) as arc:
+        written_paths: set[str] = set()
         for artifact_path in args.artifact:
             manifest_path: Path = artifact_path / "artifact_manifest.txt"
             relpaths = manifest_path.read_text().splitlines()
@@ -347,10 +348,20 @@ def do_artifact_archive(args):
                 pm = PatternMatcher()
                 pm.add_basedir(source_dir)
                 for relpath, dir_entry in pm.all.items():
+                    if relpath in written_paths:
+                        continue
+                    written_paths.add(relpath)
                     if isinstance(arc, zipfile.ZipFile):
                         # zip file.
                         if dir_entry.is_dir(follow_symlinks=False):
                             arc.mkdir(relpath)
+                        elif dir_entry.is_symlink():
+                            # See: https://stackoverflow.com/questions/35782941/archiving-symlinks-with-python-zipfile
+                            zip_info = zipfile.ZipInfo(dir_entry.path)
+                            zip_info.filename = relpath
+                            zip_info.create_system = 3  # System 3 = Unix
+                            zip_info.external_attr = (0xA000 | 0o777) << 16
+                            arc.writestr(zip_info, os.readlink(dir_entry.path))
                         else:
                             arc.write(dir_entry.path, arcname=relpath)
                     else:
@@ -373,7 +384,7 @@ def _open_archive(p: Path, archive_type: str) -> tarfile.TarFile | zipfile.ZipFi
     elif archive_type == "tar.bz2":
         return tarfile.TarFile.open(p, mode="x:bz2")
     elif archive_type == "zip":
-        return zipfile.ZipFile.open(str(p), mode="x", force_zip64=True)
+        return zipfile.ZipFile(str(p), "x")
     raise ValueError("Expected one of tar.xz, tar.gz, tar.bz2 for archive type")
 
 
