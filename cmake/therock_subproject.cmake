@@ -31,6 +31,18 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND THEROCK_DEFAULT_CMAKE_VARS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+# CXX flags that we hard-code in the toolchain file when building projects
+# that use amd-llvm. In these cases, because it is our built toolchain, we
+# don't need to probe warning flag availability and just have a hard-coded
+# list. We only squelch warnings here that do not signal code correctness
+# issues.
+# TODO: Clean up warning flags (https://github.com/nod-ai/TheRock/issues/47)
+set(THEROCK_AMD_LLVM_DEFAULT_CXX_FLAGS
+  -Wno-documentation-unknown-command
+  -Wno-documentation-pedantic
+  -Wno-unused-command-line-argument
+)
+
 # therock_subproject_fetch
 # Fetches arbitrary content. This mostly defers to ExternalProject_Add to get
 # content but it performs no actual building.
@@ -350,6 +362,7 @@ function(therock_cmake_subproject_activate target_name)
     string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
     string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
   endforeach()
+  string(APPEND _init_contents "set(CMAKE_INSTALL_MESSAGE NEVER)\n")
   string(APPEND _init_contents "${_compiler_toolchain_init_contents}")
   if(_dep_provider_file)
     string(APPEND _init_contents "include(${_dep_provider_file})\n")
@@ -750,11 +763,15 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     set(AMD_LLVM_C_COMPILER "${_amd_llvm_dist_dir}/lib/llvm/bin/clang")
     set(AMD_LLVM_CXX_COMPILER "${_amd_llvm_dist_dir}/lib/llvm/bin/clang++")
     set(AMD_LLVM_LINKER "${_amd_llvm_dist_dir}/lib/llvm/bin/lld")
+    set(_amd_llvm_cxx_flags_spaces )
+    string(JOIN " " _amd_llvm_cxx_flags_spaces ${THEROCK_AMD_LLVM_DEFAULT_CXX_FLAGS})
+
     list(APPEND _compiler_toolchain_addl_depends "${_amd_llvm_stamp_dir}/dist.stamp")
     string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER @AMD_LLVM_C_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER @AMD_LLVM_CXX_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_LINKER @AMD_LLVM_LINKER@)\n")
     string(APPEND _toolchain_contents "set(AMDGPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
+    string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" ${_amd_llvm_cxx_flags_spaces}\")\n")
 
     message(STATUS "Compiler toolchain ${compiler_toolchain}:")
     string(APPEND CMAKE_MESSAGE_INDENT "  ")
