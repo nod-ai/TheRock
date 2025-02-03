@@ -1,7 +1,7 @@
 #!/bin/bash
 # Saves patches that are maintained locally to make TheRock work with a given
 # branch.
-# Usage: save_patches.sh base_tag project_name
+# Usage: save_patches.sh base_tag project_name patches_dir
 # The base_tag must be checked out on the current branch. All commits above it
 # will be dumped as patches.
 set -euo pipefail
@@ -15,6 +15,8 @@ set +eu
 version_tag="$1"
 shift
 project_name="$1"
+shift
+patch_dir="$1"
 shift
 set -eu
 
@@ -32,14 +34,6 @@ if ! [ -d "$source_dir" ]; then
   exit 1
 fi
 
-# Get the most recent upstream base commit.
-base_commit="$(cd $source_dir && git rev-list -1 "tags/$version_tag")"
-if [ -z "$base_commit" ]; then
-  echo "Could not find base commit for tags/$version_tag in $source_dir"
-  exit 1
-fi
-echo "Base commit: $base_commit"
-
 # Remove existing patch files.
 for existing in $patch_dir/*.patch; do
   if [ -f "$existing" ]; then
@@ -48,4 +42,4 @@ for existing in $patch_dir/*.patch; do
 done
 
 # And format.
-(cd $source_dir && git format-patch -o $patch_dir "$base_commit")
+(cd $source_dir && git format-patch -o $patch_dir "$version_tag")
