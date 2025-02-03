@@ -14,6 +14,7 @@ therock_cmake_subproject_declare(amd-llvm
   CMAKE_LISTS_RELPATH "llvm"
   CMAKE_ARGS
     -DLLVM_INCLUDE_TESTS=OFF
+    -DCOMGR_DISABLE_SPIRV=ON
     ${_extra_llvm_cmake_args}
   INTERFACE_PROGRAM_DIRS
     lib/llvm/bin
