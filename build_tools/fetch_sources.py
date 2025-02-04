@@ -26,7 +26,7 @@ def setup_repo_tool() -> Path:
         print(f"Found 'repo' on PATH at '{repo_path}', using it")
         return repo_path
 
-    repo_path = THIS_SCRIPT_DIR / "repo"
+    repo_path = THEROCK_DIR / "third-party" / "repo"
     if repo_path.exists():
         print(f"Found 'repo' in script dir at '{repo_path}', using it")
         return repo_path
