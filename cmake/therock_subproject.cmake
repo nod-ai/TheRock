@@ -770,7 +770,9 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER @AMD_LLVM_C_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER @AMD_LLVM_CXX_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_LINKER @AMD_LLVM_LINKER@)\n")
+    # TODO: AMDGPU_TARGETS is being deprecated. For now we set both.
     string(APPEND _toolchain_contents "set(AMDGPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
+    string(APPEND _toolchain_contents "set(GPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
     string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" ${_amd_llvm_cxx_flags_spaces}\")\n")
 
     message(STATUS "Compiler toolchain ${compiler_toolchain}:")
@@ -778,7 +780,7 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     message(STATUS "CMAKE_C_COMPILER = ${AMD_LLVM_C_COMPILER}")
     message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
     message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
-    message(STATUS "AMDGPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
+    message(STATUS "GPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
   else()
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
   endif()
