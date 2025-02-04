@@ -1,7 +1,7 @@
-From 489b2c5277949ad54130e46fbff588089aceaa12 Mon Sep 17 00:00:00 2001
+From acf6789a60150ad51f5a6a097fdc0929085b420a Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Mon, 3 Feb 2025 18:04:51 -0800
-Subject: [PATCH] Add explicit CMake flags for specifying Tensile toolchain
+Subject: [PATCH 1/2] Add explicit CMake flags for specifying Tensile toolchain
  components.
 
 The legacy tensile settings are a mess of things using bare tool names and trying to use heuristics to find them on a variety of paths. All of this code needs to go.

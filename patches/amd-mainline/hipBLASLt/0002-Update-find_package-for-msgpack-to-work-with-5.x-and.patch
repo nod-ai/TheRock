@@ -1,0 +1,63 @@
+From 057418ce17c80111a8a10d341da7a255c69124a6 Mon Sep 17 00:00:00 2001
+From: Stella Laurenzo <stellaraccident@gmail.com>
+Date: Mon, 3 Feb 2025 20:28:58 -0800
+Subject: [PATCH 2/2] Update find_package for msgpack to work with 5.x and 6.x.
+
+Adapted from: https://github.com/msgpack/msgpack-c/wiki/Q%26A#how-to-support-both-msgpack-c-c-version-5x-and-6x-
+
+Note that 6.x also defines compile definitions that must be respected.
+---
+ tensilelite/Tensile/Source/lib/CMakeLists.txt | 33 ++++++++++++-------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/tensilelite/Tensile/Source/lib/CMakeLists.txt b/tensilelite/Tensile/Source/lib/CMakeLists.txt
+index d055b635..b01ee377 100644
+--- a/tensilelite/Tensile/Source/lib/CMakeLists.txt
++++ b/tensilelite/Tensile/Source/lib/CMakeLists.txt
+@@ -96,22 +96,31 @@ if(TENSILE_USE_LLVM OR TENSILE_USE_MSGPACK)
+ endif()
+ 
+ if(TENSILE_USE_MSGPACK)
+-    find_package(msgpack REQUIRED)
+-    target_compile_definitions(TensileHost PUBLIC -DTENSILE_MSGPACK=1)
+-
+-    if(TARGET msgpackc-cxx)
+-        get_target_property(msgpack_inc msgpackc-cxx INTERFACE_INCLUDE_DIRECTORIES)
+-    elseif(TARGET msgpackc)
+-        get_target_property(msgpack_inc msgpackc INTERFACE_INCLUDE_DIRECTORIES)
+-    endif()
+-
+-    if(DEFINED msgpack_inc)
+-        # include C++ headers manually
+-        # External header includes included as system files
++    # See: https://github.com/msgpack/msgpack-c/wiki/Q%26A#how-to-support-both-msgpack-c-c-version-5x-and-6x-
++    # Prefer 6.x (msgpack-cxx) as that is what we bundle in the build.
++    find_package(msgpack-cxx CONFIG)
++    if(msgpack-cxx_FOUND)
++        # Version 6.x
++        get_target_property(msgpack_inc msgpack-cxx INTERFACE_INCLUDE_DIRECTORIES)
++        get_target_property(msgpack_defs msgpack-cxx INTERFACE_COMPILE_DEFINITIONS)
+         target_include_directories(TensileHost
+             SYSTEM PRIVATE $<BUILD_INTERFACE:${msgpack_inc}>
+         )
++        target_compile_definitions(TensileHost PRIVATE $<BUILD_INTERFACE:${msgpack_defs}>)
++        message(STATUS "Found msgpack-cxx (>=6.x): ${msgpack_inc} ${msgpack_defs}")
++    else()
++        # Fallback to <= 5.x
++        find_package(msgpackc-cxx CONFIG REQUIRED NAMES msgpackc-cxx msgpack)
++        get_target_property(msgpack_inc msgpackc INTERFACE_INCLUDE_DIRECTORIES)
++        get_target_property(msgpack_defs msgpackc INTERFACE_COMPILE_DEFINITIONS)
++        message(STATUS "Found msgpack (<=5.x): ${msgpack_inc} ${msgpack_defs}")
+     endif()
++    target_include_directories(TensileHost
++        SYSTEM PRIVATE $<BUILD_INTERFACE:${msgpack_inc}>
++    )
++    target_compile_definitions(TensileHost PRIVATE $<BUILD_INTERFACE:${msgpack_defs}>)
++
++    target_compile_definitions(TensileHost PUBLIC -DTENSILE_MSGPACK=1)
+ endif()
+ 
+ if(TENSILE_USE_LLVM)
+-- 
+2.43.0
+
