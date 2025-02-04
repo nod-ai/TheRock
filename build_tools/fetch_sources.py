@@ -180,7 +180,6 @@ def main(argv):
             "half",
             "HIP",
             "HIPIFY",
-            "SPIRV-LLVM-Translator",
             "llvm-project",
             "rccl",
             "rocm_smi_lib",
