@@ -217,16 +217,13 @@ therock_cmake_subproject_glob_c_sources(rocPRIM
 therock_cmake_subproject_provide_package(rocPRIM rocprim lib/cmake/rocprim)
 therock_cmake_subproject_activate(rocPRIM)
 
-# therock_provide_artifact(prim
-#   DESCRIPTOR artifact-prim.toml
-#   COMPONENTS
-#     dbg
-#     dev
-#     doc
-#     lib
-#     run
-#   SUBPROJECT_DEPS rocPRIM
-# )
+therock_provide_artifact(prim
+  DESCRIPTOR artifact-prim.toml
+  COMPONENTS
+    dev
+    doc
+  SUBPROJECT_DEPS rocPRIM
+)
 
 #################################################################################
 # rocSOLVER
@@ -258,13 +255,13 @@ therock_cmake_subproject_glob_c_sources(rocSOLVER
 therock_cmake_subproject_provide_package(rocSOLVER rocsolver lib/cmake/rocsolver)
 therock_cmake_subproject_activate(rocSOLVER)
 
-# therock_provide_artifact(solver
-#   DESCRIPTOR artifact-solver.toml
-#   COMPONENTS
-#     dbg
-#     dev
-#     doc
-#     lib
-#     run
-#   SUBPROJECT_DEPS rocSOLVER
-# )
+therock_provide_artifact(solver
+  DESCRIPTOR artifact-solver.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS rocSOLVER
+)
