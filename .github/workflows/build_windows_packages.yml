@@ -32,6 +32,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      # https://stackoverflow.com/a/57053415
+      - name: Install certificates
+        run: python -m pip install pip-system-certs certifi
+
       - name: List files (symlinks?)
         run: ls -la base/
 
