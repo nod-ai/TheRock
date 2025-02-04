@@ -63,6 +63,13 @@ jobs:
       - name: "Building TheRock"
         run: |
           echo "Building in ${{ env.BUILD_DIR_POWERSHELL }}"
+          cmake -B "${{ env.BUILD_DIR_POWERSHELL }}" -GNinja . \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
+            -DTHEROCK_PACKAGE_VERSION="${package_version}" \
+            -DTHEROCK_ENABLE_RCCL=OFF \
+            -DTHEROCK_ENABLE_MATH_LIBS=OFF \
+            -DTHEROCK_ENABLE_ML_LIBS=OFF
           cmake --build "${{ env.BUILD_DIR_POWERSHELL }}"
       - name: "Clean up build dir"
         if: always()
