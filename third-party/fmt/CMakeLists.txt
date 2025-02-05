@@ -1,0 +1,17 @@
+therock_subproject_fetch(therock-fmt-sources
+  CMAKE_PROJECT
+  URL https://github.com/fmtlib/fmt/releases/download/11.1.3/fmt-11.1.3.zip
+  URL_HASH SHA256=7df2fd3426b18d552840c071c977dc891efe274051d2e7c47e2c83c3918ba6df
+)
+
+therock_cmake_subproject_declare(therock-fmt
+  BACKGROUND_BUILD
+  EXCLUDE_FROM_ALL
+  EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
+  CMAKE_ARGS
+    -DFMT_DOC=OFF
+    -DFMT_TEST=OFF
+)
+therock_cmake_subproject_provide_package(
+  therock-fmt fmt lib/cmake/fmt)
+therock_cmake_subproject_activate(therock-fmt)

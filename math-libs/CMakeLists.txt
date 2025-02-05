@@ -193,3 +193,75 @@ therock_provide_artifact(rand
     run
   SUBPROJECT_DEPS rocRAND
 )
+
+#################################################################################
+# rocPRIM
+#################################################################################
+
+therock_cmake_subproject_declare(rocPRIM
+  EXTERNAL_SOURCE_DIR "rocPRIM"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+  COMPILER_TOOLCHAIN
+    amd-hip
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocPRIM
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocPRIM rocprim lib/cmake/rocprim)
+therock_cmake_subproject_activate(rocPRIM)
+
+therock_provide_artifact(prim
+  DESCRIPTOR artifact-prim.toml
+  COMPONENTS
+    dev
+    doc
+  SUBPROJECT_DEPS rocPRIM
+)
+
+#################################################################################
+# rocSOLVER
+#################################################################################
+
+therock_cmake_subproject_declare(rocSOLVER
+  EXTERNAL_SOURCE_DIR "rocSOLVER"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    # Requires LAPACK
+    -DBUILD_CLIENTS_BENCHMARKS=OFF
+    -DBUILD_CLIENTS_TESTS=OFF
+  COMPILER_TOOLCHAIN
+    amd-hip
+  BUILD_DEPS
+    rocBLAS
+    rocPRIM
+    therock-fmt
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocSOLVER
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocSOLVER rocsolver lib/cmake/rocsolver)
+therock_cmake_subproject_activate(rocSOLVER)
+
+therock_provide_artifact(solver
+  DESCRIPTOR artifact-solver.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS rocSOLVER
+)
