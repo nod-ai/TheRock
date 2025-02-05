@@ -198,10 +198,12 @@ def main(argv):
             "hipBLAS-common",
             "hipBLAS",
             "hipBLASLt",
+            "hipSPARSE",
             "rocBLAS",
             "rocPRIM",
             "rocRAND",
             "rocSOLVER",
+            "rocSPARSE",
         ],
     )
     parser.add_argument(

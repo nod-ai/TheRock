@@ -226,6 +226,82 @@ therock_provide_artifact(prim
 )
 
 #################################################################################
+# rocSPARSE
+#################################################################################
+set(_sparse_subproject_names)
+
+therock_cmake_subproject_declare(rocSPARSE
+  EXTERNAL_SOURCE_DIR "rocSPARSE"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    -DBUILD_WITH_ROCBLAS=ON
+    -DBUILD_CLIENTS_SAMPLES=OFF
+    -DBUILD_CLIENTS_BENCHMARKS=OFF
+    -DBUILD_CLIENTS_SAMPLES=OFF
+  COMPILER_TOOLCHAIN
+    amd-hip
+  BUILD_DEPS
+    rocBLAS
+    rocPRIM
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocSPARSE
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocSPARSE rocsparse lib/cmake/rocsparse)
+therock_cmake_subproject_activate(rocSPARSE)
+list(APPEND _sparse_subproject_names rocSPARSE)
+
+#################################################################################
+# hipSPARSE
+#################################################################################
+
+therock_cmake_subproject_declare(hipSPARSE
+  EXTERNAL_SOURCE_DIR "hipSPARSE"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    -DBUILD_CLIENTS_SAMPLES=OFF
+    -DBUILD_CLIENTS_BENCHMARKS=OFF
+    -DBUILD_CLIENTS_SAMPLES=OFF
+  COMPILER_TOOLCHAIN
+    amd-hip
+  BUILD_DEPS
+    rocSPARSE
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(hipSPARSE
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(hipSPARSE hipsparse lib/cmake/hipsparse)
+therock_cmake_subproject_activate(hipSPARSE)
+list(APPEND _sparse_subproject_names hipSPARSE)
+
+#################################################################################
+# sparse artifact
+#################################################################################
+
+therock_provide_artifact(sparse
+  DESCRIPTOR artifact-sparse.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS ${_sparse_subproject_names}
+)
+
+#################################################################################
 # rocSOLVER
 #################################################################################
 
