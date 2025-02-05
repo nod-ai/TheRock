@@ -198,6 +198,7 @@ def main(argv):
             "hipBLAS-common",
             "hipBLAS",
             "hipBLASLt",
+            "hipRAND",
             "hipSPARSE",
             "rocBLAS",
             "rocPRIM",
