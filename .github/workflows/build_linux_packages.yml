@@ -77,7 +77,7 @@ jobs:
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}"
           ./build_tools/watch_top_processes.sh &
-          cmake --build build --target therock-archives
+          cmake --build build --target therock-archives therock-dist
           kill %1
 
       # - name: Build Tarballs
