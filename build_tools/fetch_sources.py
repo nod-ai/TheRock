@@ -200,6 +200,7 @@ def main(argv):
             "hipBLASLt",
             "hipFFT",
             "hipRAND",
+            "hipSOLVER",
             "hipSPARSE",
             "rocBLAS",
             "rocFFT",
