@@ -161,6 +161,48 @@ therock_provide_artifact(blas
 )
 
 #################################################################################
+# rocFFT
+#################################################################################
+set(_fft_subproject_names)
+
+therock_cmake_subproject_declare(rocFFT
+  EXTERNAL_SOURCE_DIR "rocFFT"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    -DBUILD_CLIENTS=OFF
+    -DUSE_HIPRAND=OFF
+  COMPILER_TOOLCHAIN
+    amd-hip
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocFFT
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocFFT rocfft lib/cmake/rocfft)
+therock_cmake_subproject_activate(rocFFT)
+list(APPEND _fft_subproject_names rocFFT)
+
+#################################################################################
+# fft artifact
+#################################################################################
+
+therock_provide_artifact(fft
+  DESCRIPTOR artifact-fft.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS ${_fft_subproject_names}
+)
+
+#################################################################################
 # rocRAND
 #################################################################################
 
