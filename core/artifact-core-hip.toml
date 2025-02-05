@@ -4,6 +4,7 @@
 [components.doc."core/clr/stage"]
 [components.lib."core/clr/stage"]
 include = [
+  "lib/.hipInfo",
   "share/hip/**",
 ]
 [components.run."core/clr/stage"]
