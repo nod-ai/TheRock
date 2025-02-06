@@ -33,3 +33,19 @@ set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects"
 set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
 set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
 set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
+
+# Disable default RPath handling on Linux and enforce our own project-wide:
+# * Executables and libraries can always search their adjacent lib directory
+#   (which may be the same as the origin for libraries).
+# * Files in lib/llvm/(bin|lib) should search the project-wide lib/ directory
+#   so that dlopen of runtime files from the compiler can work.
+# * One might think that only EXEs need to be build this way, but the dlopen
+#   utilities can be compiled into libLLVM, in which case, that RUNPATH is
+#   primary.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CMAKE_SKIP_BUILD_RPATH ON)
+  set(CMAKE_SKIP_INSTALL_RPATH ON)
+  # Single quotes in the flags are needed to properly escape the $ORIGIN.
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " '-Wl,--enable-new-dtags,--rpath,$ORIGIN/../lib:$ORIGIN/../../../lib'")
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS " '-Wl,--enable-new-dtags,--rpath,$ORIGIN/../lib:$ORIGIN/../../../lib'")
+endif()
