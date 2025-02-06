@@ -70,6 +70,9 @@ therock_cmake_subproject_declare(amd-comgr
     # TODO: Currently unstable. Enable in >6.4.
     -DCOMGR_DISABLE_SPIRV=ON
     -DLLVM_LINK_LLVM_DYLIB=ON
+    # The comgr tests have a circular dependency on the HIP runtime.
+    # https://github.com/nod-ai/TheRock/issues/67
+    -DBUILD_TESTING=OFF
   BUILD_DEPS
     rocm-cmake
   RUNTIME_DEPS

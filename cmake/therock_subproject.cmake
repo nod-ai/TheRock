@@ -795,16 +795,6 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
     message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
     message(STATUS "GPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
-
-    # Configure additional HIP dependencies.
-    # if (compiler_toolchain STREQUAL "amd-hip")
-    #   # Add a dependency on HIP's stamp.
-    #   set(_amd_llvm_device_lib_path "${_amd_llvm_dist_dir}/lib/llvm/amdgcn/bitcode")
-    #   list(APPEND _compiler_toolchain_addl_depends "${_hip_stamp_dir}/dist.stamp")
-    #   string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" --hip-path=@_hip_dist_dir@\")\n")
-    #   string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" --hip-device-lib-path=@_amd_llvm_device_lib_path@\")\n")
-    #   message(STATUS "HIP_DIR = ${_hip_dist_dir}")
-    # endif()
   else()
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
   endif()
