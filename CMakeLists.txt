@@ -109,14 +109,19 @@ endif()
 # don't be fooled).
 add_subdirectory(third-party)
 add_subdirectory(base)
-add_subdirectory(compiler)
-add_subdirectory(core)
-add_subdirectory(comm-libs)
-if(THEROCK_ENABLE_MATH_LIBS)
-  add_subdirectory(math-libs)
-endif()
-if(THEROCK_ENABLE_ML_LIBS)
-  add_subdirectory(ml-libs)
+
+if(NOT WIN32)
+  add_subdirectory(compiler)
+  add_subdirectory(core)
+  add_subdirectory(comm-libs)
+  if(THEROCK_ENABLE_MATH_LIBS)
+    add_subdirectory(math-libs)
+  endif()
+  if(THEROCK_ENABLE_ML_LIBS)
+    add_subdirectory(ml-libs)
+  endif()
+else()
+  # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
 endif()
 
 
