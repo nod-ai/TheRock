@@ -3,3 +3,9 @@
 [components.dev."math-libs/rocRAND/stage"]
 [components.doc."math-libs/rocRAND/stage"]
 [components.lib."math-libs/rocRAND/stage"]
+
+# hipRAND
+[components.dbg."math-libs/hipRAND/stage"]
+[components.dev."math-libs/hipRAND/stage"]
+[components.doc."math-libs/hipRAND/stage"]
+[components.lib."math-libs/hipRAND/stage"]
