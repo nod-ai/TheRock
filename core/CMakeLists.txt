@@ -26,10 +26,16 @@ therock_cmake_subproject_activate(ROCR-Runtime)
 
 ################################################################################
 # clr
+# The primary HIP compiler and runtime target. This is also the project used
+# to root the "amd-hip" compiler toolchain and is a superset of amd-llvm.
+# As a particularly sharp edge, the `hipconfig` tool is really only fully
+# functional from this project (which contributes version and metadata).
 ################################################################################
 
 therock_cmake_subproject_declare(hip-clr
   EXTERNAL_SOURCE_DIR "clr"
+  INTERFACE_PROGRAM_DIRS
+    bin
   BACKGROUND_BUILD
   CMAKE_ARGS
     -DHIP_PLATFORM=amd
@@ -42,6 +48,8 @@ therock_cmake_subproject_declare(hip-clr
     rocm-cmake
   RUNTIME_DEPS
     amd-llvm
+    amd-comgr
+    hipcc     # For hipconfig
     rocm-core
     rocprofiler-register
     ROCR-Runtime
