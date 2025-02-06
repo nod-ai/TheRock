@@ -1,0 +1,5 @@
+# rocFFT
+[components.dbg."math-libs/rocFFT/stage"]
+[components.dev."math-libs/rocFFT/stage"]
+[components.doc."math-libs/rocFFT/stage"]
+[components.lib."math-libs/rocFFT/stage"]
