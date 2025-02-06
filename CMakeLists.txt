@@ -41,6 +41,7 @@ set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archi
 option(THEROCK_ENABLE_RCCL "Enable the comm_libs/rccl sub-project" ON)
 option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON)
 cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
+option(THEROCK_ENABLE_PERFORMANCE "Enable building of performance tools" ON)
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -117,6 +118,9 @@ if(THEROCK_ENABLE_MATH_LIBS)
 endif()
 if(THEROCK_ENABLE_ML_LIBS)
   add_subdirectory(ml-libs)
+endif()
+if(THEROCK_ENABLE_PERFORMANCE)
+  add_subdirectory(performance)
 endif()
 
 

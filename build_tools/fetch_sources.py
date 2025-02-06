@@ -214,6 +214,14 @@ def main(argv):
             "MIOpen",
         ],
     )
+    parser.add_argument(
+        "--performance-projects",
+        nargs="+",
+        type=str,
+        default=[
+            "roctracer",
+        ],
+    )
     args = parser.parse_args(argv)
     run(args)
 
