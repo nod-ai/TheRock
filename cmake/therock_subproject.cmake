@@ -756,10 +756,23 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
   if(NOT compiler_toolchain)
     # Make any additional customizations if no toolchain specified.
   elseif(compiler_toolchain STREQUAL "amd-llvm" OR compiler_toolchain STREQUAL "amd-hip")
-    # amd-llvm toolchain: The private built LLVM in isolation.
-    _therock_assert_is_cmake_subproject("amd-llvm")
-    get_target_property(_amd_llvm_dist_dir amd-llvm THEROCK_DIST_DIR)
-    get_target_property(_amd_llvm_stamp_dir amd-llvm THEROCK_STAMP_DIR)
+    # The "amd-llvm" and "amd-hip" toolchains are configured very similarly so
+    # we commingle them, but they are different:
+    #   "amd-llvm": Just the base LLVM compiler and device libraries. This
+    #     doesn't know anything about hip (i.e. it doesn't have hipconfig, etc).
+    #   "amd-hip": Superset of "amd-llvm" which also includes hipcc, hip headers,
+    #     and hip version info. This has hipconfig in it.
+    # The main difference is that for "amd-llvm", we derive the configuration from
+    # the amd-llvm project's dist/ tree. And for "amd-hip", from the hip-clr
+    # project (which has runtime dependencies on the underlying toolchain).
+    if (compiler_toolchain STREQUAL "amd-hip")
+      set(_toolchain_subproject "hip-clr")
+    else()
+      set(_toolchain_subproject "amd-llvm")
+    endif()
+    _therock_assert_is_cmake_subproject("${_toolchain_subproject}")
+    get_target_property(_amd_llvm_dist_dir "${_toolchain_subproject}" THEROCK_DIST_DIR)
+    get_target_property(_amd_llvm_stamp_dir "${_toolchain_subproject}" THEROCK_STAMP_DIR)
     # Add a dependency on the toolchain's dist
     set(AMD_LLVM_C_COMPILER "${_amd_llvm_dist_dir}/lib/llvm/bin/clang")
     set(AMD_LLVM_CXX_COMPILER "${_amd_llvm_dist_dir}/lib/llvm/bin/clang++")

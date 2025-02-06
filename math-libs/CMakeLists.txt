@@ -2,8 +2,8 @@
 # If a project is using an amd-hip or amd-llvm toolchain, then it will already
 # have an implicit dep on the toolchain, so it is safe to reference binaries
 # here without worrying about build deps.
-therock_cmake_subproject_dist_dir(_toolchain_dir amd-llvm)
-cmake_path(APPEND _toolchain_dir lib/llvm)
+therock_cmake_subproject_dist_dir(_hip_dir hip-clr)
+cmake_path(APPEND _hip_dir lib/llvm OUTPUT_VARIABLE _toolchain_dir)
 
 #################################################################################
 # hipBLAS-common
@@ -51,7 +51,7 @@ therock_cmake_subproject_declare(hipBLASLt
     -DTensile_CODE_OBJECT_VERSION=default
     -DTensile_CPU_THREADS=
     -DTensile_LIBRARY_FORMAT=msgpack
-    -DTensile_HIP_CONFIG=${_toolchain_dir}/bin/hipconfig
+    -DTensile_HIP_CONFIG=${_hip_dir}/bin/hipconfig
     "-DTensile_C_COMPILER=${_toolchain_dir}/bin/clang"
     "-DTensile_CXX_COMPILER=${_toolchain_dir}/bin/clang++"
     "-DTensile_ASSEMBLER=${_toolchain_dir}/bin/clang++"
