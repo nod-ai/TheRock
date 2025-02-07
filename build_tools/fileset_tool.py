@@ -261,6 +261,8 @@ def do_artifact(args):
         "components" : dict of covered component names
             "{component_name}": dict of build/ relative paths to materialize
                 "{stage_directory}":
+                    "default_patterns": bool (default True) whether component default
+                        patterns are used
                     "include": str or list[str] of include patterns
                     "exclude": str or list[str] of exclude patterns
                     "optional": if true and the directory does not exist, it
@@ -291,6 +293,7 @@ def do_artifact(args):
 
     all_basedir_relpaths = []
     for basedir_relpath, basedir_record in component_record.items():
+        use_default_patterns = basedir_record.get("default_patterns", True)
         basedir = args.root_dir / Path(basedir_relpath)
         optional = basedir_record.get("optional")
         if optional and not basedir.exists():
@@ -299,15 +302,17 @@ def do_artifact(args):
 
         # Includes.
         includes = _dup_list_or_str(basedir_record.get("include"))
-        includes.extend(
-            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
-        )
+        if use_default_patterns:
+            includes.extend(
+                ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
+            )
 
         # Excludes.
         excludes = _dup_list_or_str(basedir_record.get("exclude"))
-        excludes.extend(
-            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
-        )
+        if use_default_patterns:
+            excludes.extend(
+                ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
+            )
 
         pm = PatternMatcher(
             includes=includes,

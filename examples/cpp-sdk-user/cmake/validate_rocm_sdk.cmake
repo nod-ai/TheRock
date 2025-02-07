@@ -1,0 +1,12 @@
+function(validate_hip_package_found)
+  if(NOT hip_FOUND)
+    message(FATAL_ERROR "'hip' package is not found")
+  endif()
+
+  message(STATUS "**** HIP Configuration:")
+  string(APPEND CMAKE_MESSAGE_INDENT "*  ")
+  message(STATUS "VERSION: ${hip_VERSION}")
+  message(STATUS "INCLUDE: ${hip_INCLUDE_DIRS}")
+  message(STATUS "LIBRARIES: ${hip_LIBRARIES}")
+  message(STATUS "GPU_TARGETS: ${GPU_TARGETS}")
+endfunction()

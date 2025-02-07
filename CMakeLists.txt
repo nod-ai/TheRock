@@ -12,6 +12,7 @@ endif()
 project(THEROCK)
 
 cmake_policy(SET CMP0135 NEW)
+enable_testing()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
@@ -124,6 +125,7 @@ else()
   # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
 endif()
 
+add_subdirectory(examples)
 
 # ################################################################################
 # # Testing
