@@ -80,33 +80,15 @@ jobs:
           cmake --build build --target therock-archives therock-dist
           kill %1
 
-      # - name: Build Tarballs
-      #   run: |
-      #     (cd build && cpack -G TXZ)
+      - name: Test Packaging
+        run: |
+          ctest --test-dir build --output-on-failure
 
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          ls -lh build
+          du -h -d 1 build/dist/rocm
           ccache -s
-
-      # - name: Upload runtime artifacts
-      #   uses: actions/upload-artifact@v4
-      #   if: ${{ !cancelled() }}
-      #   with:
-      #     name: TheRock-runtime-linux-x86_64-tarball
-      #     path: |
-      #       build/TheRock-amdgpu-runtime-*.tar.xz
-      #     if-no-files-found: warn
-
-      # - name: Upload compiler artifacts
-      #   uses: actions/upload-artifact@v4
-      #   if: ${{ !cancelled() }}
-      #   with:
-      #     name: TheRock-compiler-linux-x86_64-tarball
-      #     path: |
-      #       build/TheRock-amdgpu-compiler*.tar.xz
-      #     if-no-files-found: warn
 
       - name: Save cache
         uses: actions/cache/save@v4
