@@ -1,0 +1,106 @@
+From e986f26dbb6af0767f48811b6d8bc3533a3a5017 Mon Sep 17 00:00:00 2001
+From: Stella Laurenzo <stellaraccident@gmail.com>
+Date: Thu, 6 Feb 2025 21:18:34 -0800
+Subject: [PATCH] Disable roctracer integration.
+
+---
+ library/CMakeLists.txt          |  6 ++---
+ library/src/include/logging.hpp | 44 ++++++++++++++++-----------------
+ 2 files changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index 762580d7..73bc7aba 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -80,9 +80,9 @@ function( rocblas_library_settings lib_target_ )
+     target_link_libraries( ${lib_target_} PRIVATE hip::device )
+   else()
+     target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc)
+-    if (BUILD_SHARED_LIBS)
+-      target_link_libraries(${lib_target_} PRIVATE -lroctx64)
+-    endif()
++    # if (BUILD_SHARED_LIBS)
++    #   target_link_libraries(${lib_target_} PRIVATE -lroctx64)
++    # endif()
+   endif()
+     target_link_libraries( ${lib_target_} PRIVATE Threads::Threads )
+   #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
+diff --git a/library/src/include/logging.hpp b/library/src/include/logging.hpp
+index 352e4e39..d0b8e477 100644
+--- a/library/src/include/logging.hpp
++++ b/library/src/include/logging.hpp
+@@ -40,9 +40,9 @@
+ #include <unordered_map>
+ #include <utility>
+ 
+-#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
+-#include <roctracer/roctx.h>
+-#endif
++// #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
++// #include <roctracer/roctx.h>
++// #endif
+ 
+ /************************************************************************************
+  * Profile kernel arguments
+@@ -453,16 +453,16 @@ class Logger
+ public:
+     Logger() = default;
+ 
+-#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
+-    void log_range(const std::string& name)
+-    {
+-        if(!m_active)
+-        {
+-            roctxRangePush(name.c_str());
+-            m_active = true;
+-        }
+-    }
+-#endif
++// #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
++//     void log_range(const std::string& name)
++//     {
++//         if(!m_active)
++//         {
++//             roctxRangePush(name.c_str());
++//             m_active = true;
++//         }
++//     }
++// #endif
+ 
+     template <typename H, typename... Ts>
+     void log_arguments(rocblas_internal_ostream& os, const char* sep, H&& head, Ts&&... xs)
+@@ -472,9 +472,9 @@ public:
+         // ((os << sep << std::forward<Ts>(xs)), ...);
+         (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
+ 
+-#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
+-        log_range(os.str());
+-#endif
++// #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
++//         log_range(os.str());
++// #endif
+         os << std::endl;
+     }
+ 
+@@ -527,12 +527,12 @@ public:
+ 
+     ~Logger()
+     {
+-#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
+-        if(m_active)
+-        {
+-            roctxRangePop();
+-        }
+-#endif
++// #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
++//         if(m_active)
++//         {
++//             roctxRangePop();
++//         }
++// #endif
+     }
+ 
+ private:
+-- 
+2.43.0
+
