@@ -137,6 +137,8 @@ therock_provide_artifact(amd-llvm
     run
   SUBPROJECT_DEPS
     amd-llvm
+    amd-comgr
+    hipcc
 )
 
 therock_provide_artifact(hipify

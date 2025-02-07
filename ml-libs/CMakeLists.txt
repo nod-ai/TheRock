@@ -12,6 +12,7 @@ therock_cmake_subproject_declare(MIOpen
     -DMIOPEN_USE_COMPOSABLEKERNEL=OFF  # TODO: enable
     -DMIOPEN_USE_MLIR=OFF # TODO: enable
     -DMIOPEN_BUILD_DRIVER=OFF # TODO: enable
+    -DMIOPEN_USE_ROCTRACER=OFF # TODO: enable
   COMPILER_TOOLCHAIN
     amd-hip
   BUILD_DEPS
