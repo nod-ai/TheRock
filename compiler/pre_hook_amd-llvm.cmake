@@ -23,6 +23,8 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
 set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs")
 set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects" FORCE)
 
+# TODO2: This mechanism has races in certain situations, failing to create a
+# symlink. Revisit once devicemanager code is made more robust.
 # TODO: Arrange for the devicelibs to be installed to the clange resource dir
 # by default. This corresponds to the layout for ROCM>=7. However, not all
 # code (specifically the AMDDeviceLibs.cmake file) has adapted to the new
@@ -30,9 +32,9 @@ set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects"
 # options to manage this transition but they require knowing the clange resource
 # dir. In order to avoid drift, we just fixate that too. This can all be
 # removed in a future version.
-set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
-set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
-set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
+# set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
+# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
+# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
 
 # Disable default RPath handling on Linux and enforce our own project-wide:
 # * Executables and libraries can always search their adjacent lib directory
