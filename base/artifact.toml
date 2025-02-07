@@ -36,3 +36,10 @@ include = "libexec/**"
 include = [
   "share/rocprofiler-register/tests/**",
 ]
+
+# therock-aux-overlay
+[components.lib."base/aux-overlay/stage"]
+default_patterns = false
+include = [
+  "**/*",
+]
