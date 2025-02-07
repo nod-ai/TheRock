@@ -7,6 +7,8 @@ endif()
 cmake_minimum_required(VERSION 3.25)
 
 project(rocm-cpp-sdk-user)
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -29,3 +31,10 @@ find_package(rccl CONFIG REQUIRED)
 find_package(hipblaslt CONFIG REQUIRED)
 find_package(hipblas CONFIG REQUIRED)
 find_package(miopen CONFIG REQUIRED)
+
+add_executable(
+    hip-host-test
+    hip-host-test.cpp
+)
+target_link_libraries(hip-host-test PRIVATE hip::host)
+add_test(NAME hip-host-test COMMAND hip-host-test)
