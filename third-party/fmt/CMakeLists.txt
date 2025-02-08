@@ -1,6 +1,7 @@
 therock_subproject_fetch(therock-fmt-sources
   CMAKE_PROJECT
-  URL https://github.com/fmtlib/fmt/releases/download/11.1.3/fmt-11.1.3.zip
+  # Originally mirrored from: https://github.com/fmtlib/fmt/releases/download/11.1.3/fmt-11.1.3.zip
+  URL https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/fmt-11.1.3.zip
   URL_HASH SHA256=7df2fd3426b18d552840c071c977dc891efe274051d2e7c47e2c83c3918ba6df
 )
 
@@ -15,3 +16,5 @@ therock_cmake_subproject_declare(therock-fmt
 therock_cmake_subproject_provide_package(
   therock-fmt fmt lib/cmake/fmt)
 therock_cmake_subproject_activate(therock-fmt)
+
+add_dependencies(therock-third-party therock-fmt)
