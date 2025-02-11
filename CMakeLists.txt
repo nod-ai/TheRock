@@ -45,7 +45,7 @@ cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" O
 cmake_dependent_option(THEROCK_ENABLE_COMM_LIBS "Enable building of comm libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enable building of ML libraries" ON "THEROCK_ENABLE_ALL" OFF)
-option(THEROCK_RESET_FEATURES "One-shot flag which forces all feature flags to disabled for the current configure run" OFF)
+option(THEROCK_RESET_FEATURES "One-shot flag which forces all feature flags to their default state for this configuration run" OFF)
 
 # Base Features.
 therock_add_feature(COMPILER
