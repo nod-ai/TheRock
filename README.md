@@ -93,7 +93,7 @@ allow enable/disable of selected subsets:
 - `-DTHEROCK_ENABLE_ML_LIBS=OFF`: Disables all ML libraries.
 
 Individual features can be controlled separately (typically in combination with
-`-DTHEROCK_ENABLE_ALL=OFF` or `-DTHEROCK_FORCE_DISABLE_ALL=ON` to force a
+`-DTHEROCK_ENABLE_ALL=OFF` or `-DTHEROCK_RESET_FEATURES=ON` to force a
 minimal build):
 
 - `-DTHEROCK_ENABLE_COMPILER=ON`: Enables the GPU+host compiler toolchain.

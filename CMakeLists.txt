@@ -45,7 +45,7 @@ cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" O
 cmake_dependent_option(THEROCK_ENABLE_COMM_LIBS "Enable building of comm libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enable building of ML libraries" ON "THEROCK_ENABLE_ALL" OFF)
-option(THEROCK_FORCE_DISABLE_ALL "One-shot flag which forces all feature flags to disabled for the current configure run" OFF)
+option(THEROCK_RESET_FEATURES "One-shot flag which forces all feature flags to disabled for the current configure run" OFF)
 
 # Base Features.
 therock_add_feature(COMPILER
@@ -112,6 +112,7 @@ therock_add_feature(MIOPEN
 
 # Finalize all feature flags.
 therock_finalize_features()
+therock_report_features()
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -185,12 +186,8 @@ if(NOT WIN32)
   add_subdirectory(compiler)
   add_subdirectory(core)
   add_subdirectory(comm-libs)
-  if(THEROCK_ENABLE_MATH_LIBS)
-    add_subdirectory(math-libs)
-  endif()
-  if(THEROCK_ENABLE_ML_LIBS)
-    add_subdirectory(ml-libs)
-  endif()
+  add_subdirectory(math-libs)
+  add_subdirectory(ml-libs)
 else()
   # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
 endif()
