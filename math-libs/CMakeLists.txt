@@ -399,11 +399,12 @@ if(THEROCK_ENABLE_FFT)
       -DROCM_PATH=
       -DROCM_DIR=
       -DBUILD_CLIENTS=OFF
-      -DUSE_HIPRAND=OFF
+      -DUSE_HIPRAND=ON
     COMPILER_TOOLCHAIN
       amd-hip
     RUNTIME_DEPS
       hip-clr
+      hipRAND
   )
   therock_cmake_subproject_glob_c_sources(rocFFT
     SUBDIRS
