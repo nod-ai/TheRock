@@ -57,7 +57,9 @@ if(THEROCK_ENABLE_PRIM)
 endif()
 
 if(THEROCK_ENABLE_SOLVER)
+    find_package(hipsolver CONFIG REQUIRED)
     find_package(rocsolver CONFIG REQUIRED)
+    message(STATUS "hipsolver version: ${hipsolver_VERSION}")
     message(STATUS "rocsolver version: ${rocsolver_VERSION}")
 endif()
 
