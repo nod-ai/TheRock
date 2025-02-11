@@ -395,6 +395,7 @@ function(therock_cmake_subproject_activate target_name)
   # deps are satisfied out of the stage directory as they do not have a runtime
   # component. Runtime deps are satisfied out of the dist directory as they may have
   # transitive runtime deps at build time.
+  set(_configure_dep_stamps)
   _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps})
   _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_runtime_deps})
 
@@ -683,7 +684,7 @@ endfunction()
 # `stamp_name`. These are the actual build system deps that are encoded in the
 # commands (whereas the target names are just for humans).
 function(_therock_cmake_subproject_deps_to_stamp out_stamp_files stamp_name)
-  set(_stamp_files)
+  set(_stamp_files ${${out_stamp_files}})
   foreach(target_name ${ARGN})
     _therock_assert_is_cmake_subproject("${target_name}")
     get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
