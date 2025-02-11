@@ -42,7 +42,22 @@ set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archi
 # Overall build settings.
 option(THEROCK_VERBOSE "Enables verbose CMake statuses" OFF)
 
-# Feature groups.
+# Initialize the install directory.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${THEROCK_SOURCE_DIR}/install" CACHE PATH "" FORCE)
+  message(STATUS "Defaulted CMAKE_INSTALL_PREFIX to ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+set(ROCM_MAJOR_VERSION 6)
+set(ROCM_MINOR_VERSION 3)
+set(ROCM_PATCH_VERSION 1)
+
+################################################################################
+# Feature selection
+# Each feature added via therock_add_feature produces a boolean cache variable
+# like `THEROCK_ENABLE_${feature_name}` that takes its default value from the
+# `THEROCK_ENABLE_${group_name}` if a GROUP is present.
+################################################################################
 option(THEROCK_ENABLE_ALL "Enables building of all feature groups" ON)
 cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_COMM_LIBS "Enable building of comm libraries" ON "THEROCK_ENABLE_ALL" OFF)
@@ -116,16 +131,6 @@ therock_add_feature(MIOPEN
 # Finalize all feature flags.
 therock_finalize_features()
 therock_report_features()
-
-# Initialize the install directory.
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${THEROCK_SOURCE_DIR}/install" CACHE PATH "" FORCE)
-  message(STATUS "Defaulted CMAKE_INSTALL_PREFIX to ${CMAKE_INSTALL_PREFIX}")
-endif()
-
-set(ROCM_MAJOR_VERSION 6)
-set(ROCM_MINOR_VERSION 3)
-set(ROCM_PATCH_VERSION 1)
 
 ################################################################################
 # GPU target selection
