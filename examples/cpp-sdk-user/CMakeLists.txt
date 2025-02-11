@@ -16,6 +16,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # the clean_configure_test_project.cmake to ensure it is passed from the
 # parent when testing.
 option(THEROCK_ENABLE_BLAS "Whether hipblas/hipblaslt/rocblas are available" ON)
+option(THEROCK_ENABLE_FFT "Whether the FFT libraries are available" ON)
 option(THEROCK_ENABLE_HIP "Whether the HIP runtime and compiler are available" ON)
 option(THEROCK_ENABLE_MIOPEN "Whether MIOpen is available" ON)
 option(THEROCK_ENABLE_PRIM "Whether rocprim is available" ON)
@@ -77,6 +78,11 @@ endif()
 if(THEROCK_ENABLE_MIOPEN)
     find_package(miopen CONFIG REQUIRED)
     message(STATUS "miopen version: ${miopen_VERSION}")
+endif()
+
+if(THEROCK_ENABLE_FFT)
+    find_package(rocfft CONFIG REQUIRED)
+    message(STATUS "rocfft version: ${rocfft_VERSION}")
 endif()
 
 if(THEROCK_ENABLE_HIP)

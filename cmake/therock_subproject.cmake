@@ -359,7 +359,14 @@ function(therock_cmake_subproject_activate target_name)
   foreach(_var_name ${_mirror_cmake_vars})
     string(APPEND _init_contents "set(${_var_name} \"@${_var_name}@\" CACHE STRING \"\" FORCE)\n")
   endforeach()
-  _therock_cmake_subproject_setup_deps(_deps_contents ${_build_deps} ${_runtime_deps})
+  # Process dependencies. We process runtime deps first so that they take precedence
+  # over build deps (first wins).
+  string(APPEND _init_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
+  set(_deps_contents)
+  set(_deps_provided)
+  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_DIST_DIR ${_runtime_deps})
+  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_STAGE_DIR ${_build_deps})
+
   string(APPEND _init_contents "${_deps_contents}")
   string(APPEND _init_contents "set(THEROCK_IGNORE_PACKAGES \"@_ignore_packages@\")\n")
   foreach(_private_link_dir ${_private_link_dirs})
@@ -384,8 +391,12 @@ function(therock_cmake_subproject_activate target_name)
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
 
   # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
-  # on the stage.stamp file). These are a dependency for configure.
-  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps} ${_runtime_deps})
+  # on the stage.stamp or dist.stamp file). These are a dependency for configure. Build
+  # deps are satisfied out of the stage directory as they do not have a runtime
+  # component. Runtime deps are satisfied out of the dist directory as they may have
+  # transitive runtime deps at build time.
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps})
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_runtime_deps})
 
   # Target flags.
   set(_all_option)
@@ -621,10 +632,10 @@ endfunction()
 
 # Builds a CMake language fragment to set up a dependency provider such that
 # it handles super-project provided dependencies locally.
-function(_therock_cmake_subproject_setup_deps out_contents)
+function(_therock_cmake_subproject_setup_deps out_contents out_provided dep_dir_property)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
-  set(_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
-  set(_already_provided)
+  set(_contents "${${out_contents}}")
+  set(_already_provided ${${out_provided}})
   foreach(dep_target ${ARGN})
     _therock_assert_is_cmake_subproject("${dep_target}")
 
@@ -635,13 +646,13 @@ function(_therock_cmake_subproject_setup_deps out_contents)
           continue()
         endif()
         list(APPEND _already_provided "${_package_name}")
-        get_target_property(_stage_dir "${dep_target}" THEROCK_STAGE_DIR)
+        get_target_property(_dep_dir "${dep_target}" "${dep_dir_property}")
         set(_relpath_name THEROCK_PACKAGE_RELPATH_${_package_name})
         get_target_property(_relpath "${dep_target}" ${_relpath_name})
-        if(NOT _stage_dir OR NOT _relpath)
-          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_stage_dir}' ${_relpath_name}='${_relpath}'")
+        if(NOT _dep_dir OR NOT _relpath)
+          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_dep_dir}' ${_relpath_name}='${_relpath}'")
         endif()
-        set(_find_package_path "${_stage_dir}")
+        set(_find_package_path "${_dep_dir}")
         cmake_path(APPEND _find_package_path "${_relpath}")
         if(THEROCK_VERBOSE)
           message(STATUS "INJECT ${_package_name} = ${_find_package_path} (from ${dep_target})")
@@ -652,6 +663,7 @@ function(_therock_cmake_subproject_setup_deps out_contents)
     endif()
   endforeach()
   set("${out_contents}" "${_contents}" PARENT_SCOPE)
+  set("${out_provided}" "${_already_provided}" PARENT_SCOPE)
 endfunction()
 
 # Gets the staging install directories for a list of subproject deps.
