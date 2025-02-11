@@ -163,6 +163,7 @@ therock_provide_artifact(blas
 #################################################################################
 # rocRAND
 #################################################################################
+set(_rand_subproject_names)
 
 therock_cmake_subproject_declare(rocRAND
   EXTERNAL_SOURCE_DIR "rocRAND"
@@ -182,6 +183,37 @@ therock_cmake_subproject_glob_c_sources(rocRAND
 )
 therock_cmake_subproject_provide_package(rocRAND rocrand lib/cmake/rocrand)
 therock_cmake_subproject_activate(rocRAND)
+list(APPEND _rand_subproject_names rocRAND)
+
+#################################################################################
+# hipRAND
+#################################################################################
+
+therock_cmake_subproject_declare(hipRAND
+  EXTERNAL_SOURCE_DIR "hipRAND"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+  COMPILER_TOOLCHAIN
+    amd-hip
+  BUILD_DEPS
+    rocRAND
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(hipRAND
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(hipRAND hiprand lib/cmake/hiprand)
+therock_cmake_subproject_activate(hipRAND)
+list(APPEND _rand_subproject_names hipRAND)
+
+#################################################################################
+# rand artifact
+#################################################################################
 
 therock_provide_artifact(rand
   DESCRIPTOR artifact-rand.toml
@@ -191,7 +223,7 @@ therock_provide_artifact(rand
     doc
     lib
     run
-  SUBPROJECT_DEPS rocRAND
+  SUBPROJECT_DEPS ${_rand_subproject_names}
 )
 
 #################################################################################
