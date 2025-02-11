@@ -67,8 +67,14 @@ ln -s </path/to/rocm> sources
 
 # Build
 
+Note that you must specify GPU targets or families to build for with either
+`-DTHEROCK_AMDGPU_FAMILIES=` or `-DTHEROCK_AMDGPU_TARGETS=` and will get an
+error if there is an issue. Supported families and targets are in the
+[therock_amdgpu_targets.cmake](cmake/therock_amdgpu_targets.cmake) file. Not
+all combinations are presently supported.
+
 ```
-cmake -B build -GNinja .
+cmake -B build -GNinja . -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu
 # Or if iterating and wishing to cache:
 #   cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
 cmake --build build

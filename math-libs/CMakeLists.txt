@@ -8,6 +8,7 @@ cmake_path(APPEND _toolchain_dir lib/llvm)
 #################################################################################
 # hipBLAS-common
 #################################################################################
+set(_blas_subproject_names)
 
 therock_cmake_subproject_declare(hipBLAS-common
   EXTERNAL_SOURCE_DIR "hipBLAS-common"
@@ -33,6 +34,7 @@ therock_cmake_subproject_glob_c_sources(hipBLAS-common
 )
 therock_cmake_subproject_provide_package(hipBLAS-common hipblas-common lib/cmake/hipblas-common)
 therock_cmake_subproject_activate(hipBLAS-common)
+list(APPEND _blas_subproject_names hipBLAS-common)
 
 #################################################################################
 # hipBLASLt
@@ -56,6 +58,7 @@ therock_cmake_subproject_declare(hipBLASLt
     amd-hip
   BUILD_DEPS
     hipBLAS-common
+    therock-msgpack-cxx
   RUNTIME_DEPS
     hip-clr
 )
@@ -65,6 +68,8 @@ therock_cmake_subproject_glob_c_sources(hipBLASLt
 )
 therock_cmake_subproject_provide_package(hipBLASLt hipblaslt lib/cmake/hipblaslt)
 therock_cmake_subproject_activate(hipBLASLt)
+list(APPEND _blas_subproject_names hipBLASLt)
+
 
 #################################################################################
 # rocBLAS
@@ -103,29 +108,8 @@ therock_cmake_subproject_glob_c_sources(rocBLAS
 )
 therock_cmake_subproject_provide_package(rocBLAS rocblas lib/cmake/rocblas)
 therock_cmake_subproject_activate(rocBLAS)
+list(APPEND _blas_subproject_names rocBLAS)
 
-#################################################################################
-# rocRAND
-#################################################################################
-
-therock_cmake_subproject_declare(rocRAND
-  EXTERNAL_SOURCE_DIR "rocRAND"
-  BACKGROUND_BUILD
-  CMAKE_ARGS
-    -DHIP_PLATFORM=amd
-    -DROCM_PATH=
-    -DROCM_DIR=
-  COMPILER_TOOLCHAIN
-    amd-hip
-  RUNTIME_DEPS
-    hip-clr
-)
-therock_cmake_subproject_glob_c_sources(rocRAND
-  SUBDIRS
-    .
-)
-therock_cmake_subproject_provide_package(rocRAND rocrand lib/cmake/rocrand)
-therock_cmake_subproject_activate(rocRAND)
 
 #################################################################################
 # hipBLAS
@@ -153,3 +137,54 @@ therock_cmake_subproject_glob_c_sources(hipBLAS
 )
 therock_cmake_subproject_provide_package(hipBLAS hipblas lib/cmake/hipblas)
 therock_cmake_subproject_activate(hipBLAS)
+list(APPEND _blas_subproject_names hipBLAS)
+
+
+#################################################################################
+# blas artifact
+#################################################################################
+
+therock_provide_artifact(blas
+  DESCRIPTOR artifact-blas.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS ${_blas_subproject_names}
+)
+
+#################################################################################
+# rocRAND
+#################################################################################
+
+therock_cmake_subproject_declare(rocRAND
+  EXTERNAL_SOURCE_DIR "rocRAND"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+  COMPILER_TOOLCHAIN
+    amd-hip
+  RUNTIME_DEPS
+    hip-clr
+)
+therock_cmake_subproject_glob_c_sources(rocRAND
+  SUBDIRS
+    .
+)
+therock_cmake_subproject_provide_package(rocRAND rocrand lib/cmake/rocrand)
+therock_cmake_subproject_activate(rocRAND)
+
+therock_provide_artifact(rand
+  DESCRIPTOR artifact-rand.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS rocRAND
+)

@@ -1,0 +1,8 @@
+# rccl
+[components.dbg."comm-libs/rccl/stage"]
+[components.dev."comm-libs/rccl/stage"]
+[components.doc."comm-libs/rccl/stage"]
+[components.lib."comm-libs/rccl/stage"]
+include = [
+  "share/rccl/**",
+]

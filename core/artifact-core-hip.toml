@@ -1,0 +1,12 @@
+# clr
+[components.dbg."core/clr/stage"]
+[components.dev."core/clr/stage"]
+[components.doc."core/clr/stage"]
+[components.lib."core/clr/stage"]
+include = [
+  "share/hip/**",
+]
+[components.run."core/clr/stage"]
+include = [
+  "bin/**",
+]

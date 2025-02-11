@@ -1,0 +1,5 @@
+[components.run."compiler/hipify/stage"]
+include = [
+  "bin/**",
+  "libexec/**",
+]

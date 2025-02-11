@@ -4,14 +4,39 @@
 # the CI uses to get to a clean state.
 
 import argparse
+import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import sys
+import urllib.request
 
-THEROCK_DIR = Path(__file__).resolve().parent.parent
+THIS_SCRIPT_DIR = Path(__file__).resolve().parent
+THEROCK_DIR = THIS_SCRIPT_DIR.parent
 DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
 PATCHES_DIR = THEROCK_DIR / "patches"
+
+
+def setup_repo_tool() -> Path:
+    """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
+
+    repo_path = shutil.which("repo")
+    if repo_path:
+        print(f"Found 'repo' on PATH at '{repo_path}', using it")
+        return repo_path
+
+    repo_path = THEROCK_DIR / "third-party" / "repo"
+    if repo_path.exists():
+        print(f"Found 'repo' in script dir at '{repo_path}', using it")
+        return repo_path
+
+    print(f"Unable to find 'repo', downloading into script dir at '{repo_path}'")
+    urllib.request.urlretrieve(
+        "https://storage.googleapis.com/git-repo-downloads/repo", repo_path
+    )
+    os.chmod(repo_path, 0o744)
+    return repo_path
 
 
 def exec(args: list[str | Path], cwd: Path):
@@ -30,11 +55,14 @@ def get_enabled_projects(args) -> list[str]:
 
 
 def run(args):
+    repo_tool_path = setup_repo_tool()
+
     repo_dir: Path = args.dir
     print(f"Setting up repo in {repo_dir}")
     repo_dir.mkdir(exist_ok=True, parents=True)
     repo_args = [
-        "repo",
+        sys.executable,
+        str(repo_tool_path),
         "init",
         "-v",
         "-u",
@@ -50,7 +78,16 @@ def run(args):
         repo_args,
         cwd=repo_dir,
     )
-    exec(["repo", "sync", "-j16"] + get_enabled_projects(args), cwd=repo_dir)
+    exec(
+        [
+            sys.executable,
+            str(repo_tool_path),
+            "sync",
+            "-j16",
+        ]
+        + get_enabled_projects(args),
+        cwd=repo_dir,
+    )
 
     populate_ancillary_sources(args)
     apply_patches(args)

@@ -1,0 +1,20 @@
+# hipBLAS
+[components.dbg."math-libs/hipBLAS/stage"]
+[components.dev."math-libs/hipBLAS/stage"]
+[components.doc."math-libs/hipBLAS/stage"]
+[components.lib."math-libs/hipBLAS/stage"]
+
+# hipBLASLt
+[components.dbg."math-libs/hipBLASLt/stage"]
+[components.dev."math-libs/hipBLASLt/stage"]
+[components.doc."math-libs/hipBLASLt/stage"]
+[components.lib."math-libs/hipBLASLt/stage"]
+include = [
+  "lib/hipblaslt/library/**",
+]
+
+# rocBLAS
+[components.dbg."math-libs/rocBLAS/stage"]
+[components.dev."math-libs/rocBLAS/stage"]
+[components.doc."math-libs/rocBLAS/stage"]
+[components.lib."math-libs/rocBLAS/stage"]

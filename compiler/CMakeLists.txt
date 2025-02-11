@@ -2,11 +2,19 @@
 # amd-llvm
 ################################################################################
 
+set(_extra_llvm_cmake_args)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
+endif()
+
 therock_cmake_subproject_declare(amd-llvm
   EXTERNAL_SOURCE_DIR "amd-llvm"
   # Note that LLVM top level CMakeLists.txt is in the llvm subdir of the
   # monorepo.
   CMAKE_LISTS_RELPATH "llvm"
+  CMAKE_ARGS
+    -DLLVM_INCLUDE_TESTS=OFF
+    ${_extra_llvm_cmake_args}
   INTERFACE_PROGRAM_DIRS
     lib/llvm/bin
   BUILD_DEPS
@@ -48,3 +56,31 @@ therock_cmake_subproject_glob_c_sources(hipify
     src
 )
 therock_cmake_subproject_activate(hipify)
+
+
+################################################################################
+# Artifacts
+################################################################################
+
+therock_provide_artifact(amd-llvm
+  TARGET_NEUTRAL
+  DESCRIPTOR artifact-amd-llvm.toml
+  COMPONENTS
+    dbg
+    dev
+    doc
+    lib
+    run
+  SUBPROJECT_DEPS
+    amd-llvm
+)
+
+therock_provide_artifact(hipify
+  TARGET_NEUTRAL
+  DESCRIPTOR artifact-hipify.toml
+  COMPONENTS
+    run
+    dbg
+  SUBPROJECT_DEPS
+    hipify
+)

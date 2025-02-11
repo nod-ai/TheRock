@@ -1,4 +1,4 @@
-name: Build Linux Packages
+name: Build Windows Packages
 
 on:
   workflow_dispatch:
@@ -31,6 +31,16 @@ jobs:
         with:
           python-version: "3.11"
 
+      # https://stackoverflow.com/a/57053415
+      #- name: Install certificates
+      #  run: python -m pip install pip-system-certs certifi python-certifi-win32
+
+      - name: Fetch sources
+        run: |
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
+          python ./build_tools/fetch_sources.py --depth 1
+
       - name: List files (symlinks?)
         run: ls -la base/
 
@@ -42,15 +52,6 @@ jobs:
 
       - name: Install ninja
         run: choco install ninja --yes
-
-      - name: Check ninja version
-        run: ninja --version
-
-      - name: Fetch sources
-        run: |
-          git config --global user.email "nobody@amd.com"
-          git config --global user.name "Nobody"
-          python ./build_tools/fetch_sources.py --depth 1
 
       # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
       # So we delete the latter. This must be done after getting any git

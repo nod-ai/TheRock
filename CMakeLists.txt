@@ -2,7 +2,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory.")
 endif()
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.25)
 
 # Set the default build type to Release if not specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -17,6 +17,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
 include(ExternalProject)
 include(therock_amdgpu_targets)
+include(therock_artifacts)
 include(therock_subproject)
 include(therock_job_pools)
 
@@ -31,10 +32,13 @@ set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string"
 set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
+set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
+set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
+
 # Library specific enable flags.
 option(THEROCK_ENABLE_RCCL "Enable the comm_libs/rccl sub-project" ON)
 option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON)
-cmake_dependent_option(THEROCK_ENABLE_ML_FRAMEWORKS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
+cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enables building of ML frameworks" ON THEROCK_ENABLE_MATH_LIBS OFF)
 
 # Initialize the install directory.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -83,14 +87,9 @@ configure_file(HIP_VERSION.in ${ROCM_GIT_DIR}/HIP/VERSION)
 
 set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 
-################################################################################
-# External project setup
-################################################################################
-
 # On some distributions, this will install to lib64. We would like
 # consistency in built packages, so hard-code it.
 set(CMAKE_INSTALL_LIBDIR "lib")
-
 
 if(CMAKE_C_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_C_VISIBILITY_PRESET})
@@ -99,29 +98,46 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+
+################################################################################
+# External project setup
+################################################################################
+
 # Add subdirectories in dependency DAG order (which happens to be semi-alpha:
 # don't be fooled).
 add_subdirectory(third-party)
 add_subdirectory(base)
-add_subdirectory(compiler)
-add_subdirectory(core)
-add_subdirectory(comm-libs)
-if(THEROCK_ENABLE_MATH_LIBS)
-  add_subdirectory(math-libs)
+
+if(NOT WIN32)
+  add_subdirectory(compiler)
+  add_subdirectory(core)
+  add_subdirectory(comm-libs)
+  if(THEROCK_ENABLE_MATH_LIBS)
+    add_subdirectory(math-libs)
+  endif()
+  if(THEROCK_ENABLE_ML_LIBS)
+    add_subdirectory(ml-libs)
+  endif()
+else()
+  # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
 endif()
-if(THEROCK_ENABLE_ML_FRAMEWORKS)
-  add_subdirectory(ml-frameworks)
-endif()
+
 
 # ################################################################################
 # # Testing
 # ################################################################################
 
-add_executable(
-  dlopen-hip
-  tests/dlopen-hip.c
-)
-target_link_libraries(dlopen-hip dl)
+if(NOT WIN32)
+  add_executable(
+    dlopen-hip
+    tests/dlopen-hip.c
+  )
+  target_link_libraries(dlopen-hip dl)
+else()
+  # TODO: Test that is compatible with Windows (LoadLibraryA instead of dlopen)
+  #   then add instructions in the README to run with a command like
+  #   `./build/dlopen-hip install/amdhip64.dll`
+endif()
 
 
 ################################################################################
