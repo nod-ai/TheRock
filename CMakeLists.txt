@@ -39,6 +39,9 @@ message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
 set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
 
+# Overall build settings.
+option(THEROCK_VERBOSE "Enables verbose CMake statuses" OFF)
+
 # Feature groups.
 option(THEROCK_ENABLE_ALL "Enables building of all feature groups" ON)
 cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" ON "THEROCK_ENABLE_ALL" OFF)

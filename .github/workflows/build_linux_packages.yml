@@ -75,7 +75,8 @@ jobs:
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
-            -DTHEROCK_PACKAGE_VERSION="${package_version}"
+            -DTHEROCK_PACKAGE_VERSION="${package_version}" \
+            -DTHEROCK_VERBOSE=ON
           ./build_tools/watch_top_processes.sh &
           cmake --build build --target therock-archives therock-dist
           kill %1
