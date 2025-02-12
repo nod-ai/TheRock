@@ -18,7 +18,11 @@ therock_cmake_subproject_declare(therock-host-blas
   INTERFACE_LINK_DIRS "lib/host-math/lib"
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS=ON
-    -DDYNAMIC_ARCH=ON
+    # TODO: DYNAMIC_ARCH=ON produces illegal elf files
+    # See: https://github.com/nod-ai/TheRock/issues/83
+    -DDYNAMIC_ARCH=OFF
+    -DC_LAPACK=ON
+    -DBUILD_TESTING=OFF
 )
 therock_cmake_subproject_provide_package(therock-host-blas OpenBLAS lib/host-math/lib/cmake/OpenBLAS)
 therock_cmake_subproject_activate(therock-host-blas)

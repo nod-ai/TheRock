@@ -12,7 +12,6 @@ therock_cmake_subproject_declare(therock-SuiteSparse
   CMAKE_ARGS
     "-DSUITESPARSE_ENABLE_PROJECTS=\"suitesparse_config;cholmod\""
     -DBLA_VENDOR=OpenBLAS
-    -DCHOLMOD_SUPERNODAL=OFF # requires Cholesky, BLAS, and LAPACK
     -DBUILD_STATIC_LIBS=OFF
     -DSUITESPARSE_USE_CUDA=OFF
     -DSUITESPARSE_USE_OPENMP=OFF
