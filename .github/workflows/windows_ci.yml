@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   windows_x64_msvc:
-    runs-on: azure-windows-scale-nod-ai
+    runs-on: scott-sosa-test
     env:
       BASE_BUILD_DIR_POWERSHELL: C:\mnt\azure\b
     steps:
