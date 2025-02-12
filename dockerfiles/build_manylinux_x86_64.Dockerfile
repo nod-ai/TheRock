@@ -43,9 +43,9 @@ RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
 RUN yum install -y epel-release && \
     yum install -y clang lld && \
     yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
-    yum install -y msgpack-devel && \
     yum install -y bzip2-devel && \
     yum install -y gtest-devel && \
+    yum install -y blas-devel && \
     yum clean all && \
     rm -rf /var/cache/yum
 

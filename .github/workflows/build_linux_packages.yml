@@ -75,38 +75,31 @@ jobs:
           cmake -B build -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
-            -DTHEROCK_PACKAGE_VERSION="${package_version}"
+            -DTHEROCK_PACKAGE_VERSION="${package_version}" \
+            -DTHEROCK_VERBOSE=ON
           ./build_tools/watch_top_processes.sh &
-          cmake --build build --target therock-archives
+          cmake --build build --target therock-archives therock-dist
           kill %1
 
-      # - name: Build Tarballs
-      #   run: |
-      #     (cd build && cpack -G TXZ)
+      - name: Test Packaging
+        run: |
+          ctest --test-dir build --output-on-failure
 
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          ls -lh build
+          echo "Full SDK du:"
+          echo "------------"
+          du -h -d 1 build/dist/rocm
+          echo "Artifact Archives:"
+          echo "------------------"
+          ls -lh build/artifacts/*.tar.xz
+          echo "Artifacts:"
+          echo "----------"
+          du -h -d 1 build/artifacts
+          echo "CCache Stats:"
+          echo "-------------"
           ccache -s
-
-      # - name: Upload runtime artifacts
-      #   uses: actions/upload-artifact@v4
-      #   if: ${{ !cancelled() }}
-      #   with:
-      #     name: TheRock-runtime-linux-x86_64-tarball
-      #     path: |
-      #       build/TheRock-amdgpu-runtime-*.tar.xz
-      #     if-no-files-found: warn
-
-      # - name: Upload compiler artifacts
-      #   uses: actions/upload-artifact@v4
-      #   if: ${{ !cancelled() }}
-      #   with:
-      #     name: TheRock-compiler-linux-x86_64-tarball
-      #     path: |
-      #       build/TheRock-amdgpu-compiler*.tar.xz
-      #     if-no-files-found: warn
 
       - name: Save cache
         uses: actions/cache/save@v4

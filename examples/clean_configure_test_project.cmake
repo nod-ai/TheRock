@@ -1,0 +1,27 @@
+if(EXISTS "${BINARY_DIR}")
+  message(STATUS "Removing build dir ${BINARY_DIR}")
+  file(REMOVE_RECURSE "${BINARY_DIR}")
+endif()
+
+execute_process(
+  COMMAND "${CMAKE_CTEST_COMMAND}" --build-and-test
+    "${SOURCE_DIR}"
+    "${BINARY_DIR}"
+    --build-generator "${GENERATOR}"
+    --build-options
+      "-DTHEROCK_ENABLE_BLAS=${THEROCK_ENABLE_BLAS}"
+      "-DTHEROCK_ENABLE_FFT=${THEROCK_ENABLE_FFT}"
+      "-DTHEROCK_ENABLE_HIP=${THEROCK_ENABLE_HIP}"
+      "-DTHEROCK_ENABLE_MIOPEN=${THEROCK_ENABLE_MIOPEN}"
+      "-DTHEROCK_ENABLE_PRIM=${THEROCK_ENABLE_PRIM}"
+      "-DTHEROCK_ENABLE_RAND=${THEROCK_ENABLE_RAND}"
+      "-DTHEROCK_ENABLE_RCCL=${THEROCK_ENABLE_RCCL}"
+      "-DTHEROCK_ENABLE_SOLVER=${THEROCK_ENABLE_SOLVER}"
+      "-DTHEROCK_ENABLE_SPARSE=${THEROCK_ENABLE_SPARSE}"
+    --test-command "${CMAKE_CTEST_COMMAND}" --output-on-failure
+  RESULT_VARIABLE CMD_RESULT
+)
+
+if(CMD_RESULT)
+  message(FATAL_ERROR "Failed to execute test process")
+endif()

@@ -142,18 +142,18 @@ def main(argv):
         "--manifest-name",
         type=str,
         help="Repo manifest name",
-        default="tools/rocm-build/rocm-6.3.1.xml",
+        default="default.xml",
     )
     parser.add_argument(
         "--manifest-branch",
         type=str,
         help="Branch to sync with repo tool",
-        default="roc-6.3.x",
+        default="amd-mainline",
     )
     parser.add_argument(
         "--patch-tag",
         type=str,
-        default="rocm-6.3.1",
+        default="amd-mainline",
         help="Patch tag to apply to sources after sync",
     )
     parser.add_argument(
@@ -198,8 +198,15 @@ def main(argv):
             "hipBLAS-common",
             "hipBLAS",
             "hipBLASLt",
+            "hipFFT",
+            "hipRAND",
+            "hipSPARSE",
             "rocBLAS",
+            "rocFFT",
+            "rocPRIM",
             "rocRAND",
+            "rocSOLVER",
+            "rocSPARSE",
         ],
     )
     parser.add_argument(
