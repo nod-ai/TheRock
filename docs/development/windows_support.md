@@ -71,6 +71,17 @@ You will need:
   https://learn.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170.
   (typically run the appropriate `vcvarsall.bat`)
 
+> [!TIP]
+> Some of these tools are available via package managers like
+> https://github.com/chocolatey/choco
+>
+> ```
+> choco install cmake
+> choco install ninja
+> choco install ccache
+> choco install sccache
+> ```
+
 ### Clone and fetch sources
 
 ```bash
