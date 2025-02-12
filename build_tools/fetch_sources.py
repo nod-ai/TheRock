@@ -65,6 +65,7 @@ def run(args):
         str(repo_tool_path),
         "init",
         "-v",
+        if not args.repo_verify: "--no-repo-verify" else "",
         "-u",
         args.manifest_url,
         "-m",
@@ -129,6 +130,13 @@ def populate_submodules_if_exists(git_dir: Path):
 
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
+    parser.add_option(
+        "--no-repo-verify",
+        dest="repo_verify",
+        default=True,
+        action="store_false",
+        help="do not verify repo source code",
+    )
     parser.add_argument(
         "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
     )
