@@ -415,6 +415,31 @@ if(THEROCK_ENABLE_FFT)
   list(APPEND _fft_subproject_names rocFFT)
 
   ##############################################################################
+  # hipFFT
+  ##############################################################################
+
+  therock_cmake_subproject_declare(hipFFT
+    EXTERNAL_SOURCE_DIR "hipFFT"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+    COMPILER_TOOLCHAIN
+      amd-hip
+    RUNTIME_DEPS
+      hip-clr
+      rocFFT
+  )
+  therock_cmake_subproject_glob_c_sources(hipFFT
+    SUBDIRS
+      .
+  )
+  therock_cmake_subproject_provide_package(hipFFT hipfft lib/cmake/hipfft)
+  therock_cmake_subproject_activate(hipFFT)
+  list(APPEND _fft_subproject_names hipFFT)
+
+  ##############################################################################
   # fft artifact
   ##############################################################################
 
