@@ -371,6 +371,42 @@ if(THEROCK_ENABLE_SOLVER)
   )
   therock_cmake_subproject_provide_package(rocSOLVER rocsolver lib/cmake/rocsolver)
   therock_cmake_subproject_activate(rocSOLVER)
+  list(APPEND _solver_subproject_names rocSOLVER)
+
+  ##############################################################################
+  # hipSOLVER
+  ##############################################################################
+
+  therock_cmake_subproject_declare(hipSOLVER
+    EXTERNAL_SOURCE_DIR "hipSOLVER"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+      -DBUILD_HIPSPARSE_TESTS=OFF
+      # BUILD_WITH_SPARSE converts rocsparse and cholmod to build time vs
+      # runtime/dlopen deps.
+      -DBUILD_WITH_SPARSE=ON
+      # Requires LAPACK
+      -DBUILD_CLIENTS_BENCHMARKS=OFF
+      -DBUILD_CLIENTS_TESTS=OFF
+    COMPILER_TOOLCHAIN
+      amd-hip
+    RUNTIME_DEPS
+      hip-clr
+      rocBLAS
+      rocSOLVER
+      rocSPARSE
+      therock-SuiteSparse
+  )
+  therock_cmake_subproject_glob_c_sources(hipSOLVER
+    SUBDIRS
+      .
+  )
+  therock_cmake_subproject_provide_package(hipSOLVER hipsolver lib/cmake/hipsolver)
+  therock_cmake_subproject_activate(hipSOLVER)
+  list(APPEND _solver_subproject_names hipSOLVER)
 
   therock_provide_artifact(solver
     DESCRIPTOR artifact-solver.toml
@@ -380,10 +416,9 @@ if(THEROCK_ENABLE_SOLVER)
       doc
       lib
       run
-    SUBPROJECT_DEPS rocSOLVER
+    SUBPROJECT_DEPS ${_solver_subproject_names}
   )
 endif(THEROCK_ENABLE_SOLVER)
-
 
 if(THEROCK_ENABLE_FFT)
   ##############################################################################

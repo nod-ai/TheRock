@@ -17,7 +17,7 @@
 function(therock_add_feature feature_name)
   cmake_parse_arguments(PARSE_ARGV 1 ARG
     ""
-    "GROUP;DESCRIPTION"
+    "DEFAULT;GROUP;DESCRIPTION"
     "REQUIRES"
   )
 

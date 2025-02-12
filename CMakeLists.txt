@@ -63,7 +63,19 @@ cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" O
 cmake_dependent_option(THEROCK_ENABLE_COMM_LIBS "Enable building of comm libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enable building of ML libraries" ON "THEROCK_ENABLE_ALL" OFF)
+option(THEROCK_ENABLE_HOST_MATH "Build all bundled host math libraries by default" OFF)
 option(THEROCK_RESET_FEATURES "One-shot flag which forces all feature flags to their default state for this configuration run" OFF)
+
+# Host Math Features.
+therock_add_feature(HOST_BLAS
+  GROUP HOST_MATH
+  DESCRIPTION "Bundled host BLAS library"
+)
+therock_add_feature(HOST_SUITE_SPARSE
+  GROUP HOST_MATH
+  DESCRIPTION "Bundled SuiteSparse library"
+  REQUIRES HOST_BLAS
+)
 
 # Base Features.
 therock_add_feature(COMPILER
@@ -115,15 +127,15 @@ therock_add_feature(FFT
   DESCRIPTION "Enables fft libraries"
   REQUIRES COMPILER HIP_RUNTIME RAND
 )
-therock_add_feature(SOLVER
-  GROUP MATH_LIBS
-  DESCRIPTION "Enables solver libraries (hipsolver, rocsolver)"
-  REQUIRES COMPILER HIP_RUNTIME BLAS PRIM
-)
 therock_add_feature(SPARSE
   GROUP MATH_LIBS
   DESCRIPTION "Enables sparse libraries (hipsparse, rocsparse)"
   REQUIRES COMPILER HIP_RUNTIME BLAS PRIM
+)
+therock_add_feature(SOLVER
+  GROUP MATH_LIBS
+  DESCRIPTION "Enables solver libraries (hipsolver, rocsolver)"
+  REQUIRES COMPILER HIP_RUNTIME BLAS PRIM SPARSE HOST_SUITE_SPARSE
 )
 
 # ML-Libs Features.

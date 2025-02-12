@@ -369,6 +369,7 @@ function(therock_cmake_subproject_activate target_name)
 
   string(APPEND _init_contents "${_deps_contents}")
   string(APPEND _init_contents "set(THEROCK_IGNORE_PACKAGES \"@_ignore_packages@\")\n")
+  string(APPEND _init_contents "list(PREPEND CMAKE_MODULE_PATH \"${THEROCK_SOURCE_DIR}/cmake/finders\")\n")
   foreach(_private_link_dir ${_private_link_dirs})
     if(THEROCK_VERBOSE)
       message(STATUS "  LINK_DIR: ${_private_link_dir}")
