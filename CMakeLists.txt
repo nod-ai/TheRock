@@ -240,4 +240,7 @@ endif()
 # Finalization
 ################################################################################
 therock_subproject_merge_compile_commands()
-therock_create_dist()
+if(NOT WIN32)
+  # TODO(#36): Enable on Windows (base/artifact.toml includes rocm_smi_lib that is excluded on Windows)
+  therock_create_dist()
+endif()
