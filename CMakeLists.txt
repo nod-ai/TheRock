@@ -110,6 +110,11 @@ therock_add_feature(RAND
   DESCRIPTION "Enables rand libraries (hiprand, rocrand)"
   REQUIRES COMPILER HIP_RUNTIME
 )
+therock_add_feature(FFT
+  GROUP MATH_LIBS
+  DESCRIPTION "Enables fft libraries"
+  REQUIRES COMPILER HIP_RUNTIME RAND
+)
 therock_add_feature(SOLVER
   GROUP MATH_LIBS
   DESCRIPTION "Enables solver libraries (hipsolver, rocsolver)"
