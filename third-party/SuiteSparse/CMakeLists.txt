@@ -1,6 +1,7 @@
 therock_subproject_fetch(therock-SuiteSparse-sources
   CMAKE_PROJECT
-  URL https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v7.8.3.tar.gz
+  # Originally mirrored from: https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v7.8.3.tar.gz
+  URL https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/SuiteSparse-7.8.3.tar.gz
   URL_HASH SHA256=ce39b28d4038a09c14f21e02c664401be73c0cb96a9198418d6a98a7db73a259
 )
 
