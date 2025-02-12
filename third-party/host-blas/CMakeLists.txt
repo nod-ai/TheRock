@@ -4,7 +4,8 @@
 
 therock_subproject_fetch(therock-OpenBLAS-sources
   CMAKE_PROJECT
-  URL https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.29/OpenBLAS-0.3.29.tar.gz
+  # Originally mirrored from: https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.29/OpenBLAS-0.3.29.tar.gz
+  URL https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/OpenBLAS-0.3.29.tar.gz
   URL_HASH SHA256=38240eee1b29e2bde47ebb5d61160207dc68668a54cac62c076bb5032013b1eb
   # Originally posted MD5 was recomputed as SHA256 manually:
   # URL_HASH MD5=853a0c5c0747c5943e7ef4bbb793162d
