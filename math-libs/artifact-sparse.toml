@@ -1,0 +1,11 @@
+# rocSPARSE
+[components.dbg."math-libs/rocSPARSE/stage"]
+[components.dev."math-libs/rocSPARSE/stage"]
+[components.doc."math-libs/rocSPARSE/stage"]
+[components.lib."math-libs/rocSPARSE/stage"]
+
+# hipSPARSE
+[components.dbg."math-libs/hipSPARSE/stage"]
+[components.dev."math-libs/hipSPARSE/stage"]
+[components.doc."math-libs/hipSPARSE/stage"]
+[components.lib."math-libs/hipSPARSE/stage"]

@@ -1,3 +1,4 @@
+[components.dbg."compiler/amd-llvm/stage"]
 [components.dev."compiler/amd-llvm/stage"]
 exclude = [
   "lib/llvm/lib/clang/**",
@@ -15,3 +16,18 @@ include = [
   "lib/llvm/libexec/**",
   "lib/llvm/hip/**",
 ]
+
+# comgr and hipcc are considered part of the LLVM artifact (they are separated
+# in the build tree because they need to be built separately in order to
+# install to different prefixes).
+[components.dbg."compiler/amd-comgr/stage"]
+[components.dev."compiler/amd-comgr/stage"]
+[components.doc."compiler/amd-comgr/stage"]
+[components.lib."compiler/amd-comgr/stage"]
+[components.run."compiler/amd-comgr/stage"]
+
+[components.dbg."compiler/hipcc/stage"]
+[components.dev."compiler/hipcc/stage"]
+[components.doc."compiler/hipcc/stage"]
+[components.lib."compiler/hipcc/stage"]
+[components.run."compiler/hipcc/stage"]

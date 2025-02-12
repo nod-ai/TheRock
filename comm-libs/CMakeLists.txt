@@ -1,7 +1,7 @@
 if(THEROCK_ENABLE_RCCL)
-  #################################################################################
+  ##############################################################################
   # rccl
-  #################################################################################
+  ##############################################################################
 
   therock_cmake_subproject_declare(rccl
     EXTERNAL_SOURCE_DIR "rccl"
@@ -12,6 +12,9 @@ if(THEROCK_ENABLE_RCCL)
       -DROCM_PATH=
       -DROCM_DIR=
       "-DEXPLICIT_ROCM_VERSION=${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
+      # TODO(#56): Enable once reworked.
+      -DENABLE_MSCCLPP=OFF
+      -DENABLE_MSCCL_KERNEL=OFF
     COMPILER_TOOLCHAIN
       amd-hip
     IGNORE_PACKAGES
@@ -44,6 +47,4 @@ if(THEROCK_ENABLE_RCCL)
     SUBPROJECT_DEPS
       rccl
   )
-else()
-  message(STATUS "Not building RCCL (THEROCK_ENABLE_RCCL=OFF)")
-endif()
+endif(THEROCK_ENABLE_RCCL)

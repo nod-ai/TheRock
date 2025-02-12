@@ -261,6 +261,8 @@ def do_artifact(args):
         "components" : dict of covered component names
             "{component_name}": dict of build/ relative paths to materialize
                 "{stage_directory}":
+                    "default_patterns": bool (default True) whether component default
+                        patterns are used
                     "include": str or list[str] of include patterns
                     "exclude": str or list[str] of exclude patterns
                     "optional": if true and the directory does not exist, it
@@ -291,6 +293,7 @@ def do_artifact(args):
 
     all_basedir_relpaths = []
     for basedir_relpath, basedir_record in component_record.items():
+        use_default_patterns = basedir_record.get("default_patterns", True)
         basedir = args.root_dir / Path(basedir_relpath)
         optional = basedir_record.get("optional")
         if optional and not basedir.exists():
@@ -299,15 +302,17 @@ def do_artifact(args):
 
         # Includes.
         includes = _dup_list_or_str(basedir_record.get("include"))
-        includes.extend(
-            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
-        )
+        if use_default_patterns:
+            includes.extend(
+                ComponentDefaults.ALL.get(component_name, ComponentDefaults()).includes
+            )
 
         # Excludes.
         excludes = _dup_list_or_str(basedir_record.get("exclude"))
-        excludes.extend(
-            ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
-        )
+        if use_default_patterns:
+            excludes.extend(
+                ComponentDefaults.ALL.get(component_name, ComponentDefaults()).excludes
+            )
 
         pm = PatternMatcher(
             includes=includes,
@@ -386,6 +391,23 @@ def _open_archive(p: Path, archive_type: str) -> tarfile.TarFile | zipfile.ZipFi
     elif archive_type == "zip":
         return zipfile.ZipFile(str(p), "x")
     raise ValueError("Expected one of tar.xz, tar.gz, tar.bz2 for archive type")
+
+
+def _do_artifact_flatten(args):
+    output_path: Path = args.o
+    pm = PatternMatcher()
+    for artifact_path in args.artifact:
+        manifest_path: Path = artifact_path / "artifact_manifest.txt"
+        relpaths = manifest_path.read_text().splitlines()
+        for relpath in relpaths:
+            if not relpath:
+                continue
+            source_dir = artifact_path / relpath
+            if not source_dir.exists():
+                continue
+            pm.add_basedir(source_dir)
+
+    pm.copy_to(destdir=output_path, verbose=args.verbose)
 
 
 def _dup_list_or_str(v: list[str] | str) -> list[str]:
@@ -503,6 +525,22 @@ def main(cl_args: list[str]):
         "--hash-algorithm", default="sha256", help="Hash algorithm"
     )
     artifact_archive_p.set_defaults(func=do_artifact_archive)
+
+    # 'artifact-flatten' command
+    artifact_flatten_p = sub_p.add_parser(
+        "artifact-flatten",
+        help="Flattens one or more artifact directories into one output directory",
+    )
+    artifact_flatten_p.add_argument(
+        "artifact", nargs="+", type=Path, help="Artifact directory"
+    )
+    artifact_flatten_p.add_argument(
+        "-o", type=Path, required=True, help="Output archive name"
+    )
+    artifact_flatten_p.add_argument(
+        "--verbose", action="store_true", help="Print verbose status"
+    )
+    artifact_flatten_p.set_defaults(func=_do_artifact_flatten)
 
     args = p.parse_args(cl_args)
     args.func(args)

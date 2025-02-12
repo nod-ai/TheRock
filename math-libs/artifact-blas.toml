@@ -1,3 +1,9 @@
+# hipBLAS-common
+[components.dbg."math-libs/hipBLAS-common/stage"]
+[components.dev."math-libs/hipBLAS-common/stage"]
+[components.doc."math-libs/hipBLAS-common/stage"]
+[components.lib."math-libs/hipBLAS-common/stage"]
+
 # hipBLAS
 [components.dbg."math-libs/hipBLAS/stage"]
 [components.dev."math-libs/hipBLAS/stage"]

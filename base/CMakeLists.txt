@@ -1,4 +1,13 @@
 ################################################################################
+# aux-overlay
+################################################################################
+
+therock_cmake_subproject_declare(therock-aux-overlay
+  EXTERNAL_SOURCE_DIR "aux-overlay"
+)
+therock_cmake_subproject_activate(therock-aux-overlay)
+
+################################################################################
 # rocm-cmake
 ################################################################################
 
@@ -6,7 +15,7 @@ therock_cmake_subproject_declare(rocm-cmake
   EXTERNAL_SOURCE_DIR "rocm-cmake"
 )
 therock_cmake_subproject_provide_package(rocm-cmake
-  ROCmCMakeBuildToolsConfig share/rocmcmakebuildtools/cmake)
+  ROCmCMakeBuildTools share/rocmcmakebuildtools/cmake)
 therock_cmake_subproject_provide_package(rocm-cmake
   ROCM share/rocm/cmake)
 therock_cmake_subproject_activate(rocm-cmake)
@@ -123,4 +132,5 @@ therock_provide_artifact(base
     rocm-cmake
     rocm-core
     rocm-half
+    therock-aux-overlay
 )

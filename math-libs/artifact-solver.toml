@@ -1,0 +1,5 @@
+# rocSOLVER
+[components.dbg."math-libs/rocSOLVER/stage"]
+[components.dev."math-libs/rocSOLVER/stage"]
+[components.doc."math-libs/rocSOLVER/stage"]
+[components.lib."math-libs/rocSOLVER/stage"]

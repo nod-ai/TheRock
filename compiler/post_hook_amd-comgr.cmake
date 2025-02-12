@@ -8,5 +8,5 @@ therock_set_install_rpath(
   TARGETS
     amd_comgr
   PATHS
-    .
+    llvm/lib
 )
