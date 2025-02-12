@@ -115,15 +115,15 @@ therock_add_feature(FFT
   DESCRIPTION "Enables fft libraries"
   REQUIRES COMPILER HIP_RUNTIME RAND
 )
-therock_add_feature(SOLVER
-  GROUP MATH_LIBS
-  DESCRIPTION "Enables solver libraries (hipsolver, rocsolver)"
-  REQUIRES COMPILER HIP_RUNTIME BLAS PRIM
-)
 therock_add_feature(SPARSE
   GROUP MATH_LIBS
   DESCRIPTION "Enables sparse libraries (hipsparse, rocsparse)"
   REQUIRES COMPILER HIP_RUNTIME BLAS PRIM
+)
+therock_add_feature(SOLVER
+  GROUP MATH_LIBS
+  DESCRIPTION "Enables solver libraries (hipsolver, rocsolver)"
+  REQUIRES COMPILER HIP_RUNTIME BLAS PRIM SPARSE
 )
 
 # ML-Libs Features.

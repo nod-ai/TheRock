@@ -6,4 +6,5 @@ therock_set_install_rpath(
     hipsolver
   PATHS
     .
+    suitesparse/lib
 )

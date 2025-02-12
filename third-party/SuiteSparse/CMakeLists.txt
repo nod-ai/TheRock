@@ -8,22 +8,24 @@ therock_cmake_subproject_declare(therock-SuiteSparse
   BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
+  INSTALL_DESTINATION "lib/suitesparse"
   CMAKE_ARGS
     "-DSUITESPARSE_ENABLE_PROJECTS=\"suitesparse_config;cholmod\""
     -DCHOLMOD_SUPERNODAL=OFF # requires Cholesky, BLAS, and LAPACK
     -DBUILD_STATIC_LIBS=OFF
     -DSUITESPARSE_USE_CUDA=OFF
+    -DSUITESPARSE_USE_OPENMP=OFF
 )
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse AMD lib/cmake/AMD)
+  therock-SuiteSparse AMD lib/suitesparse/lib/cmake/AMD)
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse CAMD lib/cmake/CAMD)
+  therock-SuiteSparse CAMD lib/suitesparse/lib/cmake/CAMD)
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse CCOLAMD lib/cmake/CCOLAMD)
+  therock-SuiteSparse CCOLAMD lib/suitesparse/lib/cmake/CCOLAMD)
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse CHOLMOD lib/cmake/CHOLMOD)
+  therock-SuiteSparse CHOLMOD lib/suitesparse/lib/cmake/CHOLMOD)
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse COLAMD lib/cmake/COLAMD)
+  therock-SuiteSparse COLAMD lib/suitesparse/lib/cmake/COLAMD)
 therock_cmake_subproject_provide_package(
-  therock-SuiteSparse SuiteSparse_config lib/cmake/SuiteSparse_config)
+  therock-SuiteSparse SuiteSparse_config lib/suitesparse/lib/cmake/SuiteSparse_config)
 therock_cmake_subproject_activate(therock-SuiteSparse)

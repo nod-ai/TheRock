@@ -9,3 +9,10 @@
 [components.dev."math-libs/hipSOLVER/stage"]
 [components.doc."math-libs/hipSOLVER/stage"]
 [components.lib."math-libs/hipSOLVER/stage"]
+
+# therock-SuiteSparse
+# We only need to distribute the runtime libcholmod dep, and since hipsolver
+# is the only thing that distributes it, we bundle it here. However, in the
+# future, we may need a dedicated trampoline project/artifact if multiple
+# things end up depending on it.
+[components.lib."third-party/SuiteSparse/stage"]
