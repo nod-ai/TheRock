@@ -406,7 +406,7 @@ if(THEROCK_ENABLE_SOLVER)
   )
   therock_cmake_subproject_provide_package(hipSOLVER hipsolver lib/cmake/hipsolver)
   therock_cmake_subproject_activate(hipSOLVER)
-  list(APPEND _solver_subproject_names hipSOLVER therock-SuiteSparse)
+  list(APPEND _solver_subproject_names hipSOLVER)
 
   therock_provide_artifact(solver
     DESCRIPTOR artifact-solver.toml
