@@ -81,7 +81,9 @@ if(THEROCK_ENABLE_MIOPEN)
 endif()
 
 if(THEROCK_ENABLE_FFT)
+    find_package(hipfft CONFIG REQUIRED)
     find_package(rocfft CONFIG REQUIRED)
+    message(STATUS "hipfft version: ${hipfft_VERSION}")
     message(STATUS "rocfft version: ${rocfft_VERSION}")
 endif()
 
