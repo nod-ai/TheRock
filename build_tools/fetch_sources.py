@@ -130,7 +130,7 @@ def populate_submodules_if_exists(git_dir: Path):
 
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
-    parser.add_option(
+    parser.add_argument(
         "--no-repo-verify",
         dest="repo_verify",
         default=True,
