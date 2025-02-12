@@ -65,7 +65,7 @@ def run(args):
         str(repo_tool_path),
         "init",
         "-v",
-        if not args.repo_verify: "--no-repo-verify" else "",
+        "--no-repo-verify" if not args.repo_verify else "",
         "-u",
         args.manifest_url,
         "-m",
