@@ -16,7 +16,8 @@ on:
 jobs:
   build_windows_packages:
     name: Build Windows Packages
-    runs-on: azure-windows-scale-nod-ai  # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
+    runs-on: scott-sosa-test
+    #runs-on: azure-windows-scale-nod-ai  # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
     defaults:
       run:
         shell: bash
