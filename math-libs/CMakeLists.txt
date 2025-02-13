@@ -254,12 +254,54 @@ if(THEROCK_ENABLE_PRIM)
   therock_cmake_subproject_provide_package(rocPRIM rocprim lib/cmake/rocprim)
   therock_cmake_subproject_activate(rocPRIM)
 
+  therock_cmake_subproject_declare(hipCUB
+    EXTERNAL_SOURCE_DIR "hipCUB"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+    COMPILER_TOOLCHAIN
+      amd-hip
+    RUNTIME_DEPS
+      hip-clr
+    BUILD_DEPS
+      rocPRIM
+  )
+  therock_cmake_subproject_glob_c_sources(rocPRIM
+    SUBDIRS
+      .
+  )
+  therock_cmake_subproject_provide_package(hipCUB hipcub lib/cmake/hipcub)
+  therock_cmake_subproject_activate(hipCUB)
+
+  therock_cmake_subproject_declare(rocThrust
+    EXTERNAL_SOURCE_DIR "rocThrust"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+    COMPILER_TOOLCHAIN
+      amd-hip
+    RUNTIME_DEPS
+      hip-clr
+    BUILD_DEPS
+      rocPRIM
+  )
+  therock_cmake_subproject_glob_c_sources(rocThrust
+    SUBDIRS
+      .
+  )
+  therock_cmake_subproject_provide_package(rocThrust rocthrust lib/cmake/rocthrust)
+  therock_cmake_subproject_activate(rocThrust)
+
   therock_provide_artifact(prim
     DESCRIPTOR artifact-prim.toml
     COMPONENTS
       dev
       doc
-    SUBPROJECT_DEPS rocPRIM
+    SUBPROJECT_DEPS rocPRIM hipCUB rocThrust
   )
 endif(THEROCK_ENABLE_PRIM)
 
