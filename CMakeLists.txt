@@ -49,8 +49,8 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 set(ROCM_MAJOR_VERSION 6)
-set(ROCM_MINOR_VERSION 3)
-set(ROCM_PATCH_VERSION 1)
+set(ROCM_MINOR_VERSION 4)
+set(ROCM_PATCH_VERSION 0)
 
 ################################################################################
 # Feature selection
@@ -63,6 +63,7 @@ cmake_dependent_option(THEROCK_ENABLE_CORE "Enable building of core libraries" O
 cmake_dependent_option(THEROCK_ENABLE_COMM_LIBS "Enable building of comm libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_MATH_LIBS "Enable building of math libraries" ON "THEROCK_ENABLE_ALL" OFF)
 cmake_dependent_option(THEROCK_ENABLE_ML_LIBS "Enable building of ML libraries" ON "THEROCK_ENABLE_ALL" OFF)
+cmake_dependent_option(THEROCK_ENABLE_PROFILER "Enable building the profiler libraries" ON "THEROCK_ENABLE_ALL" OFF)
 option(THEROCK_ENABLE_HOST_MATH "Build all bundled host math libraries by default" OFF)
 option(THEROCK_RESET_FEATURES "One-shot flag which forces all feature flags to their default state for this configuration run" OFF)
 
@@ -97,6 +98,13 @@ therock_add_feature(HIP_RUNTIME
   GROUP CORE
   DESCRIPTION "Enables the HIP runtime"
   REQUIRES COMPILER CORE_RUNTIME
+)
+
+# Profiler Features.
+therock_add_feature(PROFILER_SDK
+  GROUP PROFILER
+  DESCRIPTION "Enables the rocprofiler-sdk project"
+  REQUIRES HIP_RUNTIME
 )
 
 # Comm-libs Features.
@@ -210,6 +218,9 @@ add_subdirectory(base)
 if(NOT WIN32)
   add_subdirectory(compiler)
   add_subdirectory(core)
+  # Note that rocprofiler-register is in base and is what higher level clients
+  # depend on. The profiler itself is independent.
+  add_subdirectory(profiler)
   add_subdirectory(comm-libs)
   add_subdirectory(math-libs)
   add_subdirectory(ml-libs)

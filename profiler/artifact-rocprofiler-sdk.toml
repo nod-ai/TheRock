@@ -1,0 +1,19 @@
+# rocprofiler-sdk
+[components.dbg."profiler/rocprofiler-sdk/stage"]
+[components.dev."profiler/rocprofiler-sdk/stage"]
+include = [
+  "share/rocprofiler-sdk/samples/**",
+]
+[components.doc."profiler/rocprofiler-sdk/stage"]
+[components.lib."profiler/rocprofiler-sdk/stage"]
+include = [
+  "libexec/rocprofiler-sdk/**",
+]
+[components.run."profiler/rocprofiler-sdk/stage"]
+include = [
+  "bin/**",
+]
+[components.test."profiler/rocprofiler-sdk/stage"]
+include = [
+  "share/rocprofiler-sdk/tests/**",
+]

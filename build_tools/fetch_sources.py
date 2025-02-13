@@ -117,6 +117,8 @@ def populate_ancillary_sources(args):
     but it is also often broken. So we just do the right thing here as a transitionary
     step to fixing the underlying software packages."""
     populate_submodules_if_exists(args.dir / "rocprofiler-register")
+    populate_submodules_if_exists(args.dir / "rocprofiler-sdk")
+    populate_submodules_if_exists(args.dir / "rocprofiler-systems")
 
 
 def populate_submodules_if_exists(git_dir: Path):
@@ -187,6 +189,9 @@ def main(argv):
             "rocm-core",
             "rocminfo",
             "rocprofiler-register",
+            "rocprofiler-compute",
+            "rocprofiler-sdk",
+            "rocprofiler-systems",
             "ROCR-Runtime",
         ],
     )
