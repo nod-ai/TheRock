@@ -17,9 +17,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_linux_packages:
-    name: Build Linux Packages
-    uses: ./.github/workflows/build_linux_packages.yml
+  # build_linux_packages:
+  #   name: Build Linux Packages
+  #   uses: ./.github/workflows/build_linux_packages.
+
+  build_windows_packages:
+    name: Build Windows Packages
+    uses: ./.github/workflows/build_windows_packages.yml
 
   # build_python_packages:
   #   name: Build Python Packages

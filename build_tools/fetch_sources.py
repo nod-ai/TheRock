@@ -26,7 +26,7 @@ def setup_repo_tool() -> Path:
         print(f"Found 'repo' on PATH at '{repo_path}', using it")
         return repo_path
 
-    repo_path = THIS_SCRIPT_DIR / "repo"
+    repo_path = THEROCK_DIR / "third-party" / "repo"
     if repo_path.exists():
         print(f"Found 'repo' in script dir at '{repo_path}', using it")
         return repo_path
@@ -65,6 +65,7 @@ def run(args):
         str(repo_tool_path),
         "init",
         "-v",
+        "--no-repo-verify" if not args.repo_verify else "",
         "-u",
         args.manifest_url,
         "-m",
@@ -131,6 +132,13 @@ def populate_submodules_if_exists(git_dir: Path):
 
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
+    parser.add_argument(
+        "--no-repo-verify",
+        dest="repo_verify",
+        default=True,
+        action="store_false",
+        help="do not verify repo source code",
+    )
     parser.add_argument(
         "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
     )
