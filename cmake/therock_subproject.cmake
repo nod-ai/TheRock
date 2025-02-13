@@ -56,7 +56,7 @@ function(therock_subproject_fetch target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "CMAKE_PROJECT"
-    "SOURCE_DIR;EXCLUDE_FROM_ALL;PREFIX"
+    "SOURCE_DIR;PREFIX;EXCLUDE_FROM_ALL"
     "TOUCH"
   )
 
@@ -110,6 +110,10 @@ endfunction()
 # ACTIVATE: Option to signify that this call should end by calling
 # therock_cmake_subproject_activate. Do not specify this option if wishing to
 # further configure the sub-project.
+# NO_MERGE_COMPILE_COMMANDS: Option to disable merging of this project's
+# compile_commands.json into the overall project. This is useful for third-party
+# projects that are excluded from all as it eliminates a dependency that forces
+# them to be downloaded/built.
 # SOURCE_DIR: Absolute path to the external source directory.
 # DIR_PREFIX: By default, directories named "build", "stage", "stamp" are
 # created. But if there are multiple sub-projects in a parent dir, then they
@@ -142,7 +146,7 @@ endfunction()
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
-    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
+    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD;NO_MERGE_COMPILE_COMMANDS"
     "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
@@ -224,6 +228,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_SUBPROJECT cmake
     THEROCK_BUILD_POOL "${_build_pool}"
     THEROCK_EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
+    THEROCK_NO_MERGE_COMPILE_COMMANDS "${ARG_NO_MERGE_COMPILE_COMMANDS}"
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
     THEROCK_DIST_DIR "${_dist_dir}"
@@ -299,6 +304,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_extra_depends "${target_name}" THEROCK_EXTRA_DEPENDS)
   get_target_property(_ignore_packages "${target_name}" THEROCK_IGNORE_PACKAGES)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
+  get_target_property(_no_merge_compile_commands "${target_name}" THEROCK_NO_MERGE_COMPILE_COMMANDS)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
   get_target_property(_private_program_dirs "${target_name}" THEROCK_PRIVATE_PROGRAM_DIRS)
   get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
@@ -472,9 +478,11 @@ function(therock_cmake_subproject_activate target_name)
     DEPENDS "${_configure_stamp_file}"
   )
   add_dependencies("${target_name}" "${target_name}+configure")
-  set_property(GLOBAL APPEND PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES
-    "${_compile_commands_file}"
-  )
+  if(NOT _no_merge_compile_commands)
+    set_property(GLOBAL APPEND PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES
+      "${_compile_commands_file}"
+    )
+  endif()
 
   # build target.
   set(_build_stamp_file "${_stamp_dir}/build.stamp")

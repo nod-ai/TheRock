@@ -20,6 +20,8 @@ therock_subproject_fetch(boost-sources
 
 therock_cmake_subproject_declare(therock-boost
   EXTERNAL_SOURCE_DIR "cmake_project"
+  EXCLUDE_FROM_ALL
+  NO_MERGE_COMPILE_COMMANDS
   BACKGROUND_BUILD
   CMAKE_ARGS
     "-DBOOST_SOURCE_DIR=${_source_dir}"

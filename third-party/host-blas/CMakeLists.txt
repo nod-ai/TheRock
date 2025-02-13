@@ -14,6 +14,7 @@ therock_subproject_fetch(therock-OpenBLAS-sources
 therock_cmake_subproject_declare(therock-host-blas
   BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
+  NO_MERGE_COMPILE_COMMANDS
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
   INSTALL_DESTINATION "lib/host-math"
   INTERFACE_LINK_DIRS "lib/host-math/lib"

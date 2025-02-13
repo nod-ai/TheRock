@@ -7,6 +7,7 @@ therock_subproject_fetch(therock-nlohmann-json-sources
 
 therock_cmake_subproject_declare(therock-nlohmann-json
   EXCLUDE_FROM_ALL
+  NO_MERGE_COMPILE_COMMANDS
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
   CMAKE_ARGS
     -DJSON_BuildTests=OFF
