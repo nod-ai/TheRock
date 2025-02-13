@@ -13,13 +13,16 @@ cd ${root_dir}
 rm base/half
 rm base/rocm-cmake
 rm base/rocm-core
+rm base/rocprofiler-register
 
 # Delete .git folders which are symlinks too. CI doesn't need them.
 rm -rf sources/half/.git
 rm -rf sources/rocm-cmake/.git
 rm -rf sources/rocm-core/.git
+rm -rf sources/rocprofiler-register/.git
 
 # Copy from sources/ to where the symlinks were.
 cp -r sources/half base
 cp -r sources/rocm-cmake base
 cp -r sources/rocm-core base
+cp -r sources/rocprofiler-register base
