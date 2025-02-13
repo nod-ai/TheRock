@@ -17,6 +17,10 @@ THEROCK_DIR = THIS_SCRIPT_DIR.parent
 DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
 PATCHES_DIR = THEROCK_DIR / "patches"
 
+print(f"THIS_SCRIPT_DIR: {THIS_SCRIPT_DIR}")
+print(f"THEROCK_DIR: {THEROCK_DIR}")
+print(f"DEFAULT_SOURCES_DIR: {DEFAULT_SOURCES_DIR}")
+print(f"PATCHES_DIR: {PATCHES_DIR}")
 
 def setup_repo_tool() -> Path:
     """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
