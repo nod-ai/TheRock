@@ -1,3 +1,11 @@
 # rocPRIM
 [components.dev."math-libs/rocPRIM/stage"]
 [components.doc."math-libs/rocPRIM/stage"]
+
+# hipCUB
+[components.dev."math-libs/hipCUB/stage"]
+[components.doc."math-libs/hipCUB/stage"]
+
+# rocThrust
+[components.dev."math-libs/rocThrust/stage"]
+[components.doc."math-libs/rocThrust/stage"]
