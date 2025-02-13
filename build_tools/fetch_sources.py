@@ -124,6 +124,9 @@ def populate_ancillary_sources(args):
 
     # TODO(#36): Enable once rocprofiler-systems can be checked out on Windows
     #     error: invalid path 'src/counter_analysis_toolkit/scripts/sample_data/L2_RQSTS:ALL_DEMAND_REFERENCES.data.reads.stat'
+    #  Upstream issues:
+    #   https://github.com/ROCm/rocprofiler-systems/issues/105
+    #   https://github.com/icl-utk-edu/papi/issues/321
     if not is_windows():
         populate_submodules_if_exists(args.dir / "rocprofiler-systems")
 
