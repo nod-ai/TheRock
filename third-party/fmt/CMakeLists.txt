@@ -8,6 +8,7 @@ therock_subproject_fetch(therock-fmt-sources
 therock_cmake_subproject_declare(therock-fmt
   BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
+  NO_MERGE_COMPILE_COMMANDS
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
   CMAKE_ARGS
     -DFMT_DOC=OFF
