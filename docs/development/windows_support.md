@@ -135,5 +135,4 @@ Ensure that MSVC is used by looking for lines like these in the logs:
 cmake --build build
 ```
 
-At the moment this should build some dependencies like eigen and boost, as well
-as some projects in [`base/`](../../base/).
+At the moment this should build some projects in [`base/`](../../base/).

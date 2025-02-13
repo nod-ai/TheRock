@@ -64,7 +64,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
-            -DTHEROCK_ENABLE_RCCL=OFF \
+            -DTHEROCK_ENABLE_CORE=OFF \
+            -DTHEROCK_ENABLE_COMM_LIBS=OFF \
             -DTHEROCK_ENABLE_MATH_LIBS=OFF \
             -DTHEROCK_ENABLE_ML_LIBS=OFF
 
