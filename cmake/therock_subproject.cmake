@@ -56,7 +56,7 @@ function(therock_subproject_fetch target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "CMAKE_PROJECT"
-    "SOURCE_DIR;EXCLUDE_FROM_ALL;PREFIX"
+    "SOURCE_DIR;PREFIX;EXCLUDE_FROM_ALL"
     "TOUCH"
   )
 
@@ -110,6 +110,10 @@ endfunction()
 # ACTIVATE: Option to signify that this call should end by calling
 # therock_cmake_subproject_activate. Do not specify this option if wishing to
 # further configure the sub-project.
+# NO_MERGE_COMPILE_COMMANDS: Option to disable merging of this project's
+# compile_commands.json into the overall project. This is useful for third-party
+# projects that are excluded from all as it eliminates a dependency that forces
+# them to be downloaded/built.
 # SOURCE_DIR: Absolute path to the external source directory.
 # DIR_PREFIX: By default, directories named "build", "stage", "stamp" are
 # created. But if there are multiple sub-projects in a parent dir, then they
@@ -142,7 +146,7 @@ endfunction()
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
-    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD"
+    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD;NO_MERGE_COMPILE_COMMANDS"
     "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
@@ -224,6 +228,7 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_SUBPROJECT cmake
     THEROCK_BUILD_POOL "${_build_pool}"
     THEROCK_EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
+    THEROCK_NO_MERGE_COMPILE_COMMANDS "${ARG_NO_MERGE_COMPILE_COMMANDS}"
     THEROCK_EXTERNAL_SOURCE_DIR "${ARG_EXTERNAL_SOURCE_DIR}"
     THEROCK_BINARY_DIR "${_binary_dir}"
     THEROCK_DIST_DIR "${_dist_dir}"
@@ -271,7 +276,9 @@ function(therock_cmake_subproject_provide_package target_name package_name relat
   set_property(TARGET "${target_name}" APPEND PROPERTY THEROCK_PROVIDE_PACKAGES "${package_name}")
   set(_relpath_name THEROCK_PACKAGE_RELPATH_${package_name})
   set_property(TARGET "${target_name}" PROPERTY ${_relpath_name} "${relative_path}")
-  message(STATUS "PROVIDE ${package_name} = ${relative_path} (from ${target_name})")
+  if(THEROCK_VERBOSE)
+    message(STATUS "PROVIDE ${package_name} = ${relative_path} (from ${target_name})")
+  endif()
 endfunction()
 
 # therock_cmake_subproject_activate
@@ -297,6 +304,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_extra_depends "${target_name}" THEROCK_EXTRA_DEPENDS)
   get_target_property(_ignore_packages "${target_name}" THEROCK_IGNORE_PACKAGES)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
+  get_target_property(_no_merge_compile_commands "${target_name}" THEROCK_NO_MERGE_COMPILE_COMMANDS)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
   get_target_property(_private_program_dirs "${target_name}" THEROCK_PRIVATE_PROGRAM_DIRS)
   get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
@@ -323,7 +331,7 @@ function(therock_cmake_subproject_activate target_name)
   endif()
 
   # Report transitive runtime deps.
-  if(_runtime_deps)
+  if(_runtime_deps AND THEROCK_VERBOSE)
     list(JOIN _runtime_deps " " _runtime_deps_pretty)
     message(STATUS "  RUNTIME_DEPS: ${_runtime_deps_pretty}")
   endif()
@@ -340,9 +348,11 @@ function(therock_cmake_subproject_activate target_name)
   # _init.cmake.
   if(_private_program_dirs)
     set(CMAKE_PROGRAM_PATH ${_private_program_dirs} ${CMAKE_PROGRAM_PATH})
-    foreach(_message_contents ${_private_program_dirs})
-      message(STATUS "  PROGRAM_DIR: ${_message_contents}")
-    endforeach()
+    if(THEROCK_VERBOSE)
+      foreach(_message_contents ${_private_program_dirs})
+        message(STATUS "  PROGRAM_DIR: ${_message_contents}")
+      endforeach()
+    endif()
   endif()
 
   # Generate the project_init.cmake
@@ -355,11 +365,21 @@ function(therock_cmake_subproject_activate target_name)
   foreach(_var_name ${_mirror_cmake_vars})
     string(APPEND _init_contents "set(${_var_name} \"@${_var_name}@\" CACHE STRING \"\" FORCE)\n")
   endforeach()
-  _therock_cmake_subproject_setup_deps(_deps_contents ${_build_deps} ${_runtime_deps})
+  # Process dependencies. We process runtime deps first so that they take precedence
+  # over build deps (first wins).
+  string(APPEND _init_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
+  set(_deps_contents)
+  set(_deps_provided)
+  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_DIST_DIR ${_runtime_deps})
+  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_STAGE_DIR ${_build_deps})
+
   string(APPEND _init_contents "${_deps_contents}")
   string(APPEND _init_contents "set(THEROCK_IGNORE_PACKAGES \"@_ignore_packages@\")\n")
+  string(APPEND _init_contents "list(PREPEND CMAKE_MODULE_PATH \"${THEROCK_SOURCE_DIR}/cmake/finders\")\n")
   foreach(_private_link_dir ${_private_link_dirs})
-    message(STATUS "  LINK_DIR: ${_private_link_dir}")
+    if(THEROCK_VERBOSE)
+      message(STATUS "  LINK_DIR: ${_private_link_dir}")
+    endif()
     string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
     string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
   endforeach()
@@ -378,8 +398,13 @@ function(therock_cmake_subproject_activate target_name)
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
 
   # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
-  # on the stage.stamp file). These are a dependency for configure.
-  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps} ${_runtime_deps})
+  # on the stage.stamp or dist.stamp file). These are a dependency for configure. Build
+  # deps are satisfied out of the stage directory as they do not have a runtime
+  # component. Runtime deps are satisfied out of the dist directory as they may have
+  # transitive runtime deps at build time.
+  set(_configure_dep_stamps)
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps})
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_runtime_deps})
 
   # Target flags.
   set(_all_option)
@@ -388,7 +413,9 @@ function(therock_cmake_subproject_activate target_name)
   endif()
 
   # configure target
-  message(STATUS "  CONFIGURE_DEPENDS: ${_transitive_configure_depend_files} ")
+  if(THEROCK_VERBOSE)
+    message(STATUS "  CONFIGURE_DEPENDS: ${_transitive_configure_depend_files} ")
+  endif()
   set(_configure_stamp_file "${_stamp_dir}/configure.stamp")
   set(_configure_comment_suffix " (in background)")
   set(_terminal_option)
@@ -397,7 +424,9 @@ function(therock_cmake_subproject_activate target_name)
     set(_terminal_option "USES_TERMINAL")
     set(_configure_comment_suffix)
   elseif(_build_pool)
-    message(STATUS "  JOB_POOL: ${_build_pool}")
+    if(THEROCK_VERBOSE)
+      message(STATUS "  JOB_POOL: ${_build_pool}")
+    endif()
     set(_build_terminal_option JOB_POOL "${_build_pool}")
     set(_build_comment_suffix " (in background)")
   endif()
@@ -449,9 +478,11 @@ function(therock_cmake_subproject_activate target_name)
     DEPENDS "${_configure_stamp_file}"
   )
   add_dependencies("${target_name}" "${target_name}+configure")
-  set_property(GLOBAL APPEND PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES
-    "${_compile_commands_file}"
-  )
+  if(NOT _no_merge_compile_commands)
+    set_property(GLOBAL APPEND PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES
+      "${_compile_commands_file}"
+    )
+  endif()
 
   # build target.
   set(_build_stamp_file "${_stamp_dir}/build.stamp")
@@ -611,10 +642,10 @@ endfunction()
 
 # Builds a CMake language fragment to set up a dependency provider such that
 # it handles super-project provided dependencies locally.
-function(_therock_cmake_subproject_setup_deps out_contents)
+function(_therock_cmake_subproject_setup_deps out_contents out_provided dep_dir_property)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
-  set(_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
-  set(_already_provided)
+  set(_contents "${${out_contents}}")
+  set(_already_provided ${${out_provided}})
   foreach(dep_target ${ARGN})
     _therock_assert_is_cmake_subproject("${dep_target}")
 
@@ -625,21 +656,24 @@ function(_therock_cmake_subproject_setup_deps out_contents)
           continue()
         endif()
         list(APPEND _already_provided "${_package_name}")
-        get_target_property(_stage_dir "${dep_target}" THEROCK_STAGE_DIR)
+        get_target_property(_dep_dir "${dep_target}" "${dep_dir_property}")
         set(_relpath_name THEROCK_PACKAGE_RELPATH_${_package_name})
         get_target_property(_relpath "${dep_target}" ${_relpath_name})
-        if(NOT _stage_dir OR NOT _relpath)
-          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_stage_dir}' ${_relpath_name}='${_relpath}'")
+        if(NOT _dep_dir OR NOT _relpath)
+          message(FATAL_ERROR "Missing package info props for ${_package_name} on ${dep_target}: '${_dep_dir}' ${_relpath_name}='${_relpath}'")
         endif()
-        set(_find_package_path "${_stage_dir}")
+        set(_find_package_path "${_dep_dir}")
         cmake_path(APPEND _find_package_path "${_relpath}")
-        message(STATUS "INJECT ${_package_name} = ${_find_package_path} (from ${dep_target})")
+        if(THEROCK_VERBOSE)
+          message(STATUS "INJECT ${_package_name} = ${_find_package_path} (from ${dep_target})")
+        endif()
         string(APPEND _contents "set(THEROCK_PACKAGE_DIR_${_package_name} \"${_find_package_path}\")\n")
         string(APPEND _contents "list(APPEND THEROCK_PROVIDED_PACKAGES ${_package_name})\n")
       endforeach()
     endif()
   endforeach()
   set("${out_contents}" "${_contents}" PARENT_SCOPE)
+  set("${out_provided}" "${_already_provided}" PARENT_SCOPE)
 endfunction()
 
 # Gets the staging install directories for a list of subproject deps.
@@ -659,7 +693,7 @@ endfunction()
 # `stamp_name`. These are the actual build system deps that are encoded in the
 # commands (whereas the target names are just for humans).
 function(_therock_cmake_subproject_deps_to_stamp out_stamp_files stamp_name)
-  set(_stamp_files)
+  set(_stamp_files ${${out_stamp_files}})
   foreach(target_name ${ARGN})
     _therock_assert_is_cmake_subproject("${target_name}")
     get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
@@ -789,12 +823,14 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     string(APPEND _toolchain_contents "set(GPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
     string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" ${_amd_llvm_cxx_flags_spaces}\")\n")
 
-    message(STATUS "Compiler toolchain ${compiler_toolchain}:")
-    string(APPEND CMAKE_MESSAGE_INDENT "  ")
-    message(STATUS "CMAKE_C_COMPILER = ${AMD_LLVM_C_COMPILER}")
-    message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
-    message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
-    message(STATUS "GPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
+    if(THEROCK_VERBOSE)
+      message(STATUS "Compiler toolchain ${compiler_toolchain}:")
+      string(APPEND CMAKE_MESSAGE_INDENT "  ")
+      message(STATUS "CMAKE_C_COMPILER = ${AMD_LLVM_C_COMPILER}")
+      message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
+      message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
+      message(STATUS "GPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
+    endif()
   else()
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
   endif()
@@ -809,7 +845,9 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     list(APPEND _compiler_toolchain_addl_depends "${_hip_stamp_dir}/dist.stamp")
     string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" --hip-path=@_hip_dist_dir@\")\n")
     string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" --hip-device-lib-path=@_amd_llvm_device_lib_path@\")\n")
-    message(STATUS "HIP_DIR = ${_hip_dist_dir}")
+    if(THEROCK_VERBOSE)
+      message(STATUS "HIP_DIR = ${_hip_dist_dir}")
+    endif()
   endif()
 
   set(_compiler_toolchain_addl_depends "${_compiler_toolchain_addl_depends}" PARENT_SCOPE)

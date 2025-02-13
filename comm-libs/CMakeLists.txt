@@ -1,7 +1,7 @@
 if(THEROCK_ENABLE_RCCL)
-  #################################################################################
+  ##############################################################################
   # rccl
-  #################################################################################
+  ##############################################################################
 
   therock_cmake_subproject_declare(rccl
     EXTERNAL_SOURCE_DIR "rccl"
@@ -47,6 +47,4 @@ if(THEROCK_ENABLE_RCCL)
     SUBPROJECT_DEPS
       rccl
   )
-else()
-  message(STATUS "Not building RCCL (THEROCK_ENABLE_RCCL=OFF)")
-endif()
+endif(THEROCK_ENABLE_RCCL)

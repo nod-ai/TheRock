@@ -1,47 +1,49 @@
-#################################################################################
-# MIOpen
-#################################################################################
+if(THEROCK_ENABLE_MIOPEN)
+  ##############################################################################
+  # MIOpen
+  ##############################################################################
 
-therock_cmake_subproject_declare(MIOpen
-  EXTERNAL_SOURCE_DIR "MIOpen"
-  BACKGROUND_BUILD
-  CMAKE_ARGS
-    -DHIP_PLATFORM=amd
-    -DROCM_PATH=
-    -DROCM_DIR=
-    -DMIOPEN_USE_COMPOSABLEKERNEL=OFF  # TODO: enable
-    -DMIOPEN_USE_MLIR=OFF # TODO: enable
-    -DMIOPEN_BUILD_DRIVER=OFF # TODO: enable
-    -DMIOPEN_USE_ROCTRACER=OFF # TODO: enable
-  COMPILER_TOOLCHAIN
-    amd-hip
-  BUILD_DEPS
-    hipBLAS-common
-    rocm-cmake
-    rocm-half
-    therock-boost
-    therock-eigen
-    therock-frugally-deep
-    therock-nlohmann-json
-    therock-FunctionalPlus
-  RUNTIME_DEPS
-    hip-clr
-    hipBLAS
-    hipBLASLt
-    rocBLAS
-    rocRAND
-)
+  therock_cmake_subproject_declare(MIOpen
+    EXTERNAL_SOURCE_DIR "MIOpen"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+      -DMIOPEN_USE_COMPOSABLEKERNEL=OFF  # TODO: enable
+      -DMIOPEN_USE_MLIR=OFF # TODO: enable
+      -DMIOPEN_BUILD_DRIVER=OFF # TODO: enable
+      -DMIOPEN_USE_ROCTRACER=OFF # TODO: enable
+    COMPILER_TOOLCHAIN
+      amd-hip
+    BUILD_DEPS
+      hipBLAS-common
+      rocm-cmake
+      rocm-half
+      therock-boost
+      therock-eigen
+      therock-frugally-deep
+      therock-nlohmann-json
+      therock-FunctionalPlus
+    RUNTIME_DEPS
+      hip-clr
+      hipBLAS
+      hipBLASLt
+      rocBLAS
+      rocRAND
+  )
 
-therock_cmake_subproject_activate(MIOpen)
+  therock_cmake_subproject_activate(MIOpen)
 
-therock_provide_artifact(miopen
-  DESCRIPTOR artifact-miopen.toml
-  COMPONENTS
-    dbg
-    dev
-    doc
-    lib
-    run
-  SUBPROJECT_DEPS
-    MIOpen
-)
+  therock_provide_artifact(miopen
+    DESCRIPTOR artifact-miopen.toml
+    COMPONENTS
+      dbg
+      dev
+      doc
+      lib
+      run
+    SUBPROJECT_DEPS
+      MIOpen
+  )
+endif(THEROCK_ENABLE_MIOPEN)

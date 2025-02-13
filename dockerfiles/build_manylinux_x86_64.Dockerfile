@@ -40,11 +40,15 @@ COPY install_ninja.sh ./
 RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
 
 ######## Yum Packages #######
+# TODO: Remove elfutils-devel (https://github.com/nod-ai/TheRock/issues/91)
+# TODO: Figure out why gcc-toolset-12-libatomic-devel doesn't install with the
+# rest of the dev toolset.
 RUN yum install -y epel-release && \
-    yum install -y clang lld && \
+    yum install -y gcc-toolset-12-libatomic-devel && \
     yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
     yum install -y bzip2-devel && \
     yum install -y gtest-devel && \
+    yum install -y elfutils-devel && \
     yum clean all && \
     rm -rf /var/cache/yum
 
