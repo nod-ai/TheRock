@@ -226,6 +226,7 @@ if(NOT WIN32)
   add_subdirectory(ml-libs)
 else()
   # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
+  add_subdirectory(compiler)
 endif()
 
 add_subdirectory(examples)

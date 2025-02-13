@@ -63,6 +63,12 @@ if(THEROCK_ENABLE_COMPILER)
   # runtime.
   ##############################################################################
 
+  if(WIN32)
+    set(_link_dylib "OFF")
+  else()
+    set(_link_dylib "ON")
+  endif()
+
   therock_cmake_subproject_declare(amd-comgr
     EXTERNAL_SOURCE_DIR "amd-llvm/amd/comgr"
     BINARY_DIR "amd-comgr"
@@ -70,7 +76,7 @@ if(THEROCK_ENABLE_COMPILER)
     CMAKE_ARGS
       # TODO: Currently unstable. Enable in >6.4.
       -DCOMGR_DISABLE_SPIRV=ON
-      -DLLVM_LINK_LLVM_DYLIB=ON
+      -DLLVM_LINK_LLVM_DYLIB=${_link_dylib}
       # The comgr tests have a circular dependency on the HIP runtime.
       # https://github.com/nod-ai/TheRock/issues/67
       -DBUILD_TESTING=OFF

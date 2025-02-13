@@ -5,14 +5,25 @@ include("${ROCM_GIT_DIR}/llvm-project/cmake/Modules/LLVMVersion.cmake")
 # Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
 # The flag you want for a shared library build is LLVM_BUILD_LLVM_DYLIB.
 set(BUILD_SHARED_LIBS OFF)
-set(LLVM_BUILD_LLVM_DYLIB ON)
-set(LLVM_LINK_LLVM_DYLIB ON)
-set(LLVM_ENABLE_LIBCXX ON)
+if(WIN32)
+  set(LLVM_BUILD_LLVM_DYLIB OFF)
+  set(LLVM_LINK_LLVM_DYLIB OFF)
+  set(LIBUNWIND_ENABLE_SHARED OFF)
+  set(LIBUNWIND_ENABLE_STATIC ON)
+  # TODO(#36): Enable libunwind, libcxx, and libcxxabi on Windows?
+  #     Should they be supported? What depends on them?
+  set(LLVM_ENABLE_LIBCXX OFF)
+  set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "Enabled runtimes" FORCE)
+else()
+  set(LLVM_BUILD_LLVM_DYLIB ON)
+  set(LLVM_LINK_LLVM_DYLIB ON)
+  set(LLVM_ENABLE_LIBCXX ON)
+  set(LLVM_ENABLE_RUNTIMES "compiler-rt;libunwind;libcxx;libcxxabi" CACHE STRING "Enabled runtimes" FORCE)
+endif()
 
 # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
 set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
 set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
-set(LLVM_ENABLE_RUNTIMES "compiler-rt;libunwind;libcxx;libcxxabi" CACHE STRING "Enabled runtimes" FORCE)
 set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
 
 # Packaging.
