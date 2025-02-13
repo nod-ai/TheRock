@@ -37,14 +37,9 @@ jobs:
           git config --global user.name "Nobody"
           git config --global http.sslVerify "false"
           python ./build_tools/fetch_sources.py --depth 1
-      - name: List files (symlinks?)
-        run: ls -la base/
-
-      - name: Check CMake version
-        run: cmake --version
-
-      - name: Check git version
-        run: git --version
+      # TODO(scotttodd): Get symlinks working on CI runners instead of this
+      - name: Replace symlinks with copies
+        run: ./build_tools/patch_symlinks_for_windows_ci.sh
 
       - name: Install ninja
         run: choco install ninja --yes
@@ -74,14 +69,6 @@ jobs:
             -DTHEROCK_ENABLE_COMM_LIBS=OFF \
             -DTHEROCK_ENABLE_MATH_LIBS=OFF \
             -DTHEROCK_ENABLE_ML_LIBS=OFF \
-      - name: List files under base/
-        run: ls -la base/
-
-      - name: List files under base/rocm-cmake
-        run: ls -la base/rocm-cmake
-
-      - name: Stat base/rocm-cmake/CMakeLists.txt
-        run: stat base/rocm-cmake/CMakeLists.txt
 
       - name: Build Projects
         run: |
