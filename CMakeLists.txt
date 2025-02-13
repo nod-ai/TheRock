@@ -109,7 +109,7 @@ therock_add_feature(RCCL
 # Math-libs Features.
 therock_add_feature(PRIM
   GROUP MATH_LIBS
-  DESCRIPTION "Enables prim libraries (rocprim)"
+  DESCRIPTION "Enables prim libraries (rocprim, hipCUB, rocThrust)"
   REQUIRES COMPILER HIP_RUNTIME
 )
 therock_add_feature(BLAS

@@ -53,7 +53,11 @@ endif()
 
 if(THEROCK_ENABLE_PRIM)
     find_package(rocprim CONFIG REQUIRED)
+    find_package(rocthrust CONFIG REQUIRED)
+    find_package(hipcub CONFIG REQUIRED)
     message(STATUS "rocprim version: ${rocprim_VERSION}")
+    message(STATUS "rocthrust version: ${rocthrust_VERSION}")
+    message(STATUS "hipcub version: ${hipcub_VERSION}")
 endif()
 
 if(THEROCK_ENABLE_SOLVER)
