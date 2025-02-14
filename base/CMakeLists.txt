@@ -71,8 +71,6 @@ endif()
 # This is a stub that helps runtime libraries and profiles rendezvous
 ################################################################################
 
-if(NOT WIN32)  # TODO(#36): Enable on Windows and/or make subproject inclusion generally optional
-
 therock_cmake_subproject_declare(rocprofiler-register
   EXTERNAL_SOURCE_DIR "rocprofiler-register"
   INTERFACE_LINK_DIRS
@@ -86,8 +84,6 @@ therock_cmake_subproject_glob_c_sources(rocprofiler-register
 therock_cmake_subproject_provide_package(rocprofiler-register
   rocprofiler-register lib/cmake/rocprofiler-register)
 therock_cmake_subproject_activate(rocprofiler-register)
-
-endif()
 
 
 ################################################################################
@@ -114,7 +110,6 @@ set(_optional_subproject_deps)
 if(NOT WIN32)
   # TODO(#36): Enable on Windows and/or make subproject inclusion generally optional
   list(APPEND _optional_subproject_deps rocm_smi_lib)
-  list(APPEND _optional_subproject_deps rocprofiler-register)
 endif()
 
 therock_provide_artifact(base
@@ -132,5 +127,6 @@ therock_provide_artifact(base
     rocm-cmake
     rocm-core
     rocm-half
+    rocprofiler-register
     therock-aux-overlay
 )
