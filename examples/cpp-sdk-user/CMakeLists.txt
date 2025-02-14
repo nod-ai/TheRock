@@ -6,11 +6,16 @@ endif()
 
 cmake_minimum_required(VERSION 3.25)
 
-project(rocm-cpp-sdk-user)
+# TODO: Set these in the invoker. And file an issue HIP side for better ergonomics
+# around language mode.
+set(CMAKE_HIP_PLATFORM amd)
+set(CMAKE_HIP_COMPILER "/home/stella/rock/TheRock/build/dist/rocm/lib/llvm/bin/clang++")
+set(CMAKE_HIP_COMPILER_ROCM_ROOT "/home/stella/rock/TheRock/build/dist/rocm")
+
+project(rocm-cpp-sdk-user LANGUAGES CXX HIP)
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 17)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # If defining a new option, ensure it is in the outer CMakeLists.txt and
 # the clean_configure_test_project.cmake to ensure it is passed from the
@@ -25,16 +30,15 @@ option(THEROCK_ENABLE_RCCL "Whether rccl is available" ON)
 option(THEROCK_ENABLE_SOLVER "Whether rocsolver/hipsolver are available" ON)
 option(THEROCK_ENABLE_SPARSE "Whether rocsparse/hipsparse are available" ON)
 
-# Because we use this project as a test, we include validation that the found
-# packages are sound. Users do not need to include this or call any of the
-# `validate_*` functions.
-include(validate_rocm_sdk)
-
 if(THEROCK_ENABLE_HIP)
     # TODO: Don't require HIP_PLATFORM https://github.com/nod-ai/TheRock/issues/68
     set(HIP_PLATFORM "amd")
     find_package(hip CONFIG REQUIRED)
-    validate_hip_package_found()
+    message(STATUS "**** HIP Configuration:")
+    message(STATUS "  VERSION: ${hip_VERSION}")
+    message(STATUS "  INCLUDE: ${hip_INCLUDE_DIRS}")
+    message(STATUS "  LIBRARIES: ${hip_LIBRARIES}")
+    message(STATUS "  GPU_TARGETS: ${GPU_TARGETS}")
 endif()
 
 if(THEROCK_ENABLE_RAND)
@@ -100,4 +104,7 @@ if(THEROCK_ENABLE_HIP)
     )
     target_link_libraries(hip-host-test PRIVATE hip::host)
     add_test(NAME hip-host-test COMMAND hip-host-test)
+
+    add_library(sample_kernel sample_kernel.hip)
+    set_source_files_properties(sample_kernel PROPERTIES LANGUAGE HIP)
 endif()
