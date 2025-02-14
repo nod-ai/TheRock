@@ -88,21 +88,32 @@ if(THEROCK_ENABLE_BLAS)
       -DHIP_PLATFORM=amd
       -DROCM_PATH=
       -DROCM_DIR=
-      # TODO: Fix passing TENSILE_ROCM_ASSEMBLER_PATH.
+      # TODO: Fix building with Tensile.
       #       Enable building with hipBLASLt afterwards.
-      -DBUILD_WITH_TENSILE=OFF
+      -DBUILD_WITH_TENSILE=ON
       -DBUILD_WITH_HIPBLASLT=OFF
+      # TODO: With `Tensile_TEST_LOCAL_PATH` set, the resulting build path is ${Tensile_TEST_LOCAL_PATH}/build.
+      "-DTensile_TEST_LOCAL_PATH=${THEROCK_SOURCE_DIR}/math-libs/Tensile"
       # -DTensile_LOGIC=
       # -DTensile_CODE_OBJECT_VERSION=default
       # -DTensile_CPU_THREADS=
       # -DTensile_LIBRARY_FORMAT=msgpack
-      # "-DTensile_ROCM_ASSEMBLER_PATH=${_toolchain_dir}/bin/clang++"
+      # TODO: Not propagated when calling `TensileCreateLibrary` within venv.
+      "-DTensile_ROCM_ASSEMBLER_PATH=${_toolchain_dir}/bin/clang++"
       # "-DTensile_ROCM_OFFLOAD_BUNDLER_PATH=${_toolchain_dir}/bin/clang-offload-bundler"
+      "-DTensile_C_COMPILER=${_toolchain_dir}/bin/clang"
+      # TODO: Absolute / full path is not supported. Only accepted options on Linux are `amdclang++` and `hipcc`.
+      "-DTensile_CXX_COMPILER=amdclang++"
+      # TODO: Not supported as command line argument, assembler is determined via `globalParameters['AssemblerPath']`.
+      "-DTensile_ASSEMBLER=${_toolchain_dir}/bin/clang++"
+      "-DTensile_OFFLOAD_BUNDLER=${_toolchain_dir}/bin/clang-offload-bundler"
       # TODO: Enable clients.
     IGNORE_PACKAGES
       ROCM
     COMPILER_TOOLCHAIN
       amd-hip
+    BUILD_DEPS
+      therock-msgpack-cxx
     RUNTIME_DEPS
       #hipBLAS-common
       #hipBLASLt
