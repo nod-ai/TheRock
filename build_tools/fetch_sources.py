@@ -6,6 +6,7 @@
 import argparse
 import os
 from pathlib import Path
+import platform
 import shlex
 import shutil
 import subprocess
@@ -17,6 +18,8 @@ THEROCK_DIR = THIS_SCRIPT_DIR.parent
 DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
 PATCHES_DIR = THEROCK_DIR / "patches"
 
+def is_windows() -> bool:
+    return platform.system() == "Windows"
 
 def setup_repo_tool() -> Path:
     """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
@@ -118,7 +121,11 @@ def populate_ancillary_sources(args):
     step to fixing the underlying software packages."""
     populate_submodules_if_exists(args.dir / "rocprofiler-register")
     populate_submodules_if_exists(args.dir / "rocprofiler-sdk")
-    populate_submodules_if_exists(args.dir / "rocprofiler-systems")
+
+    # TODO(#36): Enable once rocprofiler-systems can be checked out on Windows
+    #     error: invalid path 'src/counter_analysis_toolkit/scripts/sample_data/L2_RQSTS:ALL_DEMAND_REFERENCES.data.reads.stat'
+    if not is_windows():
+        populate_submodules_if_exists(args.dir / "rocprofiler-systems")
 
 
 def populate_submodules_if_exists(git_dir: Path):
