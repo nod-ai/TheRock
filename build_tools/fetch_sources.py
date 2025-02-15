@@ -218,6 +218,7 @@ def main(argv):
             "hipRAND",
             "hipSOLVER",
             "hipSPARSE",
+            "Tensile",
             "rocBLAS",
             "rocFFT",
             "rocPRIM",

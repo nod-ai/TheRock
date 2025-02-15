@@ -815,6 +815,9 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     string(JOIN " " _amd_llvm_cxx_flags_spaces ${THEROCK_AMD_LLVM_DEFAULT_CXX_FLAGS})
 
     list(APPEND _compiler_toolchain_addl_depends "${_amd_llvm_stamp_dir}/dist.stamp")
+    # We inject a toolchain root into the subproject so that magic overrides can
+    # use it (i.e. for old projects that require path munging, etc).
+    string(APPEND _toolchain_contents "set(THEROCK_TOOLCHAIN_ROOT \"${_amd_llvm_dist_dir}\")\n")
     string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER @AMD_LLVM_C_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER @AMD_LLVM_CXX_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_LINKER @AMD_LLVM_LINKER@)\n")
