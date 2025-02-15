@@ -81,6 +81,7 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
       amd-comgr
       hipcc     # For hipconfig
       rocm-core
+      rocminfo  # Various things expect to be able to find the rocminfo tools
       rocprofiler-register
       ROCR-Runtime
     INTERFACE_LINK_DIRS

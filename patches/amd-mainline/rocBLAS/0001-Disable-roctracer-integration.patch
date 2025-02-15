@@ -1,4 +1,4 @@
-From e986f26dbb6af0767f48811b6d8bc3533a3a5017 Mon Sep 17 00:00:00 2001
+From d2874eb3544f6639a64f097c6790b27712365e5e Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Thu, 6 Feb 2025 21:18:34 -0800
 Subject: [PATCH] Disable roctracer integration.
