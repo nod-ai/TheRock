@@ -1,7 +1,7 @@
-From 35b79d21025d03cbe967b0554f4d906db5dac2c2 Mon Sep 17 00:00:00 2001
+From d9f595be0f7142a8509fd4b5dd82b863d4919c21 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Thu, 13 Feb 2025 19:07:07 -0800
-Subject: [PATCH 2/2] Disable hipcc passing hip-device-libs.
+Subject: [PATCH 3/3] Disable hipcc passing hip-device-libs.
 
 In modern times, the clang driver is far more knowledgable about this stuff and can operate without instruction.
 ---
@@ -15,7 +15,7 @@ index a37c07836620..fb3942bee5f7 100644
 @@ -864,15 +864,16 @@ void HipBinAmd::executeHipCCCmd(vector<string> argv) {
      }
    }
-
+ 
 -  if (hasHIP) {
 -    fs::path bitcodeFs = roccmPath;
 -    bitcodeFs /= "amdgcn/bitcode";
@@ -35,8 +35,9 @@ index a37c07836620..fb3942bee5f7 100644
 +  //     HIPCXXFLAGS += hip_device_lib_str;
 +  //   }
 +  // }
-
+ 
    // to avoid using dk linker or MSVC linker
    if (isWindows()) {
 -- 
 2.43.0
+

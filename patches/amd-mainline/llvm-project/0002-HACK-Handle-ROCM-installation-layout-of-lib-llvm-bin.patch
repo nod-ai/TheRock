@@ -1,7 +1,7 @@
-From a510b9092cbc4bea65c291dd7e5fa24483ee155f Mon Sep 17 00:00:00 2001
+From 3d9ccab2c606772c26afe5403cecd4a695bbdb72 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Thu, 13 Feb 2025 17:58:53 -0800
-Subject: [PATCH 1/2] HACK: Handle ROCM installation layout of
+Subject: [PATCH 2/3] HACK: Handle ROCM installation layout of
  lib/llvm/bin/clang++.
 
 ---
@@ -13,7 +13,7 @@ index 5e8a949f5861..f4ee2c460481 100644
 --- a/clang/lib/Driver/ToolChains/AMDGPU.cpp
 +++ b/clang/lib/Driver/ToolChains/AMDGPU.cpp
 @@ -244,8 +244,17 @@ RocmInstallationDetector::getInstallationPathCandidates() {
-
+ 
      // Some versions of the rocm llvm package install to /opt/rocm/llvm/bin
      // Some versions of the aomp package install to /opt/rocm/aomp/bin
 -    if (ParentName == "llvm" || ParentName.starts_with("aomp"))
@@ -33,3 +33,4 @@ index 5e8a949f5861..f4ee2c460481 100644
      return Candidate(ParentDir.str(), /*StrictChecking=*/true);
 -- 
 2.43.0
+
