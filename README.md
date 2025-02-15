@@ -17,7 +17,7 @@ pip install CppHeaderParser
 ```
 sudo apt install \
   repo git-lfs libnuma-dev ninja-build cmake g++ pkg-config libdrm-dev \
-  libelf-dev xxd libgl1-mesa-dev libbz2-dev libsqlite3-dev libgtest-dev
+  libelf-dev xxd libgl1-mesa-dev libbz2-dev libsqlite3-dev libgtest-dev gfortran
 
 ```
 
