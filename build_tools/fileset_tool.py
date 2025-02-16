@@ -117,9 +117,15 @@ class RecursiveGlobPattern:
 
 
 class PatternMatcher:
-    def __init__(self, includes: Sequence[str] = (), excludes: Sequence[str] = ()):
+    def __init__(
+        self,
+        includes: Sequence[str] = (),
+        excludes: Sequence[str] = (),
+        force_includes: Sequence[str] = (),
+    ):
         self.includes = [RecursiveGlobPattern(p) for p in includes]
         self.excludes = [RecursiveGlobPattern(p) for p in excludes]
+        self.force_includes = [RecursiveGlobPattern(p) for p in force_includes]
         # Dictionary of relative posix-style path to DirEntry.
         # Last relative path to entry.
         self.all: dict[str, os.DirEntry[str]] = {}
@@ -149,18 +155,25 @@ class PatternMatcher:
     def matches(self) -> Generator[tuple[str, os.DirEntry[str]], None, None]:
         includes = self.includes
         excludes = self.excludes
+        force_includes = self.force_includes
         for match_path, direntry in self.all.items():
-            if includes:
-                for include in includes:
-                    if include.matches(match_path, direntry):
-                        break
-                else:
-                    continue
+            force_included = False
             excluded = False
-            for exclude in excludes:
-                if exclude.matches(match_path, direntry):
-                    excluded = True
-                    break
+            if force_includes:
+                for force_include in force_includes:
+                    if force_include.matches(match_path, direntry):
+                        force_included = True
+            if not force_included:
+                if includes:
+                    for include in includes:
+                        if include.matches(match_path, direntry):
+                            break
+                    else:
+                        continue
+                for exclude in excludes:
+                    if exclude.matches(match_path, direntry):
+                        excluded = True
+                        break
             if not excluded:
                 yield match_path, direntry
 
@@ -265,6 +278,9 @@ def do_artifact(args):
                         patterns are used
                     "include": str or list[str] of include patterns
                     "exclude": str or list[str] of exclude patterns
+                    "force_include": str or list[str] of include patterns that if
+                        matched, force inclusion, regardless of whether they match
+                        an exclude pattern.
                     "optional": if true and the directory does not exist, it
                       is not an error. Use for optionally built projects
 
@@ -300,6 +316,9 @@ def do_artifact(args):
             continue
         all_basedir_relpaths.append(basedir_relpath)
 
+        # Force includes.
+        force_includes = _dup_list_or_str(basedir_record.get("force_include"))
+
         # Includes.
         includes = _dup_list_or_str(basedir_record.get("include"))
         if use_default_patterns:
@@ -317,6 +336,7 @@ def do_artifact(args):
         pm = PatternMatcher(
             includes=includes,
             excludes=excludes,
+            force_includes=force_includes,
         )
         pm.add_basedir(basedir)
         pm.copy_to(

@@ -111,51 +111,6 @@ if(THEROCK_ENABLE_BLAS)
   therock_cmake_subproject_provide_package(rocBLAS rocblas lib/cmake/rocblas)
   therock_cmake_subproject_activate(rocBLAS)
   list(APPEND _blas_subproject_names rocBLAS)
-
-
-  ##############################################################################
-  # hipBLAS
-  ##############################################################################
-
-  therock_cmake_subproject_declare(hipBLAS
-    EXTERNAL_SOURCE_DIR "hipBLAS"
-    BACKGROUND_BUILD
-    CMAKE_ARGS
-      -DHIP_PLATFORM=amd
-      -DROCM_PATH=
-      -DROCM_DIR=
-      -DBUILD_WITH_SOLVER=OFF  # TODO: add/enable rocSOLVER
-    COMPILER_TOOLCHAIN
-      amd-hip
-    BUILD_DEPS
-      hipBLAS-common
-    RUNTIME_DEPS
-      hip-clr
-      rocBLAS
-  )
-  therock_cmake_subproject_glob_c_sources(hipBLAS
-    SUBDIRS
-      .
-  )
-  therock_cmake_subproject_provide_package(hipBLAS hipblas lib/cmake/hipblas)
-  therock_cmake_subproject_activate(hipBLAS)
-  list(APPEND _blas_subproject_names hipBLAS)
-
-
-  ##############################################################################
-  # blas artifact
-  ##############################################################################
-
-  therock_provide_artifact(blas
-    DESCRIPTOR artifact-blas.toml
-    COMPONENTS
-      dbg
-      dev
-      doc
-      lib
-      run
-    SUBPROJECT_DEPS ${_blas_subproject_names}
-  )
 endif(THEROCK_ENABLE_BLAS)
 
 if(THEROCK_ENABLE_RAND)
@@ -527,3 +482,50 @@ if(THEROCK_ENABLE_FFT)
     SUBPROJECT_DEPS ${_fft_subproject_names}
   )
 endif(THEROCK_ENABLE_FFT)
+
+if(THEROCK_ENABLE_BLAS)
+  ##############################################################################
+  # hipBLAS
+  ##############################################################################
+
+  therock_cmake_subproject_declare(hipBLAS
+    EXTERNAL_SOURCE_DIR "hipBLAS"
+    BACKGROUND_BUILD
+    CMAKE_ARGS
+      -DHIP_PLATFORM=amd
+      -DROCM_PATH=
+      -DROCM_DIR=
+      -DBUILD_WITH_SOLVER=ON
+    COMPILER_TOOLCHAIN
+      amd-hip
+    BUILD_DEPS
+      hipBLAS-common
+    RUNTIME_DEPS
+      hip-clr
+      rocBLAS
+      rocSOLVER
+  )
+  therock_cmake_subproject_glob_c_sources(hipBLAS
+    SUBDIRS
+      .
+  )
+  therock_cmake_subproject_provide_package(hipBLAS hipblas lib/cmake/hipblas)
+  therock_cmake_subproject_activate(hipBLAS)
+  list(APPEND _blas_subproject_names hipBLAS)
+
+
+  ##############################################################################
+  # blas artifact
+  ##############################################################################
+
+  therock_provide_artifact(blas
+    DESCRIPTOR artifact-blas.toml
+    COMPONENTS
+      dbg
+      dev
+      doc
+      lib
+      run
+    SUBPROJECT_DEPS ${_blas_subproject_names}
+  )
+endif(THEROCK_ENABLE_BLAS)
