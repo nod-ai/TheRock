@@ -25,6 +25,7 @@ jobs:
       CACHE_DIR: ${{ github.workspace }}/.container-cache
       CCACHE_DIR: "${{ github.workspace }}/.container-cache/ccache"
       CCACHE_MAXSIZE: "700M"
+      TEATIME_LABEL_GH_GROUP: 1
     steps:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
