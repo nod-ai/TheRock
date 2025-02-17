@@ -14,19 +14,19 @@ therock_cmake_subproject_declare(hipBLAS-common
 EXTERNAL_SOURCE_DIR "hipBLAS-common"
 BACKGROUND_BUILD
 CMAKE_ARGS
-    -DROCM_PATH=
-    -DROCM_DIR=
+  -DROCM_PATH=
+  -DROCM_DIR=
 COMPILER_TOOLCHAIN
-    amd-hip
+  amd-hip
 IGNORE_PACKAGES
-    # The current version of rccl needs to download a 2y old version of rocm-cmake
-    # to work and it will only do so if the system resolver reports it not found
-    # without any other error (which due to the signature, our resolver will
-    # hard fail). Once fixed, `rocm-core` should be added to the BUILD_DEPS
-    # and this removed: https://github.com/nod-ai/TheRock/issues/18
-    ROCM
+  # The current version of rccl needs to download a 2y old version of rocm-cmake
+  # to work and it will only do so if the system resolver reports it not found
+  # without any other error (which due to the signature, our resolver will
+  # hard fail). Once fixed, `rocm-core` should be added to the BUILD_DEPS
+  # and this removed: https://github.com/nod-ai/TheRock/issues/18
+  ROCM
 RUNTIME_DEPS
-    hip-clr
+  hip-clr
 )
 therock_cmake_subproject_glob_c_sources(hipBLAS-common
 SUBDIRS
@@ -41,9 +41,9 @@ list(APPEND _blas_subproject_names hipBLAS-common)
 ##############################################################################
 
 therock_cmake_subproject_declare(hipBLASLt
-EXTERNAL_SOURCE_DIR "hipBLASLt"
-BACKGROUND_BUILD
-CMAKE_ARGS
+  EXTERNAL_SOURCE_DIR "hipBLASLt"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
     -DROCM_DIR=
@@ -59,12 +59,12 @@ CMAKE_ARGS
     # TODO(#55): Enable once roctracer is added
     -DHIPBLASLT_ENABLE_MARKER=OFF
     # TODO: Enable clients.
-COMPILER_TOOLCHAIN
+  COMPILER_TOOLCHAIN
     amd-hip
-BUILD_DEPS
+  BUILD_DEPS
     hipBLAS-common
     therock-msgpack-cxx
-RUNTIME_DEPS
+  RUNTIME_DEPS
     hip-clr
 )
 therock_cmake_subproject_glob_c_sources(hipBLASLt
@@ -81,9 +81,9 @@ list(APPEND _blas_subproject_names hipBLASLt)
 ##############################################################################
 
 therock_cmake_subproject_declare(rocBLAS
-EXTERNAL_SOURCE_DIR "rocBLAS"
-BACKGROUND_BUILD
-CMAKE_ARGS
+  EXTERNAL_SOURCE_DIR "rocBLAS"
+  BACKGROUND_BUILD
+  CMAKE_ARGS
     -DHIP_PLATFORM=amd
     -DROCM_PATH=
     -DROCM_DIR=
@@ -92,14 +92,14 @@ CMAKE_ARGS
     # TODO: With `Tensile_TEST_LOCAL_PATH` set, the resulting build path is ${Tensile_TEST_LOCAL_PATH}/build.
     "-DTensile_TEST_LOCAL_PATH=${CMAKE_CURRENT_SOURCE_DIR}/Tensile"
     # # TODO: Enable clients.
-IGNORE_PACKAGES
-    ROCM
-COMPILER_TOOLCHAIN
+  IGNORE_PACKAGES
+      ROCM
+  COMPILER_TOOLCHAIN
     amd-hip
-BUILD_DEPS
+  BUILD_DEPS
     therock-msgpack-cxx
     hipBLAS-common
-RUNTIME_DEPS
+  RUNTIME_DEPS
     hip-clr
     hipBLASLt
 )
@@ -171,7 +171,7 @@ if(THEROCK_ENABLE_SPARSE)
   )
   therock_cmake_subproject_provide_package(hipSPARSE hipsparse lib/cmake/hipsparse)
   therock_cmake_subproject_activate(hipSPARSE)
-  list(APPEND _blas_subproject_names hipSPARSE)  
+  list(APPEND _blas_subproject_names hipSPARSE)
 endif(THEROCK_ENABLE_SPARSE)
 
 
@@ -184,20 +184,20 @@ if(THEROCK_ENABLE_SOLVER)
       EXTERNAL_SOURCE_DIR "rocSOLVER"
       BACKGROUND_BUILD
       CMAKE_ARGS
-      -DHIP_PLATFORM=amd
-      -DROCM_PATH=
-      -DROCM_DIR=
-      # Requires LAPACK
-      -DBUILD_CLIENTS_BENCHMARKS=OFF
-      -DBUILD_CLIENTS_TESTS=OFF
+        -DHIP_PLATFORM=amd
+        -DROCM_PATH=
+        -DROCM_DIR=
+        # Requires LAPACK
+        -DBUILD_CLIENTS_BENCHMARKS=OFF
+        -DBUILD_CLIENTS_TESTS=OFF
       COMPILER_TOOLCHAIN
-      amd-hip
+        amd-hip
       BUILD_DEPS
-      rocBLAS
-      rocPRIM
-      therock-fmt
+        rocBLAS
+        rocPRIM
+        therock-fmt
       RUNTIME_DEPS
-      hip-clr
+        hip-clr
   )
   therock_cmake_subproject_glob_c_sources(rocSOLVER
       SUBDIRS
@@ -215,24 +215,24 @@ if(THEROCK_ENABLE_SOLVER)
       EXTERNAL_SOURCE_DIR "hipSOLVER"
       BACKGROUND_BUILD
       CMAKE_ARGS
-      -DHIP_PLATFORM=amd
-      -DROCM_PATH=
-      -DROCM_DIR=
-      -DBUILD_HIPSPARSE_TESTS=OFF
-      # BUILD_WITH_SPARSE converts rocsparse and cholmod to build time vs
-      # runtime/dlopen deps.
-      -DBUILD_WITH_SPARSE=ON
-      # Requires LAPACK
-      -DBUILD_CLIENTS_BENCHMARKS=OFF
-      -DBUILD_CLIENTS_TESTS=OFF
+        -DHIP_PLATFORM=amd
+        -DROCM_PATH=
+        -DROCM_DIR=
+        -DBUILD_HIPSPARSE_TESTS=OFF
+        # BUILD_WITH_SPARSE converts rocsparse and cholmod to build time vs
+        # runtime/dlopen deps.
+        -DBUILD_WITH_SPARSE=ON
+        # Requires LAPACK
+        -DBUILD_CLIENTS_BENCHMARKS=OFF
+        -DBUILD_CLIENTS_TESTS=OFF
       COMPILER_TOOLCHAIN
-      amd-hip
+        amd-hip
       RUNTIME_DEPS
-      hip-clr
-      rocBLAS
-      rocSOLVER
-      rocSPARSE
-      therock-SuiteSparse
+        hip-clr
+        rocBLAS
+        rocSOLVER
+        rocSPARSE
+        therock-SuiteSparse
   )
   therock_cmake_subproject_glob_c_sources(hipSOLVER
       SUBDIRS
@@ -257,18 +257,18 @@ therock_cmake_subproject_declare(hipBLAS
   EXTERNAL_SOURCE_DIR "hipBLAS"
   BACKGROUND_BUILD
   CMAKE_ARGS
-      -DHIP_PLATFORM=amd
-      -DROCM_PATH=
-      -DROCM_DIR=
-      "-DBUILD_WITH_SOLVER=${THEROCK_ENABLE_SOLVER}"
+    -DHIP_PLATFORM=amd
+    -DROCM_PATH=
+    -DROCM_DIR=
+    "-DBUILD_WITH_SOLVER=${THEROCK_ENABLE_SOLVER}"
   COMPILER_TOOLCHAIN
-      amd-hip
+    amd-hip
   BUILD_DEPS
-      hipBLAS-common
+    hipBLAS-common
   RUNTIME_DEPS
-      hip-clr
-      rocBLAS
-      ${hipBLAS_optional_deps}
+    hip-clr
+    rocBLAS
+    ${hipBLAS_optional_deps}
 )
 therock_cmake_subproject_glob_c_sources(hipBLAS
 SUBDIRS
@@ -278,7 +278,7 @@ therock_cmake_subproject_provide_package(hipBLAS hipblas lib/cmake/hipblas)
 therock_cmake_subproject_activate(hipBLAS)
 list(APPEND _blas_subproject_names hipBLAS)
 
-    
+
 ##############################################################################
 # blas artifact
 ##############################################################################
@@ -293,4 +293,3 @@ therock_provide_artifact(blas
       run
   SUBPROJECT_DEPS ${_blas_subproject_names}
 )
-
