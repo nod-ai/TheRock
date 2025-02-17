@@ -88,10 +88,8 @@ if(THEROCK_ENABLE_BLAS)
       -DHIP_PLATFORM=amd
       -DROCM_PATH=
       -DROCM_DIR=
-      # TODO: Fix building with Tensile.
-      #       Enable building with hipBLASLt afterwards.
       -DBUILD_WITH_TENSILE=ON
-      -DBUILD_WITH_HIPBLASLT=OFF
+      -DBUILD_WITH_HIPBLASLT=ON
       # TODO: With `Tensile_TEST_LOCAL_PATH` set, the resulting build path is ${Tensile_TEST_LOCAL_PATH}/build.
       "-DTensile_TEST_LOCAL_PATH=${THEROCK_SOURCE_DIR}/math-libs/Tensile"
       # # TODO: Enable clients.
@@ -101,8 +99,10 @@ if(THEROCK_ENABLE_BLAS)
       amd-hip
     BUILD_DEPS
       therock-msgpack-cxx
+      hipBLAS-common
     RUNTIME_DEPS
       hip-clr
+      hipBLASLt
   )
   therock_cmake_subproject_glob_c_sources(rocBLAS
     SUBDIRS
