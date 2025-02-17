@@ -116,6 +116,7 @@ class OutputSink:
                     f"{round((now - self.start_time) * 10) / 10}\t".encode()
                 )
             self.log_file.write(line)
+            self.log_file.flush()
 
 
 def run(args: argparse.Namespace, child_arg_list: list[str] | None, sink: OutputSink):
@@ -127,7 +128,9 @@ def run(args: argparse.Namespace, child_arg_list: list[str] | None, sink: Output
         # Subprocess mode.
         if sink.log_file:
             child_arg_list_pretty = shlex.join(child_arg_list)
-            sink.log_file.write(f"EXEC\t{child_arg_list_pretty}\n".encode())
+            sink.log_file.write(
+                f"EXEC\t{os.getcwd()}\t{child_arg_list_pretty}\n".encode()
+            )
         child = subprocess.Popen(
             child_arg_list, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
         )
