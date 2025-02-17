@@ -107,6 +107,8 @@ class OutputSink:
         if self.interactive_prefix is not None:
             self.out.write(self.interactive_prefix)
         self.out.write(line)
+        if self.interactive:
+            self.out.flush()
         if self.log_file is not None:
             if self.log_timestamps:
                 now = time.time()
