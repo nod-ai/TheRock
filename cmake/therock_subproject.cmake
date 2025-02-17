@@ -134,6 +134,10 @@ function(therock_subproject_fetch target_name)
     "${target_name}"
     EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
     PREFIX "${ARG_PREFIX}"
+    DOWNLOAD_NO_PROGRESS ON
+    LOG_DOWNLOAD ON
+    LOG_MERGED_STDOUTERR ON
+    LOG_OUTPUT_ON_FAILURE ON
     SOURCE_DIR "${ARG_SOURCE_DIR}"
     CONFIGURE_COMMAND ""
     INSTALL_COMMAND ""
