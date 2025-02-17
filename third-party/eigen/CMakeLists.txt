@@ -9,6 +9,7 @@ therock_cmake_subproject_declare(therock-eigen
   BACKGROUND_BUILD
   EXCLUDE_FROM_ALL
   NO_MERGE_COMPILE_COMMANDS
+  OUTPUT_ON_FAILURE
   EXTERNAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source"
 )
 therock_cmake_subproject_provide_package(therock-eigen Eigen3 share/eigen3/cmake)

@@ -44,6 +44,50 @@ set(THEROCK_AMD_LLVM_DEFAULT_CXX_FLAGS
   -Wno-unused-command-line-argument
 )
 
+# Generates a command prefix that can be prepended to any custom command line
+# to perform log/console redirection and pretty printing.
+# LOG_FILE: If given, command output will also be sent to this log file. If
+#   not absolute, it will be made absolute relative to logs/ in the project
+#   binary directory.
+# OUTPUT_ON_FAILURE: Boolean value to indicate whether output should go to the
+#   console only on failure.
+# LABEL: Label to prefix console output with.
+#
+# This uses the build_tools/teatime.py script for output management. See that
+# script for further details. One thing to note: if TEATIME_LABEL_GH_GROUP=1
+# in the environment, console output will be formatted with GitHub action
+# begin/end group markers vs log line prefixes. Generally, you want to set
+# this in CI jobs.
+function(therock_subproject_log_command out_var)
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARG
+    ""
+    "LOG_FILE;LABEL;OUTPUT_ON_FAILURE"
+    ""
+  )
+
+  set(command
+    "${Python3_EXECUTABLE}"
+    "${THEROCK_SOURCE_DIR}/build_tools/teatime.py"
+    "--log-timestamps"
+  )
+  if(ARG_LABEL)
+    list(APPEND command "--label" "${ARG_LABEL}")
+  endif()
+  if(ARG_OUTPUT_ON_FAILURE)
+    list(APPEND command "--no-interactive")
+  else()
+    list(APPEND command "--interactive")
+  endif()
+  if(ARG_LOG_FILE)
+    cmake_path(ABSOLUTE_PATH ARG_LOG_FILE BASE_DIRECTORY "${THEROCK_BINARY_DIR}/logs")
+    list(APPEND command "${ARG_LOG_FILE}")
+  endif()
+  list(APPEND command "--")
+
+  set("${out_var}" "${command}" PARENT_SCOPE)
+endfunction()
+
 # therock_subproject_fetch
 # Fetches arbitrary content. This mostly defers to ExternalProject_Add to get
 # content but it performs no actual building.
@@ -90,6 +134,10 @@ function(therock_subproject_fetch target_name)
     "${target_name}"
     EXCLUDE_FROM_ALL "${ARG_EXCLUDE_FROM_ALL}"
     PREFIX "${ARG_PREFIX}"
+    DOWNLOAD_NO_PROGRESS ON
+    LOG_DOWNLOAD ON
+    LOG_MERGED_STDOUTERR ON
+    LOG_OUTPUT_ON_FAILURE ON
     SOURCE_DIR "${ARG_SOURCE_DIR}"
     CONFIGURE_COMMAND ""
     INSTALL_COMMAND ""
@@ -143,10 +191,14 @@ endfunction()
 # CMAKE_LISTS_RELPATH: Relative path within the source directory to the
 # CMakeLists.txt.
 # EXTRA_DEPENDS: Extra target dependencies to add to the configure command.
+# OUTPUT_ON_FAILURE: If given, build commands will produce no output unless if
+# it fails (logs will still be written). While generally not good to squelch a
+# "chatty" build, some third party libraries are hopeless and provide little
+# signal.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
-    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD;NO_MERGE_COMPILE_COMMANDS"
+    "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD;NO_MERGE_COMPILE_COMMANDS;OUTPUT_ON_FAILURE"
     "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
@@ -256,6 +308,7 @@ function(therock_cmake_subproject_declare target_name)
     # Any extra depend files that must be added to the configure phase of dependents.
     THEROCK_INTERFACE_CONFIGURE_DEPEND_FILES "${_transitive_configure_depend_files}"
     THEROCK_EXTRA_DEPENDS "${ARG_EXTRA_DEPENDS}"
+    THEROCK_OUTPUT_ON_FAILURE "${ARG_OUTPUT_ON_FAILURE}"
   )
 
   if(ARG_ACTIVATE)
@@ -310,6 +363,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
   get_target_property(_sources "${target_name}" SOURCES)
   get_target_property(_stamp_dir "${target_name}" THEROCK_STAMP_DIR)
+  get_target_property(_output_on_failure "${target_name}" THEROCK_OUTPUT_ON_FAILURE)
 
   # Handle optional properties.
   if(NOT _sources)
@@ -383,7 +437,6 @@ function(therock_cmake_subproject_activate target_name)
     string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
     string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
   endforeach()
-  string(APPEND _init_contents "set(CMAKE_INSTALL_MESSAGE NEVER)\n")
   string(APPEND _init_contents "${_compiler_toolchain_init_contents}")
   if(_dep_provider_file)
     string(APPEND _init_contents "include(${_dep_provider_file})\n")
@@ -435,9 +488,16 @@ function(therock_cmake_subproject_activate target_name)
     cmake_path(APPEND _stage_destination_dir "${_install_destination}")
   endif()
   set(_compile_commands_file "${PROJECT_BINARY_DIR}/compile_commands_fragment_${target_name}.json")
+  therock_subproject_log_command(_configure_log_prefix
+    LOG_FILE "${target_name}_configure.log"
+    LABEL "${target_name} configure"
+    OUTPUT_ON_FAILURE "${_output_on_failure}"
+  )
   add_custom_command(
     OUTPUT "${_configure_stamp_file}"
-    COMMAND "${CMAKE_COMMAND}"
+    COMMAND
+      ${_configure_log_prefix}
+      "${CMAKE_COMMAND}"
       "-G${CMAKE_GENERATOR}"
       "-B${_binary_dir}"
       "-S${_cmake_source_dir}"
@@ -485,10 +545,18 @@ function(therock_cmake_subproject_activate target_name)
   endif()
 
   # build target.
+  therock_subproject_log_command(_build_log_prefix
+    LOG_FILE "${target_name}_build.log"
+    LABEL "${target_name}"
+    OUTPUT_ON_FAILURE "${_output_on_failure}"
+  )
   set(_build_stamp_file "${_stamp_dir}/build.stamp")
   add_custom_command(
     OUTPUT "${_build_stamp_file}"
-    COMMAND "${CMAKE_COMMAND}" -E env ${_build_env_pairs} -- "${CMAKE_COMMAND}" "--build" "${_binary_dir}"
+    COMMAND
+      ${_build_log_prefix}
+      "${CMAKE_COMMAND}" -E env ${_build_env_pairs} --
+      "${CMAKE_COMMAND}" "--build" "${_binary_dir}"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_build_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Building sub-project ${target_name}${_build_comment_suffix}"
@@ -506,10 +574,17 @@ function(therock_cmake_subproject_activate target_name)
   add_dependencies("${target_name}" "${target_name}+build")
 
   # stage install target.
+  therock_subproject_log_command(_install_log_prefix
+    LOG_FILE "${target_name}_install.log"
+    LABEL "${target_name} install"
+    # While useful for debugging, stage install logs are almost pure noise
+    # for interactive use.
+    OUTPUT_ON_FAILURE ON
+  )
   set(_stage_stamp_file "${_stamp_dir}/stage.stamp")
   add_custom_command(
     OUTPUT "${_stage_stamp_file}"
-    COMMAND "${CMAKE_COMMAND}" --install "${_binary_dir}"
+    COMMAND ${_install_log_prefix} "${CMAKE_COMMAND}" --install "${_binary_dir}"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stage_stamp_file}"
     WORKING_DIRECTORY "${_binary_dir}"
     COMMENT "Stage installing sub-project ${target_name}"
