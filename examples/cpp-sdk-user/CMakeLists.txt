@@ -6,12 +6,6 @@ endif()
 
 cmake_minimum_required(VERSION 3.25)
 
-# TODO: Set these in the invoker. And file an issue HIP side for better ergonomics
-# around language mode.
-set(CMAKE_HIP_PLATFORM amd)
-set(CMAKE_HIP_COMPILER "/home/stella/rock/TheRock/build/dist/rocm/lib/llvm/bin/clang++")
-set(CMAKE_HIP_COMPILER_ROCM_ROOT "/home/stella/rock/TheRock/build/dist/rocm")
-
 project(rocm-cpp-sdk-user LANGUAGES CXX HIP)
 enable_testing()
 
