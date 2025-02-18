@@ -15,5 +15,13 @@ add_test(
         "-DTHEROCK_ENABLE_RCCL=${THEROCK_ENABLE_RCCL}"
         "-DTHEROCK_ENABLE_SOLVER=${THEROCK_ENABLE_SOLVER}"
         "-DTHEROCK_ENABLE_SPARSE=${THEROCK_ENABLE_SPARSE}"
+
+        # TODO: HIP language support not based on an /opt/rocm installed SDK
+        # must have these three cache variables set to avoid language setup
+        # error. https://github.com/nod-ai/TheRock/issues/102
+        -DCMAKE_HIP_PLATFORM=amd
+        "-DCMAKE_HIP_COMPILER=${THEROCK_BINARY_DIR}/dist/rocm/lib/llvm/bin/clang++"
+        "-DCMAKE_HIP_COMPILER_ROCM_ROOT=${THEROCK_BINARY_DIR}/dist/rocm"
+
       -P "${CMAKE_CURRENT_SOURCE_DIR}/clean_configure_test_project.cmake"
 )

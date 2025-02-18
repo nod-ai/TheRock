@@ -3,21 +3,34 @@ if(EXISTS "${BINARY_DIR}")
   file(REMOVE_RECURSE "${BINARY_DIR}")
 endif()
 
+set(propagate_vars
+  THEROCK_ENABLE_BLAS
+  THEROCK_ENABLE_FFT
+  THEROCK_ENABLE_HIP
+  THEROCK_ENABLE_MIOPEN
+  THEROCK_ENABLE_PRIM
+  THEROCK_ENABLE_RAND
+  THEROCK_ENABLE_RCCL
+  THEROCK_ENABLE_SOLVER
+  THEROCK_ENABLE_SPARSE
+  CMAKE_HIP_PLATFORM
+  CMAKE_HIP_COMPILER
+  CMAKE_HIP_COMPILER_ROCM_ROOT
+)
+
+set(build_options)
+foreach(var_name ${propagate_vars})
+  if(DEFINED ${var_name})
+    list(APPEND build_options "-D${var_name}=${${var_name}}")
+  endif()
+endforeach()
+
 execute_process(
   COMMAND "${CMAKE_CTEST_COMMAND}" --build-and-test
     "${SOURCE_DIR}"
     "${BINARY_DIR}"
     --build-generator "${GENERATOR}"
-    --build-options
-      "-DTHEROCK_ENABLE_BLAS=${THEROCK_ENABLE_BLAS}"
-      "-DTHEROCK_ENABLE_FFT=${THEROCK_ENABLE_FFT}"
-      "-DTHEROCK_ENABLE_HIP=${THEROCK_ENABLE_HIP}"
-      "-DTHEROCK_ENABLE_MIOPEN=${THEROCK_ENABLE_MIOPEN}"
-      "-DTHEROCK_ENABLE_PRIM=${THEROCK_ENABLE_PRIM}"
-      "-DTHEROCK_ENABLE_RAND=${THEROCK_ENABLE_RAND}"
-      "-DTHEROCK_ENABLE_RCCL=${THEROCK_ENABLE_RCCL}"
-      "-DTHEROCK_ENABLE_SOLVER=${THEROCK_ENABLE_SOLVER}"
-      "-DTHEROCK_ENABLE_SPARSE=${THEROCK_ENABLE_SPARSE}"
+    --build-options ${build_options}
     --test-command "${CMAKE_CTEST_COMMAND}" --output-on-failure
   RESULT_VARIABLE CMD_RESULT
 )
