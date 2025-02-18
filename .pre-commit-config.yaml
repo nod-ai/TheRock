@@ -5,11 +5,11 @@ repos:
     rev: v3.2.0
     hooks:
     -   id: trailing-whitespace
-        exclude: ^patches/
+        exclude: patches/
     -   id: end-of-file-fixer
-        exclude: ^patches/
+        exclude: patches/
     -   id: check-yaml
-        exclude: ^patches/
+        exclude: patches/
     -   id: check-added-large-files
 -   repo: https://github.com/psf/black
     rev: 22.10.0
