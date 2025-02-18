@@ -1,7 +1,7 @@
-From c60987bfeb913591805627291ad68fad7a50d958 Mon Sep 17 00:00:00 2001
+From fd11902595a109d38cc4ae8bec263eaf1cb4c2d9 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Tue, 21 Jan 2025 21:18:45 -0800
-Subject: [PATCH 2/2] Pass USE_SOURCE_PERMISSIONS when installing scripts.
+Subject: [PATCH 2/3] Pass USE_SOURCE_PERMISSIONS when installing scripts.
 
 Without this, hipify-perl and friends are installed with non-executable permissions, requiring after the fact fixup.
 ---
@@ -9,7 +9,7 @@ Without this, hipify-perl and friends are installed with non-executable permissi
  1 file changed, 1 insertion(+)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index d2055a01..be5b2a95 100755
+index a7aa9769..dad79610 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -192,6 +192,7 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
@@ -21,5 +21,5 @@ index d2055a01..be5b2a95 100755
      PATTERN "*.sh"
      PATTERN "findcode.sh" EXCLUDE
 -- 
-2.43.0
+2.47.1.windows.2
 
