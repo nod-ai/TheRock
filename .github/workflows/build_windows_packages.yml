@@ -35,15 +35,17 @@ jobs:
       - name: Install ninja
         run: choco install ninja --yes
 
-      - name: Install Certs (ensure path is updated if already installed)
+      - name: Install Certs
         run: python -m pip install certifi
 
       - name: Fetch sources
         run: |
+          # Sets an env variable to ensure urllib3 uses the certifi CA bundle in fetch_sources.py.
           export SSL_CERT_FILE=$(python3 -m certifi)
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"          
           python ./build_tools/fetch_sources.py --depth 1
+
       # TODO(scotttodd): Get symlinks working on CI runners instead of this
       - name: Replace symlinks with copies
         run: ./build_tools/patch_symlinks_for_windows_ci.sh
