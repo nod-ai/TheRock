@@ -56,10 +56,12 @@ jobs:
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
-        with:
-          key: windows-build-packages-v1
-          create-symlink: true
+        run: choco install ccache --yes
+      # TODO: CCache via this action doesn't work. Maybe related to
+      # https://github.com/hendrikmuhs/ccache-action/issues/184
+      #   uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
+      #   with:
+      #     key: windows-build-packages-v1
 
       - name: Configure Projects
         run: |
