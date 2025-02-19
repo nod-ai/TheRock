@@ -16,7 +16,7 @@ on:
 jobs:
   build_windows_packages:
     name: Build Windows Packages
-    runs-on: windows-2022  # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
+    runs-on: azure-windows-scale-nod-ai
     defaults:
       run:
         shell: bash
