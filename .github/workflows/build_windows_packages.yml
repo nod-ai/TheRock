@@ -40,6 +40,26 @@ jobs:
           choco install ccache --yes
           choco install ninja --yes
 
+      - name: Report Runner Health
+        run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
+          df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
+          cmake --version
+          echo "python: $(which python), python3: $(which python3)"
+          echo "Git version: $(git --version)"
+
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
+      - name: Enable cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: windows-build-packages-v2-${{ github.sha }}
+          restore-keys: |
+            windows-build-packages-v2-
+
       - name: Fetch sources
         run: |
           git config --global user.email "nobody@amd.com"
@@ -51,16 +71,6 @@ jobs:
 
       - name: Configure MSVC
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
-
-      # TODO: We shouldn't be using a cache on actual release branches, but it
-      # really helps for iteration time.
-      - name: Enable cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{ env.CACHE_DIR }}
-          key: windows-build-packages-v2-${{ github.sha }}
-          restore-keys: |
-            windows-build-packages-v2-
 
       - name: Configure Projects
         run: |
