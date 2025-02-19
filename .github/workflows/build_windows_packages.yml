@@ -36,7 +36,7 @@ jobs:
         run: choco install ninja --yes
 
       - name: Install Certs (ensure done outside of shell before fetching sources)
-        run: python -m pip install certifi
+        run: python -m pip install -upgrade certifi
 
       - name: Fetch sources
         run: |
