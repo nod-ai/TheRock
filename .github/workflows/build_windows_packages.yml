@@ -17,12 +17,25 @@ jobs:
   build_windows_packages:
     name: Build Windows Packages
     runs-on: azure-windows-scale-nod-ai
+    env:
+      BASE_BUILD_DIR_POWERSHELL: "C:\mnt\azure\b"
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: true
     steps:
+      - name: "Create build dir"
+          run: |
+            $currentTime = (Get-Date).ToString('HHmmss')
+            $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
+            echo "BUILD_DIR_POWERSHELL=$buildDir" >> $env:GITHUB_ENV
+            mkdir "$buildDir"
+            Write-Host "Generated Build Directory: $buildDir"
+            $bashBuildDir = $buildDir -replace '\\', '/' -replace '^C:', '/c'
+            echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
+            Write-Host "Converted Build Directory For Bash: $bashBuildDir"
+
       - name: Enabling git symlinks
         run: git config --global core.symlinks true
 
@@ -70,7 +83,7 @@ jobs:
           echo "Building package ${package_version}"
 
           # Build.
-          cmake -B build -GNinja . \
+          cmake -B "${{ $bashBuildDir }}" -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
@@ -85,7 +98,11 @@ jobs:
             -DTHEROCK_ENABLE_PROFILER_SDK=OFF
 
       - name: Build Projects
-        run: cmake --build build
+        run: cmake --build "${{ $bashBuildDir }}" build
+
+      - name: "Clean up build dir"
+        if: always()
+        run: if (Test-Path -Path "$Env:BUILD_DIR_POWERSHELL") {Remove-Item -Path "$Env:BUILD_DIR_POWERSHELL" -Recurse -Force}
 
       - name: Report
         if: ${{ !cancelled() }}
