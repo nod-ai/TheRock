@@ -41,7 +41,9 @@ jobs:
         run: |
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
-          git config --global http.sslBackend schannel
+          # https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-git
+          git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
+          #git config --global http.sslBackend schannel
           python ./build_tools/fetch_sources.py --depth 1
       # TODO(scotttodd): Get symlinks working on CI runners instead of this
       - name: Replace symlinks with copies
