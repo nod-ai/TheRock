@@ -41,6 +41,7 @@ jobs:
         run: |
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
+          git config --global http.sslBackend schannel
           python ./build_tools/fetch_sources.py --depth 1
       # TODO(scotttodd): Get symlinks working on CI runners instead of this
       - name: Replace symlinks with copies
