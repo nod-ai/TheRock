@@ -26,15 +26,15 @@ jobs:
       fail-fast: true
     steps:
       - name: "Create build dir"
-          run: |
-            $currentTime = (Get-Date).ToString('HHmmss')
-            $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
-            echo "BUILD_DIR_POWERSHELL=$buildDir" >> $env:GITHUB_ENV
-            mkdir "$buildDir"
-            Write-Host "Generated Build Directory: $buildDir"
-            $bashBuildDir = $buildDir -replace '\\', '/' -replace '^C:', '/c'
-            echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
-            Write-Host "Converted Build Directory For Bash: $bashBuildDir"
+        run: |
+          $currentTime = (Get-Date).ToString('HHmmss')
+          $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
+          echo "BUILD_DIR_POWERSHELL=$buildDir" >> $env:GITHUB_ENV
+          mkdir "$buildDir"
+          Write-Host "Generated Build Directory: $buildDir"
+          $bashBuildDir = $buildDir -replace '\\', '/' -replace '^C:', '/c'
+          echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
+          Write-Host "Converted Build Directory For Bash: $bashBuildDir"
 
       - name: Enabling git symlinks
         run: git config --global core.symlinks true
