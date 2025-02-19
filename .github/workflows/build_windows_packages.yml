@@ -40,7 +40,7 @@ jobs:
 
       - name: Fetch sources
         run: |
-          # Sets an env variable to ensure urllib3 uses the certifi CA bundle in fetch_sources.py.
+          # Sets an env variable to ensure urllib uses the certifi CA bundle in fetch_sources.py.
           export SSL_CERT_FILE=$(python3 -m certifi)
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"          
