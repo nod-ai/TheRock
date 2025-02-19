@@ -35,16 +35,12 @@ jobs:
       - name: Install ninja
         run: choco install ninja --yes
 
-        # Is this still necessary?
-      - name: Install certificates
-        run: python -m pip install pip-system-certs certifi python-certifi-win32
-
       - name: Fetch sources
         run: |
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
           # Do this within bash.
-          pip install --upgrade certifi
+          python -m pip install pip-system-certs certifi python-certifi-win32
           # Use right credential store https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-git
           #git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
           # Use windows storage backend.
