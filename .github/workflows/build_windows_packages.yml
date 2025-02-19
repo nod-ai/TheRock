@@ -26,6 +26,7 @@ jobs:
       fail-fast: true
     steps:
       - name: "Create build dir"
+        shell: powershell
         run: |
           $currentTime = (Get-Date).ToString('HHmmss')
           $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
