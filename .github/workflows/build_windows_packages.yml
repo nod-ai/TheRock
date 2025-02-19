@@ -16,12 +16,16 @@ on:
 jobs:
   build_windows_packages:
     name: Build Windows Packages
-    runs-on: windows-2022  # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
+    runs-on: windows-2022 # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: true
+    env:
+      CACHE_DIR: ${{ github.workspace }}/.cache
+      CCACHE_DIR: "${{ github.workspace }}/.cache/ccache"
+      CCACHE_MAXSIZE: "700M"
     steps:
       - name: Enabling git symlinks
         run: git config --global core.symlinks true
@@ -31,8 +35,30 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install ninja
-        run: choco install ninja --yes
+      - name: Install requirements
+        run: |
+          choco install ccache --yes
+          choco install ninja --yes
+
+      - name: Report Runner Health
+        run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
+          df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
+          cmake --version
+          echo "python: $(which python), python3: $(which python3)"
+          echo "Git version: $(git --version)"
+
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
+      - name: Enable cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: windows-build-packages-v2-${{ github.sha }}
+          restore-keys: |
+            windows-build-packages-v2-
 
       - name: Fetch sources
         run: |
@@ -45,13 +71,6 @@ jobs:
 
       - name: Configure MSVC
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
-
-      # TODO: We shouldn't be using a cache on actual release branches, but it
-      # really helps for iteration time.
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
-        with:
-          key: windows-build-packages-v1
 
       - name: Configure Projects
         run: |
@@ -80,4 +99,16 @@ jobs:
       - name: Report
         if: ${{ !cancelled() }}
         run: |
+          echo "Build dir:"
+          echo "------------"
           ls -lh build
+          echo "CCache Stats:"
+          echo "-------------"
+          ccache -s
+
+      - name: Save cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: windows-build-packages-v2-${{ github.sha }}
