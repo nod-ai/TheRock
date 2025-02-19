@@ -120,7 +120,18 @@ cmake -B build -GNinja . \
 # If iterating and wishing to cache, add these:
 #  -DCMAKE_C_COMPILER_LAUNCHER=ccache \
 #  -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+#  -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded \
 ```
+
+> [!TIP]
+> ccache [does not support](https://github.com/ccache/ccache/issues/1040)
+> MSVC's `/Zi` flag which may be set by default when a project (e.g. LLVM) opts
+> in to
+> [policy CMP0141](https://cmake.org/cmake/help/latest/policy/CMP0141.html).
+> Setting
+> [`-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded`](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_DEBUG_INFORMATION_FORMAT.html)
+> instructs CMake to compile with `/Z7` or equivalent, which is supported by
+> ccache.
 
 Ensure that MSVC is used by looking for lines like these in the logs:
 
