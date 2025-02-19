@@ -70,7 +70,7 @@ jobs:
       # really helps for iteration time.
       - name: Setup ccache
         run: choco install ccache --yes
-      # TODO: CCache via this action doesn't work. Maybe related to
+      # TODO(amd-chrissosa): CCache via this action doesn't work. Maybe related to
       # https://github.com/hendrikmuhs/ccache-action/issues/184
       #   uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
       #   with:
@@ -83,7 +83,7 @@ jobs:
           echo "Building package ${package_version}"
 
           # Build.
-          cmake -B "${{ $bashBuildDir }}" -GNinja . \
+          cmake -B "${{ env.BUILD_DIR_BASH }}" -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
@@ -98,7 +98,7 @@ jobs:
             -DTHEROCK_ENABLE_PROFILER_SDK=OFF
 
       - name: Build Projects
-        run: cmake --build "${{ $bashBuildDir }}" build
+        run: cmake --build "${{ env.BUILD_DIR_BASH }}" build
 
       - name: "Clean up build dir"
         if: always()
