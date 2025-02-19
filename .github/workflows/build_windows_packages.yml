@@ -99,7 +99,7 @@ jobs:
             -DTHEROCK_ENABLE_PROFILER_SDK=OFF
 
       - name: Build Projects
-        run: cmake --build "${{ env.BUILD_DIR_BASH }}" build
+        run: cmake --build "${{ env.BUILD_DIR_BASH }}"
 
       - name: "Clean up build dir"
         if: always()
