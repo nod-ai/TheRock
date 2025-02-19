@@ -4,6 +4,8 @@
 # fully configured. This should usually *NOT* be run on development machines
 # since it makes destructive changes.
 
+set -xeuo pipefail
+
 this_dir="$(cd $(dirname $0) && pwd)"
 root_dir="$(cd $this_dir/.. && pwd)"
 
