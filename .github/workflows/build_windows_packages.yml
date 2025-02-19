@@ -18,7 +18,7 @@ jobs:
     name: Build Windows Packages
     runs-on: azure-windows-scale-nod-ai
     env:
-      BASE_BUILD_DIR_POWERSHELL: "C:\mnt\azure\b"
+      BASE_BUILD_DIR_POWERSHELL: C:\mnt\azure\b
     defaults:
       run:
         shell: bash
