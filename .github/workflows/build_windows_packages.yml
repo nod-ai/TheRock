@@ -100,7 +100,9 @@ jobs:
 
           # Build.
           cmake -B "${{ env.BUILD_DIR_BASH }}" -GNinja . \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
             -DTHEROCK_ENABLE_COMPILER=ON \
@@ -108,10 +110,16 @@ jobs:
             -DTHEROCK_ENABLE_CORE=OFF \
             -DTHEROCK_ENABLE_CORE_RUNTIME=OFF \
             -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \
+            -DTHEROCK_ENABLE_PROFILER_SDK=OFF \
             -DTHEROCK_ENABLE_COMM_LIBS=OFF \
             -DTHEROCK_ENABLE_MATH_LIBS=OFF \
-            -DTHEROCK_ENABLE_ML_LIBS=OFF \
-            -DTHEROCK_ENABLE_PROFILER_SDK=OFF
+            -DTHEROCK_ENABLE_RAND=OFF \
+            -DTHEROCK_ENABLE_PRIM=OFF \
+            -DTHEROCK_ENABLE_FFT=OFF \
+            -DTHEROCK_ENABLE_BLAS=OFF \
+            -DTHEROCK_ENABLE_SPARSE=OFF \
+            -DTHEROCK_ENABLE_SOLVER=OFF \
+            -DTHEROCK_ENABLE_ML_LIBS=OFF
 
       - name: Build Projects
         run: cmake --build "${{ env.BUILD_DIR_BASH }}"
