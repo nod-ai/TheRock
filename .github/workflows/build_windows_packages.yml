@@ -16,42 +16,81 @@ on:
 jobs:
   build_windows_packages:
     name: Build Windows Packages
-    runs-on: windows-2022  # TODO(#36): move to cluster of CPU builders like `azure-windows-scale-nod-ai`
+    runs-on: azure-windows-scale-nod-ai
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: true
+    env:
+      BASE_BUILD_DIR_POWERSHELL: C:\mnt\azure\b
+      CACHE_DIR: ${{ github.workspace }}/.cache
+      CCACHE_DIR: "${{ github.workspace }}/.cache/ccache"
+      CCACHE_MAXSIZE: "700M"
     steps:
+      - name: "Create build dir"
+        shell: powershell
+        run: |
+          $currentTime = (Get-Date).ToString('HHmmss')
+          $buildDir = "$env:BASE_BUILD_DIR_POWERSHELL\$currentTime"
+          echo "BUILD_DIR_POWERSHELL=$buildDir" >> $env:GITHUB_ENV
+          mkdir "$buildDir"
+          Write-Host "Generated Build Directory: $buildDir"
+          $bashBuildDir = $buildDir -replace '\\', '/' -replace '^C:', '/c'
+          echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
+          Write-Host "Converted Build Directory For Bash: $bashBuildDir"
+
       - name: Enabling git symlinks
         run: git config --global core.symlinks true
+
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
       - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: "3.12"
 
-      - name: Install ninja
-        run: choco install ninja --yes
+      - name: Install requirements
+        run: |
+          choco install ccache --yes
+          choco install ninja --yes
+
+      - name: Report Runner Health
+        run: |
+          echo "CCACHE_DIR=${CCACHE_DIR}"
+          df -h
+          ccache -z
+          mkdir -p $CCACHE_DIR
+          cmake --version
+          echo "python: $(which python), python3: $(which python3)"
+          echo "Git version: $(git --version)"
+
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
+      - name: Enable cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: windows-build-packages-v2-${{ github.sha }}
+          restore-keys: |
+            windows-build-packages-v2-
+
+      - name: Install Certs
+        run: python -m pip install certifi
 
       - name: Fetch sources
         run: |
+          # Sets an env variable to ensure urllib uses the certifi CA bundle in fetch_sources.py.
+          export SSL_CERT_FILE=$(python3 -m certifi)
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
           python ./build_tools/fetch_sources.py --depth 1
+
       # TODO(scotttodd): Get symlinks working on CI runners instead of this
       - name: Replace symlinks with copies
         run: ./build_tools/patch_symlinks_for_windows_ci.sh
 
       - name: Configure MSVC
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
-
-      # TODO: We shouldn't be using a cache on actual release branches, but it
-      # really helps for iteration time.
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
-        with:
-          key: windows-build-packages-v1
 
       - name: Configure Projects
         run: |
@@ -60,24 +99,41 @@ jobs:
           echo "Building package ${package_version}"
 
           # Build.
-          cmake -B build -GNinja . \
+          cmake -B "${{ env.BUILD_DIR_BASH }}" -GNinja . \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
             -DTHEROCK_ENABLE_COMPILER=ON \
+            -DTHEROCK_ENABLE_HIPIFY=ON \
             -DTHEROCK_ENABLE_CORE=OFF \
             -DTHEROCK_ENABLE_CORE_RUNTIME=OFF \
+            -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \
             -DTHEROCK_ENABLE_COMM_LIBS=OFF \
             -DTHEROCK_ENABLE_MATH_LIBS=OFF \
             -DTHEROCK_ENABLE_ML_LIBS=OFF \
-            -DTHEROCK_ENABLE_HIPIFY=ON \
-            -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \
             -DTHEROCK_ENABLE_PROFILER_SDK=OFF
 
       - name: Build Projects
-        run: cmake --build build
+        run: cmake --build "${{ env.BUILD_DIR_BASH }}"
 
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          ls -lh build
+          echo "Build dir:"
+          echo "------------"
+          ls -lh "${{ env.BUILD_DIR_BASH }}"
+          echo "CCache Stats:"
+          echo "-------------"
+          ccache -s
+
+      - name: Save cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: windows-build-packages-v2-${{ github.sha }}
+
+      - name: "Clean up build dir"
+        if: always()
+        run: if (Test-Path -Path "$Env:BUILD_DIR_POWERSHELL") {Remove-Item -Path "$Env:BUILD_DIR_POWERSHELL" -Recurse -Force}
+        shell: powershell

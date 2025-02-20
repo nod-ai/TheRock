@@ -153,48 +153,51 @@ endfunction()
 #
 # Arguments:
 # NAME: Globally unique subproject name. This will become the stem of various
-# targets and therefore must be unique (even for nested projects) and a valid
-# target identifier.
+#   targets and therefore must be unique (even for nested projects) and a valid
+#   target identifier.
 # ACTIVATE: Option to signify that this call should end by calling
-# therock_cmake_subproject_activate. Do not specify this option if wishing to
-# further configure the sub-project.
+#   therock_cmake_subproject_activate. Do not specify this option if wishing to
+#   further configure the sub-project.
 # NO_MERGE_COMPILE_COMMANDS: Option to disable merging of this project's
-# compile_commands.json into the overall project. This is useful for third-party
-# projects that are excluded from all as it eliminates a dependency that forces
-# them to be downloaded/built.
+#   compile_commands.json into the overall project. This is useful for
+#   third-party projects that are excluded from all as it eliminates a
+#   dependency that forces them to be downloaded/built.
 # SOURCE_DIR: Absolute path to the external source directory.
 # DIR_PREFIX: By default, directories named "build", "stage", "stamp" are
-# created. But if there are multiple sub-projects in a parent dir, then they
-# all must have a distinct prefix (not recommended).
+#   created. But if there are multiple sub-projects in a parent dir, then they
+#   all must have a distinct prefix (not recommended).
 # INSTALL_DESTINATION: Sub-directory within the stage/dist directory where this
-# sub-project installs. Defaults to empty, meaning that it installs at the top
-# of the namespace.
+#   sub-project installs. Defaults to empty, meaning that it installs at the top
+#   of the namespace.
 # CMAKE_ARGS: Additional CMake configure arguments.
 # BUILD_DEPS: Projects which must build and provide their packages prior to this
-# one.
+#   one.
 # RUNTIME_DEPS: Projects which must build prior to this one and whose install
-# files must be distributed with this project's artifacts in order to function.
+#   files must be distributed with this project's artifacts in order to
+#   function.
 # INTERFACE_LINK_DIRS: Relative paths within the install tree which dependent
-# sub-projects must add to their runtime link library path.
+#   sub-projects must add to their runtime link library path.
 # INTERFACE_PROGRAM_DIRS: Relative paths within the install tree which
-# dependent sub-projects must add to their program search path.
+#   dependent sub-projects must add to their program search path.
 # IGNORE_PACKAGES: List of find_package package names to ignore, even if they
-# are advertised by the super-project. These packages will always fall-through
-# to the system resolver.
+#   are advertised by the super-project. These packages will always fall-through
+#   to the system resolver.
 # COMPILER_TOOLCHAIN: Uses a built compiler toolchain instead of the
-# super-project specified C/C++ compiler. This will add an implicit dep on
-# the named compiler sub-project and reconfigure CMAKE_C(XX)_COMPILER options.
-# Only a fixed set of supported toolchains are supported (currently "amd-llvm").
+#   super-project specified C/C++ compiler. This will add an implicit dep on
+#   the named compiler sub-project and reconfigure CMAKE_C(XX)_COMPILER options.
+#   Only a fixed set of supported toolchains are supported (currently
+#   "amd-llvm").
 # BACKGROUND_BUILD: Option to indicate that the subproject does low concurrency,
-# high latency build steps. It will be run in the backgroun in a job pool that
-# allows some overlapping of work (controlled by THEROCK_BACKGROUND_BUILD_JOBS).
+#   high latency build steps. It will be run in the backgroun in a job pool that
+#   allows some overlapping of work (controlled by
+#   THEROCK_BACKGROUND_BUILD_JOBS).
 # CMAKE_LISTS_RELPATH: Relative path within the source directory to the
-# CMakeLists.txt.
+#   CMakeLists.txt.
 # EXTRA_DEPENDS: Extra target dependencies to add to the configure command.
 # OUTPUT_ON_FAILURE: If given, build commands will produce no output unless if
-# it fails (logs will still be written). While generally not good to squelch a
-# "chatty" build, some third party libraries are hopeless and provide little
-# signal.
+#   it fails (logs will still be written). While generally not good to squelch a
+#   "chatty" build, some third party libraries are hopeless and provide little
+#   signal.
 function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
@@ -857,6 +860,7 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
   string(APPEND _toolchain_contents "set(CMAKE_LINKER \"@CMAKE_LINKER@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER_LAUNCHER \"@CMAKE_C_COMPILER_LAUNCHER@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER_LAUNCHER \"@CMAKE_CXX_COMPILER_LAUNCHER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT \"@CMAKE_MSVC_DEBUG_INFORMATION_FORMAT@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_C_FLAGS_INIT @CMAKE_C_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_CXX_FLAGS_INIT @CMAKE_CXX_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_EXE_LINKER_FLAGS_INIT @CMAKE_EXE_LINKER_FLAGS@)\n")

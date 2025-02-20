@@ -10,8 +10,7 @@ This incorporates advice from:
 - `.ci/manywheel/build_rocm.sh` and friends
 
 Note that the above statement is currently aspirational as we contain some
-overlay files and/or patches locally until they can be upstreamed. See the
-`overlay` directory.
+patches locally until they can be upstreamed. See the `patches` directory.
 
 ## Step 0: Prep venv
 
@@ -25,13 +24,10 @@ source .venv/bin/activate
 
 ## Step 1: Preparing sources
 
-PyTorch on ROCM relies on pre-processing the sources. In order to avoid dirtying
-the git repository (which will also dirty some submodules and makes a big mess),
-we duplicate the tree and then make modifications on that:
-
 ```
-# Checks out to the src/ dir in this directory
-./ptbuild import --git-dir /path/to/pytorch/checkout
+# Checks out the most recent stable release branch of PyTorch, hipifies and
+# applies patches.
+./ptbuild checkout
 ```
 
 ## Step 2: Install Deps
@@ -47,5 +43,5 @@ pip install mkl-static mkl-include
 
 ```
 export CMAKE_PREFIX_PATH="$(realpath ../../build/dist/rocm)"
-(cd src && python setup.py build --cmake-only)
+(cd src && USE_KINETO=OFF python setup.py develop)
 ```

@@ -6,6 +6,53 @@ TheRock aims to support as many subprojects as possible on "native" Windows
 > [!WARNING]
 > This is still under development. Not all subprojects build for Windows yet.
 
+## Supported subprojects
+
+This table tracks current support status for each subproject in TheRock on
+Windows. Some subprojects do not support Windows at all, while others may need
+extra patches to build within TheRock (on mainline, in open source, using MSVC,
+etc.).
+
+Component subset | Subproject | Supported | Notes
+---------------- | ---------- | --------- | -----
+base | aux-overlay | ✅ |
+base | [rocm-cmake](https://github.com/ROCm/rocm-cmake) | ✅ |
+base | [rocm-core](https://github.com/ROCm/rocm-core) | ✅ | No shared libraries
+base | [rocm_smi_lib](https://github.com/ROCm/rocm_smi_lib) | ❌ | Unsupported
+base | [rocprofiler-register](https://github.com/ROCm/rocprofiler-register) | ⭕ | Patched to no-op
+base | [rocm-half](https://github.com/ROCm/half) | ✅ |
+| | | | |
+compiler | [amd-llvm](https://github.com/ROCm/llvm-project) | ✅ | No shared libraries, limited runtimes
+compiler | [amd-comgr](https://github.com/ROCm/llvm-project/tree/amd-staging/amd/comgr) | ✅ | No shared libraries
+compiler | [hipcc](https://github.com/ROCm/llvm-project/tree/amd-staging/amd/hipcc) | ✅ |
+compiler | [hipify](https://github.com/ROCm/HIPIFY) | ✅ | Patched for Ninja
+| | | | |
+core | [ROCR-Runtime](https://github.com/ROCm/ROCR-Runtime) | ❌ | Unsupported
+core | [rocminfo](https://github.com/ROCm/rocminfo) | ❌ | Unsupported
+core | [clr](https://github.com/ROCm/clr) | ❔ |
+| | | | |
+profiler | [rocprofiler-sdk](https://github.com/ROCm/rocprofiler-sdk) | ❔
+| | | | |
+comm-libs | [rccl](https://github.com/ROCm/rccl) | ❔ |
+| | | | |
+math-libs | [rocRAND](https://github.com/ROCm/rocRAND) | ❔ |
+math-libs | [hipRAND](https://github.com/ROCm/hipRAND) | ❔ |
+math-libs | [rocPRIM](https://github.com/ROCm/rocPRIM) | ❔ |
+math-libs | [hipCUB](https://github.com/ROCm/hipCUB) | ❔ |
+math-libs | [rocThrust](https://github.com/ROCm/rocThrust) | ❔ |
+math-libs | [rocFFT](https://github.com/ROCm/rocFFT) | ❔ |
+math-libs | [hipFFT](https://github.com/ROCm/hipFFT) | ❔ |
+math-libs (blas) | [hipBLAS-common](https://github.com/ROCm/hipBLAS-common) | ❔ |
+math-libs (blas) | [hipBLASlt](https://github.com/ROCm/hipBLASlt) | ❔ |
+math-libs (blas) | [rocBLAS](https://github.com/ROCm/rocBLAS) | ❔ |
+math-libs (blas) | [rocSPARSE](https://github.com/ROCm/rocSPARSE) | ❔ |
+math-libs (blas) | [hipSPARSE](https://github.com/ROCm/hipSPARSE) | ❔ |
+math-libs (blas) | [rocSOLVER](https://github.com/ROCm/rocSOLVER) | ❔ |
+math-libs (blas) | [hipSOLVER](https://github.com/ROCm/hipSOLVER) | ❔ |
+math-libs (blas) | [hipBLAS](https://github.com/ROCm/hipBLAS) | ❔ |
+| | | | |
+ml-libs | [MIOpen](https://github.com/ROCm/MIOpen) | ❔ |
+
 ## Building from source
 
 These instructions mostly mirror the instructions in the root
@@ -112,15 +159,31 @@ Some components do not build for Windows yet, so disable them:
 ```bash
 cmake -B build -GNinja . \
   -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
+  -DTHEROCK_ENABLE_COMPILER=ON \
+  -DTHEROCK_ENABLE_HIPIFY=ON \
   -DTHEROCK_ENABLE_CORE=OFF \
+  -DTHEROCK_ENABLE_CORE_RUNTIME=OFF \
+  -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \
   -DTHEROCK_ENABLE_COMM_LIBS=OFF \
   -DTHEROCK_ENABLE_MATH_LIBS=OFF \
-  -DTHEROCK_ENABLE_ML_LIBS=OFF
+  -DTHEROCK_ENABLE_ML_LIBS=OFF \
+  -DTHEROCK_ENABLE_PROFILER_SDK=OFF
 
 # If iterating and wishing to cache, add these:
 #  -DCMAKE_C_COMPILER_LAUNCHER=ccache \
 #  -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+#  -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded \
 ```
+
+> [!TIP]
+> ccache [does not support](https://github.com/ccache/ccache/issues/1040)
+> MSVC's `/Zi` flag which may be set by default when a project (e.g. LLVM) opts
+> in to
+> [policy CMP0141](https://cmake.org/cmake/help/latest/policy/CMP0141.html).
+> Setting
+> [`-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded`](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_DEBUG_INFORMATION_FORMAT.html)
+> instructs CMake to compile with `/Z7` or equivalent, which is supported by
+> ccache.
 
 Ensure that MSVC is used by looking for lines like these in the logs:
 
@@ -135,4 +198,5 @@ Ensure that MSVC is used by looking for lines like these in the logs:
 cmake --build build
 ```
 
-At the moment this should build some projects in [`base/`](../../base/).
+At the moment this should build some projects in [`base/`](../../base/) as well
+as [`compiler/`](../../compiler/).
