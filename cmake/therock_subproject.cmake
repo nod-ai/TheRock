@@ -860,6 +860,7 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
   string(APPEND _toolchain_contents "set(CMAKE_LINKER \"@CMAKE_LINKER@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_C_COMPILER_LAUNCHER \"@CMAKE_C_COMPILER_LAUNCHER@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER_LAUNCHER \"@CMAKE_CXX_COMPILER_LAUNCHER@\")\n")
+  string(APPEND _toolchain_contents "set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT \"@CMAKE_MSVC_DEBUG_INFORMATION_FORMAT@\")\n")
   string(APPEND _toolchain_contents "set(CMAKE_C_FLAGS_INIT @CMAKE_C_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_CXX_FLAGS_INIT @CMAKE_CXX_FLAGS@)\n")
   string(APPEND _toolchain_contents "set(CMAKE_EXE_LINKER_FLAGS_INIT @CMAKE_EXE_LINKER_FLAGS@)\n")
