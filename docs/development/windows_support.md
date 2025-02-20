@@ -25,7 +25,7 @@ base | [rocm-half](https://github.com/ROCm/half) | ✅ |
 compiler | [amd-llvm](https://github.com/ROCm/llvm-project) | ✅ | No shared libraries, limited runtimes
 compiler | [amd-comgr](https://github.com/ROCm/llvm-project/tree/amd-staging/amd/comgr) | ✅ | No shared libraries
 compiler | [hipcc](https://github.com/ROCm/llvm-project/tree/amd-staging/amd/hipcc) | ✅ |
-compiler | [hipify](https://github.com/ROCm/HIPIFY) | ❔ | Possible to support? Uses clang++ instead of MSVC?
+compiler | [hipify](https://github.com/ROCm/HIPIFY) | ✅ | Patched for Ninja
 | | | | |
 core | [ROCR-Runtime](https://github.com/ROCm/ROCR-Runtime) | ❌ | Unsupported
 core | [rocminfo](https://github.com/ROCm/rocminfo) | ❌ | Unsupported
@@ -160,7 +160,7 @@ Some components do not build for Windows yet, so disable them:
 cmake -B build -GNinja . \
   -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
   -DTHEROCK_ENABLE_COMPILER=ON \
-  -DTHEROCK_ENABLE_HIPIFY=OFF \
+  -DTHEROCK_ENABLE_HIPIFY=ON \
   -DTHEROCK_ENABLE_CORE=OFF \
   -DTHEROCK_ENABLE_CORE_RUNTIME=OFF \
   -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \

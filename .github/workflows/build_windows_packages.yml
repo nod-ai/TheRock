@@ -104,7 +104,7 @@ jobs:
             -DTHEROCK_AMDGPU_FAMILIES=gfx110X-dgpu \
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
             -DTHEROCK_ENABLE_COMPILER=ON \
-            -DTHEROCK_ENABLE_HIPIFY=OFF \
+            -DTHEROCK_ENABLE_HIPIFY=ON \
             -DTHEROCK_ENABLE_CORE=OFF \
             -DTHEROCK_ENABLE_CORE_RUNTIME=OFF \
             -DTHEROCK_ENABLE_HIP_RUNTIME=OFF \
