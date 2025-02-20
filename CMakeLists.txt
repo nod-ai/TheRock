@@ -214,20 +214,14 @@ endif()
 # don't be fooled).
 add_subdirectory(third-party)
 add_subdirectory(base)
-
-if(NOT WIN32)
-  add_subdirectory(compiler)
-  add_subdirectory(core)
-  # Note that rocprofiler-register is in base and is what higher level clients
-  # depend on. The profiler itself is independent.
-  add_subdirectory(profiler)
-  add_subdirectory(comm-libs)
-  add_subdirectory(math-libs)
-  add_subdirectory(ml-libs)
-else()
-  # TODO(#36): Enable more project builds on Windows and/or make the full list configurable.
-  add_subdirectory(compiler)
-endif()
+add_subdirectory(compiler)
+add_subdirectory(core)
+# Note that rocprofiler-register is in base and is what higher level clients
+# depend on. The profiler itself is independent.
+add_subdirectory(profiler)
+add_subdirectory(comm-libs)
+add_subdirectory(math-libs)
+add_subdirectory(ml-libs)
 
 add_subdirectory(examples)
 
