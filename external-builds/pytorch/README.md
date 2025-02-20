@@ -25,13 +25,10 @@ source .venv/bin/activate
 
 ## Step 1: Preparing sources
 
-PyTorch on ROCM relies on pre-processing the sources. In order to avoid dirtying
-the git repository (which will also dirty some submodules and makes a big mess),
-we duplicate the tree and then make modifications on that:
-
 ```
-# Checks out to the src/ dir in this directory
-./ptbuild import --git-dir /path/to/pytorch/checkout
+# Checks out the most recent stable release branch of PyTorch, hipifies and
+# applies patches.
+./ptbuild checkout
 ```
 
 ## Step 2: Install Deps
