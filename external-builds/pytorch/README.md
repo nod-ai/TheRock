@@ -10,8 +10,7 @@ This incorporates advice from:
 - `.ci/manywheel/build_rocm.sh` and friends
 
 Note that the above statement is currently aspirational as we contain some
-overlay files and/or patches locally until they can be upstreamed. See the
-`overlay` directory.
+patches locally until they can be upstreamed. See the `patches` directory.
 
 ## Step 0: Prep venv
 
