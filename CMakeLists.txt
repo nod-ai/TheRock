@@ -39,6 +39,8 @@ message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
 set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
 
+option(THEROCK_BUNDLE_SYSDEPS "Builds bundled system deps for portable builds into lib/rocm_sysdeps" OFF)
+
 # Overall build settings.
 option(THEROCK_VERBOSE "Enables verbose CMake statuses" OFF)
 
@@ -205,6 +207,20 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+if(THEROCK_BUNDLE_SYSDEPS)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_program(PATCHELF patchelf)
+    if(NOT PATCHELF)
+      message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires `patchelf`")
+    endif()
+    find_program(MESON_BUILD meson)
+    if(NOT MESON_BUILD)
+      message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires (easiest: `pip install meson`)")
+    endif()
+  else()
+    message(FATAL_ERROR "Bundled system deps not supported on this platform (THEROCK_BUNDLE_SYSDEPS=ON)")
+  endif()
+endif()
 
 ################################################################################
 # External project setup
