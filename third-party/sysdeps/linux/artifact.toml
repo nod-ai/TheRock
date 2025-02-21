@@ -1,0 +1,7 @@
+# libdrm
+[components.dev."third-party/sysdeps/linux/libdrm/build/stage"]
+[components.doc."third-party/sysdeps/linux/libdrm/build/stage"]
+include = [
+  "**/share/**",
+]
+[components.lib."third-party/sysdeps/linux/libdrm/build/stage"]
