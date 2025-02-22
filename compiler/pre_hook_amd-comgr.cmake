@@ -8,4 +8,4 @@ endif()
 # https://github.com/nod-ai/TheRock/issues/67
 set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
 
-set(CMAKE_INSTALL_RPATH "$ORIGIN/llvm/lib;$ORIGIN/rocm_sysdeps/lib")
+set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/llvm/lib;$ORIGIN/rocm_sysdeps/lib")

@@ -82,6 +82,12 @@ if(THEROCK_ENABLE_COMPILER)
   therock_cmake_subproject_provide_package(amd-comgr amd_comgr lib/cmake/amd_comgr)
   therock_cmake_subproject_activate(amd-comgr)
 
+  therock_test_validate_shared_lib(
+    PATH amd-comgr/dist/lib
+    LIB_NAMES
+      libamd_comgr.so
+  )
+
   ##############################################################################
   # hipcc
   # Provides hipcc and hipconfig
