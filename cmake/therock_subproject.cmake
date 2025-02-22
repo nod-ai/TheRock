@@ -480,12 +480,15 @@ function(therock_cmake_subproject_activate target_name)
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
 
   # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
-  # on the stage.stamp or dist.stamp file). These are a dependency for configure. Build
-  # deps are satisfied out of the stage directory as they do not have a runtime
-  # component. Runtime deps are satisfied out of the dist directory as they may have
-  # transitive runtime deps at build time.
+  # on the dist.stamp file). These are a dependency for configure. We satisfy both
+  # build and runtime deps from the dist phase because even build-only deps may
+  # need to execute tools linked such that they require all transitive libraries
+  # materialized. We might be able to save some milliseconds by steering
+  # build-only deps to the stage.stamp file, but the complexity involved is not
+  # worth it, especially considering that it increases the likelihood of build
+  # non-determinism.
   set(_configure_dep_stamps)
-  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps})
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_build_deps})
   _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_runtime_deps})
 
   # Target flags.

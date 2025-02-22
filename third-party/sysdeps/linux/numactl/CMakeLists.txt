@@ -29,6 +29,7 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
+    therock_cmake_subproject_provide_package(therock-numactl NUMA lib/rocm_sysdeps/lib/cmake/NUMA)
     therock_cmake_subproject_activate(therock-numactl)
 
     therock_test_validate_shared_lib(
@@ -79,3 +80,11 @@ add_custom_target(
       "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
 )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/numa-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/numa-config.cmake
+  @ONLY
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/numa-config.cmake" DESTINATION lib/cmake/NUMA)
