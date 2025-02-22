@@ -55,8 +55,10 @@ add_custom_target(
   build ALL
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMAND
+    "${CMAKE_COMMAND}" -E rm -rf -- "${CMAKE_INSTALL_PREFIX}"
+  COMMAND
     "${CMAKE_COMMAND}" -E env
-      "LDFLAGS=-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/version.lds"
+      "LDFLAGS=-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/version.lds" --
     "${SOURCE_DIR}/configure" --prefix "${CMAKE_INSTALL_PREFIX}"
   COMMAND
     make -j "${PAR_JOBS}"

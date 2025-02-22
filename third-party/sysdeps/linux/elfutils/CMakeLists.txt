@@ -16,10 +16,14 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       NO_MERGE_COMPILE_COMMANDS
       BACKGROUND_BUILD
       OUTPUT_ON_FAILURE
-
       CMAKE_ARGS
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
+        "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
+      RUNTIME_DEPS
+        therock-bzip2
+        therock-zlib
+        therock-zstd
       INSTALL_DESTINATION
         lib/rocm_sysdeps
       INTERFACE_LINK_DIRS
@@ -31,15 +35,10 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     )
     therock_cmake_subproject_activate(therock-elfutils)
 
-    # Add tests to validate that the shared libraries load.
-    # foreach(lib_name libdrm.so libdrm_amdgpu.so)
-    #   add_test(
-    #     NAME "therock-libdrm-validate-${lib_name}"
-    #     COMMAND
-    #       "${Python3_EXECUTABLE}" "${THEROCK_SOURCE_DIR}/build_tools/validate_shared_library.py"
-    #         "${CMAKE_CURRENT_BINARY_DIR}/build/dist/lib/rocm_sysdeps/lib/${lib_name}"
-    #   )
-    # endforeach()
+    therock_test_validate_shared_lib(
+      PATH build/dist/lib/rocm_sysdeps/lib
+      LIB_NAMES libelf.so libdw.so libasm.so
+    )
     return()
 endif()
 
@@ -47,38 +46,42 @@ endif()
 cmake_minimum_required(VERSION 3.25)
 project(ELFUTILS_BUILD)
 
-# if(NOT PATCHELF OR NOT MESON_BUILD)
-#   message(FATAL_ERROR "Missing PATCHELF or MESON_BUILD from super-project")
-# endif()
+include(ProcessorCount)
+ProcessorCount(PAR_JOBS)
 
-# add_custom_target(
-#   meson_build ALL
-#   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-#   COMMAND
-#     "${CMAKE_COMMAND}" -E chdir "${SOURCE_DIR}"
-#     "${CMAKE_COMMAND}" -E env
-#       # Escaping hack: experimentally determined to persist through the layers.
-#       "LDFLAGS=-Wl,-rpath='$$ORIGIN' -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/version.lds"
-#       --
-#       "${MESON_BUILD}" setup "${CMAKE_CURRENT_BINARY_DIR}"
-#         --reconfigure
-#         # We generate relocatable, arch neutral directory layouts and use
-#         # DESTDIR to install int ot the lib/rocm_sysdeps tree.
-#         --prefix "/"
-#         -Dpkgconfig.relocatable=true
-#         -Dlibdir=lib
-#         # Only enable the libraries we want.
-#         -Damdgpu=enabled
-#         -Dintel=disabled
-#         -Dnouveau=disabled
-#         -Dradeon=disabled
-#         -Dvmwgfx=disabled
-#   COMMAND
-#     "${MESON_BUILD}" compile --verbose
-#   COMMAND
-#     "${CMAKE_COMMAND}" -E env "DESTDIR=${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps" --
-#       "${MESON_BUILD}" install
-#   COMMAND
-#     "${CMAKE_CURRENT_SOURCE_DIR}/patch_install_binaries.sh"
-#       ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps "${PATCHELF}"
-# )
+if(NOT PATCHELF)
+  message(FATAL_ERROR "Missing PATCHELF from super-project")
+endif()
+
+add_custom_target(
+  build ALL
+  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMAND
+    "${CMAKE_COMMAND}" -E rm -rf -- "${CMAKE_INSTALL_PREFIX}"
+  COMMAND
+    # Note that --disable-symbol-versioning below merely disables the emission
+    # of old compatibility symbols. Libraries are still linked against the
+    # map files in the source tree. We patch those with custom versions that
+    # hardcode all symbols to our version.
+    "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/overlay" "${SOURCE_DIR}"
+  COMMAND
+    "${CMAKE_COMMAND}" -E env
+      "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
+      # Escaping: Double $ to satisfy CMake, then double $ to satisfy configure,
+      # then escaped single quotes to make it to the linker command line.
+      "LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath=\\'\\$$\\$$ORIGIN\\'"
+      --
+    "${SOURCE_DIR}/configure"
+      --prefix "${CMAKE_INSTALL_PREFIX}"
+      --disable-debuginfod --disable-symbol-versioning
+  COMMAND
+    make -j "${PAR_JOBS}" V=1
+  COMMAND
+    make install
+  COMMAND
+    "${CMAKE_COMMAND}" -E env
+      "PATCHELF=${PATCHELF}"
+      "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
+      "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
+)

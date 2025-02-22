@@ -76,10 +76,17 @@ def add_prefix(args: argparse.Namespace):
 
     # Now go back and replace updated sonames.
     for soname_from, soname_to in soname_updates.items():
-        exec(
-            [args.patchelf, "--replace-needed", soname_from, soname_to] + updated_libs,
-            cwd=Path.cwd(),
-        )
+        for updated_lib in updated_libs:
+            exec(
+                [
+                    args.patchelf,
+                    "--replace-needed",
+                    soname_from,
+                    soname_to,
+                    updated_lib,
+                ],
+                cwd=Path.cwd(),
+            )
 
 
 def run(args: argparse.Namespace):

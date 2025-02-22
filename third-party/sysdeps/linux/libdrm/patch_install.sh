@@ -10,4 +10,5 @@ Python3_EXECUTABLE="${Python3_EXECUTABLE:?Python3_EXECUTABLE not defined}"
 
 "$Python3_EXECUTABLE" "$THEROCK_SOURCE_DIR/build_tools/patch_linux_so.py" \
   --patchelf "${PATCHELF}" --add-prefix rocm_sysdeps_ \
-  $PREFIX/lib/*.so
+  $PREFIX/lib/libdrm.so \
+  $PREFIX/lib/libdrm_amdgpu.so
