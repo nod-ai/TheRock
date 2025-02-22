@@ -16,14 +16,18 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       NO_MERGE_COMPILE_COMMANDS
       BACKGROUND_BUILD
       OUTPUT_ON_FAILURE
-
       CMAKE_ARGS
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
         "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
+      INSTALL_DESTINATION
+        lib/rocm_sysdeps
+      INTERFACE_LINK_DIRS
+        lib/rocm_sysdeps/lib
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
+    therock_cmake_subproject_provide_package(therock-zstd zstd lib/rocm_sysdeps/lib/cmake/zstd)
     therock_cmake_subproject_activate(therock-zstd)
 
     therock_test_validate_shared_lib(
@@ -52,7 +56,7 @@ add_custom_target(
   COMMAND
     make -j "${PAR_JOBS}" install
         V=1
-        PREFIX=${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps
+        PREFIX=${CMAKE_INSTALL_PREFIX}
         # NOTE: This is sloppy: this should be LDFLAGS_DYNLIB, but there is a
         # bug in the Makefiles where it includes those options twice, causing
         # errors. Since CPPFLAGS are always also added to the link command, this
@@ -64,5 +68,13 @@ add_custom_target(
     "PATCHELF=${PATCHELF}"
     "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
     "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
-  "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps
+  "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
 )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/zstd-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/zstd-config.cmake
+  @ONLY
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/zstd-config.cmake" DESTINATION lib/cmake/zstd)

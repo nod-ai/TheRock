@@ -16,9 +16,12 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       NO_MERGE_COMPILE_COMMANDS
       BACKGROUND_BUILD
       OUTPUT_ON_FAILURE
-
       CMAKE_ARGS
         "-DSOURCE_DIR=${_source_dir}"
+      INSTALL_DESTINATION
+        lib/rocm_sysdeps
+      INTERFACE_LINK_DIRS
+        lib/rocm_sysdeps/lib
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
@@ -60,8 +63,6 @@ add_custom_command(
 )
 target_link_options(rocm_sysdeps_bz2 PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/version.lds")
 
-set(CMAKE_INSTALL_INCLUDEDIR lib/rocm_sysdeps/include)
-set(CMAKE_INSTALL_LIBDIR lib/rocm_sysdeps/lib)
 install(
   TARGETS rocm_sysdeps_bz2
 )

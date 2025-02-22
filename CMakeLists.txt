@@ -208,6 +208,15 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+
+################################################################################
+# Sysdep bundling
+# If enabled the CMake global THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS will be set
+# to a list of subproject system dep sub-projects that should be set as
+# RUNTIME_DEPS in any project that requires access to bundled deps.
+################################################################################
+
+set(THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS)
 if(THEROCK_BUNDLE_SYSDEPS)
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_program(PATCHELF patchelf)
@@ -218,6 +227,13 @@ if(THEROCK_BUNDLE_SYSDEPS)
     if(NOT MESON_BUILD)
       message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires (easiest: `pip install meson`)")
     endif()
+    set(THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS
+      therock-bzip2
+      therock-elfutils
+      therock-libdrm
+      therock-zlib
+      therock-zstd
+    )
   else()
     message(FATAL_ERROR "Bundled system deps not supported on this platform (THEROCK_BUNDLE_SYSDEPS=ON)")
   endif()

@@ -21,9 +21,14 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
         "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
+      INSTALL_DESTINATION
+        lib/rocm_sysdeps
+      INTERFACE_LINK_DIRS
+        lib/rocm_sysdeps/lib
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
+    therock_cmake_subproject_provide_package(therock-zlib ZLIB lib/rocm_sysdeps/lib/cmake/ZLIB)
     therock_cmake_subproject_activate(therock-zlib)
 
     therock_test_validate_shared_lib(
@@ -50,7 +55,7 @@ add_custom_target(
   COMMAND
     "${CMAKE_COMMAND}" -E env
       "LDFLAGS=-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/version.lds"
-    "${SOURCE_DIR}/configure" --prefix "${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps"
+    "${SOURCE_DIR}/configure" --prefix "${CMAKE_INSTALL_PREFIX}"
   COMMAND
     make -j "${PAR_JOBS}"
   COMMAND
@@ -60,5 +65,13 @@ add_custom_target(
       "PATCHELF=${PATCHELF}"
       "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
       "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
-    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
 )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/zlib-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake
+  @ONLY
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake" DESTINATION lib/cmake/ZLIB)

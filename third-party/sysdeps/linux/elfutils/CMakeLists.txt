@@ -20,7 +20,11 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       CMAKE_ARGS
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
-      EXTRA_DEPENDS
+      INSTALL_DESTINATION
+        lib/rocm_sysdeps
+      INTERFACE_LINK_DIRS
+        lib/rocm_sysdeps/lib
+    EXTRA_DEPENDS
         "${_download_stamp}"
     )
     therock_cmake_subproject_activate(therock-elfutils)

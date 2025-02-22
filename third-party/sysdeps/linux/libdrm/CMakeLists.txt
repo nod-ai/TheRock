@@ -16,12 +16,15 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       NO_MERGE_COMPILE_COMMANDS
       BACKGROUND_BUILD
       OUTPUT_ON_FAILURE
-
       CMAKE_ARGS
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
         "-DMESON_BUILD=${MESON_BUILD}"
         "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
+      INSTALL_DESTINATION
+        lib/rocm_sysdeps
+      INTERFACE_LINK_DIRS
+        lib/rocm_sysdeps/lib
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
@@ -67,12 +70,12 @@ add_custom_target(
   COMMAND
     "${MESON_BUILD}" compile --verbose
   COMMAND
-    "${CMAKE_COMMAND}" -E env "DESTDIR=${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps" --
+    "${CMAKE_COMMAND}" -E env "DESTDIR=${CMAKE_INSTALL_PREFIX}" --
       "${MESON_BUILD}" install
   COMMAND
     "${CMAKE_COMMAND}" -E env
       "PATCHELF=${PATCHELF}"
       "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
       "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
-    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
 )
