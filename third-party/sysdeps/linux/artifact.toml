@@ -1,7 +1,18 @@
+# bzip2
+[components.dev."third-party/sysdeps/linux/bzip2/build/stage"]
+[components.lib."third-party/sysdeps/linux/bzip2/build/stage"]
+
 # libdrm
 [components.dev."third-party/sysdeps/linux/libdrm/build/stage"]
-[components.doc."third-party/sysdeps/linux/libdrm/build/stage"]
+[components.lib."third-party/sysdeps/linux/libdrm/build/stage"]
 include = [
   "**/share/**",
 ]
-[components.lib."third-party/sysdeps/linux/libdrm/build/stage"]
+
+# zlib
+[components.dev."third-party/sysdeps/linux/zlib/build/stage"]
+[components.lib."third-party/sysdeps/linux/zlib/build/stage"]
+
+# zstd
+[components.dev."third-party/sysdeps/linux/zstd/build/stage"]
+[components.lib."third-party/sysdeps/linux/zstd/build/stage"]

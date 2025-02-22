@@ -21,20 +21,16 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         "-DSOURCE_DIR=${_source_dir}"
         "-DPATCHELF=${PATCHELF}"
         "-DMESON_BUILD=${MESON_BUILD}"
+        "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
     therock_cmake_subproject_activate(therock-libdrm)
 
-    # Add tests to validate that the shared libraries load.
-    foreach(lib_name libdrm.so libdrm_amdgpu.so)
-      add_test(
-        NAME "therock-libdrm-validate-${lib_name}"
-        COMMAND
-          "${Python3_EXECUTABLE}" "${THEROCK_SOURCE_DIR}/build_tools/validate_shared_library.py"
-            "${CMAKE_CURRENT_BINARY_DIR}/build/dist/lib/rocm_sysdeps/lib/${lib_name}"
-      )
-    endforeach()
+    therock_test_validate_shared_lib(
+      PATH build/dist/lib/rocm_sysdeps/lib
+      LIB_NAMES libdrm.so libdrm_amdgpu.so
+    )
     return()
 endif()
 
@@ -74,6 +70,9 @@ add_custom_target(
     "${CMAKE_COMMAND}" -E env "DESTDIR=${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps" --
       "${MESON_BUILD}" install
   COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install_binaries.sh"
-      ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps "${PATCHELF}"
+    "${CMAKE_COMMAND}" -E env
+      "PATCHELF=${PATCHELF}"
+      "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
+      "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}/lib/rocm_sysdeps
 )

@@ -22,6 +22,7 @@ include(therock_artifacts)
 include(therock_features)
 include(therock_subproject)
 include(therock_job_pools)
+include(therock_testing)
 
 ################################################################################
 # Options
