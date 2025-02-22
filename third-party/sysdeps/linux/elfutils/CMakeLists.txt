@@ -33,6 +33,7 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
+    therock_cmake_subproject_provide_package(therock-elfutils LibElf lib/rocm_sysdeps/lib/cmake/LibElf)
     therock_cmake_subproject_activate(therock-elfutils)
 
     therock_test_validate_shared_lib(
@@ -73,7 +74,12 @@ add_custom_target(
       --
     "${SOURCE_DIR}/configure"
       --prefix "${CMAKE_INSTALL_PREFIX}"
-      --disable-debuginfod --disable-symbol-versioning
+      --disable-debuginfod
+      --disable-symbol-versioning
+      --enable-install-elfh
+      --with-bzlib --with-zlib --with-zstd
+      # We don't have an lzma sysdep yet and may not need it.
+      --without-lzma
   COMMAND
     make -j "${PAR_JOBS}" V=1
   COMMAND
@@ -85,3 +91,13 @@ add_custom_target(
       "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
 )
+
+# This matches the conventions of the FindLibElf.cmake module in ROCR-Runtime.
+# Other than that, there is so source of truth for this.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/libelf-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/libelf-config.cmake
+  @ONLY
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libelf-config.cmake" DESTINATION lib/cmake/LibElf)

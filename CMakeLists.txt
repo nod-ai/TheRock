@@ -231,6 +231,7 @@ if(THEROCK_BUNDLE_SYSDEPS)
       therock-bzip2
       therock-elfutils
       therock-libdrm
+      therock-numactl
       therock-zlib
       therock-zstd
     )

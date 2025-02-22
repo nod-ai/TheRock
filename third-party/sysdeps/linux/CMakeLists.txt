@@ -1,6 +1,7 @@
 # All system deps (alpha unless if different dependency order needed).
 add_subdirectory(bzip2)
 add_subdirectory(libdrm)
+add_subdirectory(numactl)
 add_subdirectory(zlib)
 add_subdirectory(zstd)
 
@@ -17,7 +18,9 @@ therock_provide_artifact(sysdeps
     run
   SUBPROJECT_DEPS
     therock-bzip2
+    therock-elfutils
     therock-libdrm
+    therock-numactl
     therock-zlib
     therock-zstd
 )
