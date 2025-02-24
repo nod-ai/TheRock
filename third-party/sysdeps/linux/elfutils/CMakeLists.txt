@@ -58,13 +58,12 @@ add_custom_target(
   build ALL
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMAND
-    "${CMAKE_COMMAND}" -E rm -rf -- "${CMAKE_INSTALL_PREFIX}"
+    "${CMAKE_COMMAND}" -E rm -rf -- "${CMAKE_INSTALL_PREFIX}" "${CMAKE_CURRENT_BINARY_DIR}/s"
   COMMAND
-    # Note that --disable-symbol-versioning below merely disables the emission
-    # of old compatibility symbols. Libraries are still linked against the
-    # map files in the source tree. We patch those with custom versions that
-    # hardcode all symbols to our version.
-    "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/overlay" "${SOURCE_DIR}"
+    # We have to patch the sources so make a fresh copy.
+    "${CMAKE_COMMAND}" -E copy_directory "${SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/s"
+  COMMAND
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_source.sh" "${CMAKE_CURRENT_BINARY_DIR}/s"
   COMMAND
     "${CMAKE_COMMAND}" -E env
       "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
@@ -72,10 +71,9 @@ add_custom_target(
       # then escaped single quotes to make it to the linker command line.
       "LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath=\\'\\$$\\$$ORIGIN\\'"
       --
-    "${SOURCE_DIR}/configure"
+    "${CMAKE_CURRENT_BINARY_DIR}/s/configure"
       --prefix "${CMAKE_INSTALL_PREFIX}"
       --disable-debuginfod
-      --disable-symbol-versioning
       --enable-install-elfh
       --with-bzlib --with-zlib --with-zstd
       # We don't have an lzma sysdep yet and may not need it.
@@ -90,6 +88,10 @@ add_custom_target(
       "THEROCK_SOURCE_DIR=${THEROCK_SOURCE_DIR}"
       "Python3_EXECUTABLE=${Python3_EXECUTABLE}" --
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh" ${CMAKE_INSTALL_PREFIX}
+
+  DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_source.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_install.sh"
 )
 
 # This matches the conventions of the FindLibElf.cmake module in ROCR-Runtime.

@@ -16,5 +16,7 @@ export CMAKE_C_COMPILER_LAUNCHER=ccache
 export CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 set -o xtrace
-time cmake -GNinja -S /therock/src -B "$OUTPUT_DIR/build" "$@"
+time cmake -GNinja -S /therock/src -B "$OUTPUT_DIR/build" \
+  -DTHEROCK_BUNDLE_SYSDEPS=ON \
+  "$@"
 time cmake --build "$OUTPUT_DIR/build"

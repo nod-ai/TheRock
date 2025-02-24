@@ -40,7 +40,9 @@ message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
 set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
 
-option(THEROCK_BUNDLE_SYSDEPS "Builds bundled system deps for portable builds into lib/rocm_sysdeps" OFF)
+cmake_dependent_option(
+  THEROCK_BUNDLE_SYSDEPS "Builds bundled system deps for portable builds into lib/rocm_sysdeps"
+  ON "CMAKE_SYSTEM_NAME STREQUAL \"Linux\"" OFF)
 
 # Overall build settings.
 option(THEROCK_VERBOSE "Enables verbose CMake statuses" OFF)
@@ -218,6 +220,7 @@ endif()
 
 set(THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS)
 if(THEROCK_BUNDLE_SYSDEPS)
+  message(STATUS "Building with bundled system dependencies enabled")
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_program(PATCHELF patchelf)
     if(NOT PATCHELF)
