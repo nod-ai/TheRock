@@ -45,9 +45,9 @@ RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
 # rest of the dev toolset.
 RUN yum install -y epel-release && \
     yum install -y gcc-toolset-12-libatomic-devel && \
-    yum install -y patchelf \
+    yum install -y patchelf && \
     yum install -y gtest-devel && \
-    yum install -y vim-common git-lfs \
+    yum install -y vim-common git-lfs && \
     yum install -y numactl-devel elfutils-libelf-devel && \
     yum install -y bzip2-devel && \
     yum install -y elfutils-devel && \
