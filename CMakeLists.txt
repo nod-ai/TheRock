@@ -250,6 +250,18 @@ if(THEROCK_BUNDLE_SYSDEPS)
 endif()
 
 ################################################################################
+# Priority build targets.
+# By declaring these first as part of ALL, we influence build order a little
+# bit, helping to ensure that the critical path projects start as soon as
+# possible.
+################################################################################
+
+add_custom_target(therock-priority-build ALL)
+if(THEROCK_ENABLE_COMPILER)
+  add_dependencies(therock-priority-build amd-llvm)
+endif()
+
+################################################################################
 # External project setup
 ################################################################################
 

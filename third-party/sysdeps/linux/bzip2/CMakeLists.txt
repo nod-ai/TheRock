@@ -27,6 +27,7 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       EXTRA_DEPENDS
         "${_download_stamp}"
     )
+    therock_cmake_subproject_provide_package(therock-bzip2 BZip2 lib/rocm_sysdeps/lib/cmake/BZip2)
     therock_cmake_subproject_activate(therock-bzip2)
 
     therock_test_validate_shared_lib(
@@ -70,3 +71,11 @@ install(
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libbz2.so TYPE LIB)
 install(FILES "${SOURCE_DIR}/bzlib.h" TYPE INCLUDE)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/bzip2-config.cmake
+  @ONLY
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/bzip2-config.cmake" DESTINATION lib/cmake/BZip2)
