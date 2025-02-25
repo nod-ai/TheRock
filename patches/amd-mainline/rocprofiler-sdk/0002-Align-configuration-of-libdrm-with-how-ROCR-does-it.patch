@@ -1,7 +1,7 @@
 From 68c2b27e58c55bca97d627c5b6e6c3a144da1821 Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Mon, 24 Feb 2025 20:48:50 -0800
-Subject: [PATCH 2/2] Align configuration of libdrm with how ROCR does it.
+Subject: [PATCH 2/3] Align configuration of libdrm with how ROCR does it.
 
 * We should always be using some form of package based lookup for this, not loose-leaf path scanning.
 * I couldn't find any dependency on the xfree86 headers so deleted that lookup/include.

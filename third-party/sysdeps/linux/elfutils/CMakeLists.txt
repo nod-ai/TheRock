@@ -55,6 +55,15 @@ if(NOT PATCHELF)
   message(FATAL_ERROR "Missing PATCHELF from super-project")
 endif()
 
+# HACK: elfutils consults pkg-config for cflags for the compression libraries
+# but then does not seem to use them everywhere needed. So we just hard-code
+# paths.
+set(EXTRA_CPPFLAGS)
+string(APPEND EXTRA_CPPFLAGS " -I${THEROCK_BINARY_DIR}/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/include")
+string(APPEND EXTRA_CPPFLAGS " -I${THEROCK_BINARY_DIR}/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/include")
+string(APPEND EXTRA_CPPFLAGS " -I${THEROCK_BINARY_DIR}/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/include")
+message(STATUS "EXTRA_CPPFLAGS=${EXTRA_CPPFLAGS}")
+
 add_custom_target(
   build ALL
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
@@ -71,6 +80,7 @@ add_custom_target(
       # Escaping: Double $ to satisfy CMake, then double $ to satisfy configure,
       # then escaped single quotes to make it to the linker command line.
       "LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath=\\'\\$$\\$$ORIGIN\\'"
+      "CPPFLAGS=${EXTRA_CPPFLAGS}"
       --
     "${CMAKE_CURRENT_BINARY_DIR}/s/configure"
       --prefix "${CMAKE_INSTALL_PREFIX}"
