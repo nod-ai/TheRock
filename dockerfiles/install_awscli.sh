@@ -9,6 +9,7 @@ set -euo pipefail
 
 ARCH="$(uname -m)"
 
+# https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 curl --silent --fail --show-error --location \
     "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip" \
     --output "awscliv2.zip"
