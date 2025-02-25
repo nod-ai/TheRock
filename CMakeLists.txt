@@ -213,12 +213,20 @@ endif()
 
 ################################################################################
 # Sysdep bundling
-# If enabled the CMake global THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS will be set
-# to a list of subproject system dep sub-projects that should be set as
-# RUNTIME_DEPS in any project that requires access to bundled deps.
+# Each available bundled sysdep is made available with a global variable like
+# `THEROCK_BUNDLED_{name}`. This can be included in subproject RUNTIME_DEPS.
+# If bundling is enabled, then this will be a target, and otherwise empty.
+# Additional platform specific settings may be needed to configure RPATH or
+# SxS DLL loading.
 ################################################################################
 
-set(THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS)
+set(THEROCK_BUNDLED_BZIP2)
+set(THEROCK_BUNDLED_ELFUTILS)
+set(THEROCK_BUNDLED_LIBDRM)
+set(THEROCK_BUNDLED_NUMACTL)
+set(THEROCK_BUNDLED_ZLIB)
+set(THEROCK_BUNDLED_ZSTD)
+
 if(THEROCK_BUNDLE_SYSDEPS)
   message(STATUS "Building with bundled system dependencies enabled")
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -230,14 +238,12 @@ if(THEROCK_BUNDLE_SYSDEPS)
     if(NOT MESON_BUILD)
       message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires (easiest: `pip install meson`)")
     endif()
-    set(THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS
-      therock-bzip2
-      therock-elfutils
-      therock-libdrm
-      therock-numactl
-      therock-zlib
-      therock-zstd
-    )
+    set(THEROCK_BUNDLED_BZIP2 therock-bzip2)
+    set(THEROCK_BUNDLED_ELFUTILS therock-elfutils)
+    set(THEROCK_BUNDLED_LIBDRM therock-libdrm)
+    set(THEROCK_BUNDLED_NUMACTL therock-numactl)
+    set(THEROCK_BUNDLED_ZLIB therock-zlib)
+    set(THEROCK_BUNDLED_ZSTD therock-zstd)
   else()
     message(FATAL_ERROR "Bundled system deps not supported on this platform (THEROCK_BUNDLE_SYSDEPS=ON)")
   endif()

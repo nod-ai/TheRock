@@ -42,7 +42,8 @@ if(THEROCK_ENABLE_COMPILER)
     BUILD_DEPS
       rocm-cmake
     RUNTIME_DEPS
-      ${THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS}
+      ${THEROCK_BUNDLED_ZLIB}
+      ${THEROCK_BUNDLED_ZSTD}
     # The entire LLVM install tree is placed inside of the overall ROCM lib/llvm
     # directory.
     INSTALL_DESTINATION "lib/llvm"
@@ -77,7 +78,7 @@ if(THEROCK_ENABLE_COMPILER)
       rocm-cmake
     RUNTIME_DEPS
       amd-llvm
-      ${THEROCK_OPTIONAL_SYSDEP_SUBPROJECTS}
+      ${THEROCK_BUNDLED_ZSTD}
   )
   therock_cmake_subproject_provide_package(amd-comgr amd_comgr lib/cmake/amd_comgr)
   therock_cmake_subproject_activate(amd-comgr)
