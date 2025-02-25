@@ -18,3 +18,8 @@ endif()
 if(THEROCK_ENABLE_HOST_SUITE_SPARSE)
   add_subdirectory(SuiteSparse)
 endif()
+
+if(THEROCK_BUNDLE_SYSDEPS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # TODO: Relocate non header-only libraries here (i.e. boost, host-blas).
+  add_subdirectory(sysdeps/linux)
+endif()

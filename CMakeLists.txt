@@ -22,6 +22,7 @@ include(therock_artifacts)
 include(therock_features)
 include(therock_subproject)
 include(therock_job_pools)
+include(therock_testing)
 
 ################################################################################
 # Options
@@ -38,6 +39,10 @@ message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
 set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
+
+cmake_dependent_option(
+  THEROCK_BUNDLE_SYSDEPS "Builds bundled system deps for portable builds into lib/rocm_sysdeps"
+  ON "CMAKE_SYSTEM_NAME STREQUAL \"Linux\"" OFF)
 
 # Overall build settings.
 option(THEROCK_VERBOSE "Enables verbose CMake statuses" OFF)
@@ -205,6 +210,60 @@ if(CMAKE_CXX_VISIBILITY_PRESET)
   list(APPEND DEFAULT_CMAKE_ARGS ${CMAKE_CXX_VISIBILITY_PRESET})
 endif()
 
+
+################################################################################
+# Sysdep bundling
+# Each available bundled sysdep is made available with a global variable like
+# `THEROCK_BUNDLED_{name}`. This can be included in subproject RUNTIME_DEPS.
+# If bundling is enabled, then this will be a target, and otherwise empty.
+# Additional platform specific settings may be needed to configure RPATH or
+# SxS DLL loading.
+# If updating supported libraries here, please update:
+#   docs/development/dependencies.md
+################################################################################
+
+set(THEROCK_BUNDLED_BZIP2)
+set(THEROCK_BUNDLED_ELFUTILS)
+set(THEROCK_BUNDLED_LIBDRM)
+set(THEROCK_BUNDLED_NUMACTL)
+set(THEROCK_BUNDLED_SQLITE3)
+set(THEROCK_BUNDLED_ZLIB)
+set(THEROCK_BUNDLED_ZSTD)
+
+if(THEROCK_BUNDLE_SYSDEPS)
+  message(STATUS "Building with bundled system dependencies enabled")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_program(PATCHELF patchelf)
+    if(NOT PATCHELF)
+      message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires `patchelf`")
+    endif()
+    find_program(MESON_BUILD meson)
+    if(NOT MESON_BUILD)
+      message(FATAL_ERROR "Building with THEROCK_BUNDLE_SYSDEPS=ON on Linux requires (easiest: `pip install meson`)")
+    endif()
+    set(THEROCK_BUNDLED_BZIP2 therock-bzip2)
+    set(THEROCK_BUNDLED_ELFUTILS therock-elfutils)
+    set(THEROCK_BUNDLED_LIBDRM therock-libdrm)
+    set(THEROCK_BUNDLED_NUMACTL therock-numactl)
+    set(THEROCK_BUNDLED_SQLITE3 therock-sqlite3)
+    set(THEROCK_BUNDLED_ZLIB therock-zlib)
+    set(THEROCK_BUNDLED_ZSTD therock-zstd)
+  else()
+    message(FATAL_ERROR "Bundled system deps not supported on this platform (THEROCK_BUNDLE_SYSDEPS=ON)")
+  endif()
+endif()
+
+################################################################################
+# Priority build targets.
+# By declaring these first as part of ALL, we influence build order a little
+# bit, helping to ensure that the critical path projects start as soon as
+# possible.
+################################################################################
+
+add_custom_target(therock-priority-build ALL)
+if(THEROCK_ENABLE_COMPILER)
+  add_dependencies(therock-priority-build amd-llvm)
+endif()
 
 ################################################################################
 # External project setup

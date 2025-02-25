@@ -1,7 +1,7 @@
-From b6bd3ab99c8a9a15a8ad3d51d40807392aed27e8 Mon Sep 17 00:00:00 2001
+From 18b6d7a535fd3b9bcd13df9c20a8532efded101f Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Wed, 12 Feb 2025 18:38:02 -0800
-Subject: [PATCH] Extend the hack to propagate HIP usage requirements a bit
+Subject: [PATCH 1/2] Extend the hack to propagate HIP usage requirements a bit
  further.
 
 * Also fetches usage requirements from hip::amdhip64 -> rocprofiler-sdk-hip-nolink

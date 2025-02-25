@@ -7,7 +7,27 @@
 #     resolve the dependency.
 #   THEROCK_IGNORE_PACKAGES: Packages to ignore, even if they are in
 #     THEROCK_PROVIDED_PACKAGES, falling back to the system resolver.
+#   THEROCK_PKG_CONFIG_DIRS: Directories to search for .pc files.
 # See: _therock_cmake_subproject_setup_deps which assembles these variables
+
+block()
+  if(THEROCK_PKG_CONFIG_DIRS)
+    if(WIN32)
+      set(_sep ";")
+    else()
+      set(_sep ":")
+    endif()
+    set(_accum)
+    foreach(_dir ${THEROCK_PKG_CONFIG_DIRS})
+      if(_accum)
+        string(APPEND _accum "${_sep}")
+      endif()
+      string(APPEND _accum "${_dir}")
+    endforeach()
+    set(ENV{PKG_CONFIG_PATH} "${_accum}${_sep}$ENV{PKG_CONFIG_PATH}")
+  endif()
+endblock()
+
 macro(therock_dependency_provider method package_name)
   cmake_policy(PUSH)
   cmake_policy(SET CMP0057 NEW)

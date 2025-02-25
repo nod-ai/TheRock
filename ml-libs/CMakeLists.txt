@@ -31,6 +31,8 @@ if(THEROCK_ENABLE_MIOPEN)
       hipBLASLt
       rocBLAS
       rocRAND
+      ${THEROCK_BUNDLED_BZIP2}
+      ${THEROCK_BUNDLED_SQLITE3}
   )
 
   therock_cmake_subproject_activate(MIOpen)
