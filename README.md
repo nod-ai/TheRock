@@ -27,8 +27,7 @@ sudo apt install gfortran repo git-lfs ninja-build cmake g++ pkg-config xxd libg
 Development packages (WIP to remove dependence on these):
 
 ```
-sudo apt install \
-  libnuma-dev libdrm-dev libelf-dev libgl1-mesa-dev libbz2-dev libsqlite3-dev libdw-dev
+sudo apt install libsqlite3-dev
 ```
 
 # Checkout Sources
