@@ -218,6 +218,8 @@ endif()
 # If bundling is enabled, then this will be a target, and otherwise empty.
 # Additional platform specific settings may be needed to configure RPATH or
 # SxS DLL loading.
+# If updating supported libraries here, please update:
+#   docs/development/dependencies.md
 ################################################################################
 
 set(THEROCK_BUNDLED_BZIP2)

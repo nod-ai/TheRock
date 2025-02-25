@@ -34,6 +34,7 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         "${_download_stamp}"
     )
     therock_cmake_subproject_provide_package(therock-elfutils LibElf lib/rocm_sysdeps/lib/cmake/LibElf)
+    therock_cmake_subproject_provide_package(therock-elfutils libdw lib/rocm_sysdeps/lib/cmake/libdw)
     therock_cmake_subproject_activate(therock-elfutils)
 
     therock_test_validate_shared_lib(
@@ -101,5 +102,11 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/libelf-config.cmake
   @ONLY
 )
-
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libelf-config.cmake" DESTINATION lib/cmake/LibElf)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/libdw-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/libdw-config.cmake
+  @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libdw-config.cmake" DESTINATION lib/cmake/libdw)
