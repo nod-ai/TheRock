@@ -75,6 +75,14 @@ add_custom_target(
   COMMAND
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_source.sh" "${CMAKE_CURRENT_BINARY_DIR}/s"
   COMMAND
+    # CMake copy directory does not preserve timestamps. If the stamp-po is
+    # out of date, the build will try to regenerate docs, which requires a bunch
+    # of extra tools and fails mysteriously if not present with something like:
+    #   mv: cannot stat 't-de.gmo': No such file or directory
+    # Ensuring it has the most current timestamp post copy/patch disables doc
+    # regneration.
+    "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_BINARY_DIR}/s/po/stamp-po"
+  COMMAND
     "${CMAKE_COMMAND}" -E env
       "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
       # Escaping: Double $ to satisfy CMake, then double $ to satisfy configure,
