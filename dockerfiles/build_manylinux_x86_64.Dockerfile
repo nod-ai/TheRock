@@ -39,6 +39,11 @@ ENV CMAKE_VERSION="1.12.1"
 COPY install_ninja.sh ./
 RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
 
+######## AWS CLI ######
+WORKDIR /install-awscli
+COPY install_awscli.sh ./
+RUN ./install_awscli.sh && rm -rf /install-awscli
+
 ######## Yum Packages #######
 # TODO: Remove elfutils-devel, numectl-devel, bzip2-devel (https://github.com/nod-ai/TheRock/issues/91)
 # TODO: Figure out why gcc-toolset-12-libatomic-devel doesn't install with the
