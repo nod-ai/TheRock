@@ -2,6 +2,7 @@
 add_subdirectory(bzip2)
 add_subdirectory(libdrm)
 add_subdirectory(numactl)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../common/sqlite3" "${CMAKE_CURRENT_BINARY_DIR}/sqlite3")
 add_subdirectory(zlib)
 add_subdirectory(zstd)
 
@@ -21,6 +22,7 @@ therock_provide_artifact(sysdeps
     therock-elfutils
     therock-libdrm
     therock-numactl
+    therock-sqlite3
     therock-zlib
     therock-zstd
 )

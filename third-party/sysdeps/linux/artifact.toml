@@ -17,6 +17,10 @@ include = [
 [components.dev."third-party/sysdeps/linux/numactl/build/stage"]
 [components.lib."third-party/sysdeps/linux/numactl/build/stage"]
 
+# sqlite3
+[components.dev."third-party/sysdeps/linux/sqlite3/build/stage"]
+[components.lib."third-party/sysdeps/linux/sqlite3/build/stage"]
+
 # zlib
 [components.dev."third-party/sysdeps/linux/zlib/build/stage"]
 [components.lib."third-party/sysdeps/linux/zlib/build/stage"]

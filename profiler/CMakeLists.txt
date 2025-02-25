@@ -11,6 +11,7 @@ if(THEROCK_ENABLE_PROFILER_SDK)
     RUNTIME_DEPS
       hip-clr
       rocprofiler-register
+      ${THEROCK_BUNDLED_ELFUTILS}
       ${THEROCK_BUNDLED_LIBDRM}
   )
   therock_cmake_subproject_provide_package(rocprofiler-sdk rocprofiler-sdk lib/cmake/rocprofiler-sdk)
