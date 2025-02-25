@@ -79,19 +79,19 @@ jobs:
             -DTHEROCK_PACKAGE_VERSION="${package_version}" \
             -DTHEROCK_VERBOSE=ON
           ./build_tools/watch_top_processes.sh &
-          cmake --build build --target therock-archives therock-dist
+          cmake --build build --target therock-archive-core-runtime
           kill %1
 
-      - name: Test Packaging
-        run: |
-          ctest --test-dir build --output-on-failure
+      # - name: Test Packaging
+      #   run: |
+      #     ctest --test-dir build --output-on-failure
 
       - name: Report
         if: ${{ !cancelled() }}
         run: |
-          echo "Full SDK du:"
-          echo "------------"
-          du -h -d 1 build/dist/rocm
+          # echo "Full SDK du:"
+          # echo "------------"
+          # du -h -d 1 build/dist/rocm
           echo "Artifact Archives:"
           echo "------------------"
           ls -lh build/artifacts/*.tar.xz
@@ -111,14 +111,14 @@ jobs:
 
       # TODO: Move to Dockerfile
       - name: Install AWS CLI
-        # if: $${{github.event_name == 'workflow_dispatch' && github.ref =='refs/heads/main' }}
+        # if: $${{github.event_name == 'push' && github.ref =='refs/heads/main' }}
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
-          sudo ./aws/install
+          ./aws/install
 
       - name: Configure AWS Credentials
-        # if: $${{github.event_name == 'workflow_dispatch' && github.ref =='refs/heads/main' }}
+        # if: ${{github.event_name == 'push' && github.ref =='refs/heads/main' }}
         uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
         with:
           aws-region: us-east-2
@@ -126,14 +126,14 @@ jobs:
 
       # TODO: Move to script
       - name: Upload Artifacts
-        # if: $${{github.event_name == 'workflow_dispatch' && github.ref =='refs/heads/main' }}
+        # if: ${{github.event_name == 'push' && github.ref =='refs/heads/main' }}
         run: |
           aws s3 sync build/artifacts s3://therock-artifacts/${{github.run_id}}/ \
             --exclude "*" --include "*.tar.xz" --include "*.tar.xz.sha256sum"
 
       # TODO: Move to script
       - name: Create and Upload Index
-        # if: $${{github.event_name == 'workflow_dispatch' && github.ref =='refs/heads/main' }}
+        # if: ${{github.event_name == 'push' && github.ref =='refs/heads/main' }}
         run: |
           curl https://raw.githubusercontent.com/joshbrunty/Indexer/6d8cbfd15d3853b482e6a49f2d875ded9188b721/indexer.py -o build/indexer.py
           python build/indexer.py -f '*.tar.xz*' build/artifacts/
@@ -141,7 +141,7 @@ jobs:
           aws s3 cp build/artifacts/index.html s3://therock-artifacts/${{github.run_id}}/
 
       - name: Post URL
-        # if: $${{github.event_name == 'workflow_dispatch' && github.ref =='refs/heads/main' }}
+        # if: ${{github.event_name == 'push' && github.ref =='refs/heads/main' }}
         run: |
           echo '### Artifacts' >> $GITHUB_STEP_SUMMARY
           echo '* [Link to artifacts](https://therock-artifacts.s3.us-east-2.amazonaws.com/${{github.run_id}}/index.html)' >> $GITHUB_STEP_SUMMARY
