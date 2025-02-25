@@ -24,12 +24,6 @@ Dev tools:
 sudo apt install gfortran repo git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev
 ```
 
-Development packages (WIP to remove dependence on these):
-
-```
-sudo apt install libsqlite3-dev
-```
-
 # Checkout Sources
 
 We want ROCm sources checked out into the sources/ directory or if you check it out elsewhere create a symlink called `ln -s /path/to/rocm sources`

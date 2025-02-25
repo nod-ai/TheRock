@@ -45,7 +45,6 @@ COPY install_awscli.sh ./
 RUN ./install_awscli.sh && rm -rf /install-awscli
 
 ######## Yum Packages #######
-# TODO: Remove elfutils-devel, numectl-devel, bzip2-devel (https://github.com/nod-ai/TheRock/issues/91)
 # TODO: Figure out why gcc-toolset-12-libatomic-devel doesn't install with the
 # rest of the dev toolset.
 RUN yum install -y epel-release && \
@@ -53,9 +52,6 @@ RUN yum install -y epel-release && \
     yum install -y patchelf && \
     yum install -y gtest-devel && \
     yum install -y vim-common git-lfs && \
-    yum install -y numactl-devel elfutils-libelf-devel && \
-    yum install -y bzip2-devel && \
-    yum install -y elfutils-devel && \
     yum clean all && \
     rm -rf /var/cache/yum
 
