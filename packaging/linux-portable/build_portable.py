@@ -107,6 +107,7 @@ def main(argv: list[str]):
     p.add_argument(
         "--output-dir",
         default=Path(THIS_DIR / "output"),
+        type=Path,
         help="Output directory",
     )
     p.add_argument(

@@ -19,6 +19,7 @@ on:
 jobs:
   portable_linux_packages:
     strategy:
+      fail-fast: false
       matrix:
         target_bundle:
           - amdgpu_family: "gfx94X-dcgpu"
