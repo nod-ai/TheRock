@@ -9,12 +9,20 @@ on:
       package_suffix:
         type: string
         default: -ADHOCBUILD
+      release_tag:
+        description: Publish files to this release tag
+        required: false
+        type: string
 
   workflow_call:
     inputs:
       package_suffix:
         type: string
         default: -ADHOCBUILD
+      release_tag:
+        description: Publish files to this release tag
+        required: false
+        type: string
 
 concurrency:
   # A PR number if a pull request and otherwise the commit hash. This cancels
@@ -90,6 +98,7 @@ jobs:
 
       - name: Upload Release Asset
         uses: ncipollo/release-action@v1
+        if: github.event.inputs.release_tag != ''
         with:
           artifacts: "${{ env.DIST_ARCHIVE }}"
           tag: mainline-snapshot
