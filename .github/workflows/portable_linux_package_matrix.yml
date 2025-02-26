@@ -1,4 +1,4 @@
-name: Portable Linux Package Matrix
+name: Portable Linux Package
 
 on:
   push:
