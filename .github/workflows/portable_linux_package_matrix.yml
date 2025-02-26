@@ -16,16 +16,15 @@ on:
 jobs:
   portable_linux_packages:
     strategy:
+      fail-fast: true
       matrix:
         target_bundle:
           - amdgpu_family: "gfx94X-dcgpu"
           - amdgpu_family: "gfx110X-dgpu"
           - amdgpu_family: "gfx1151"
 
-    name: Build Linux Packages
+    name: ${{matrix.target_bundle.amdgpu_family}}::Build
     runs-on: azure-cpubuilder-linux-scale
-    strategy:
-      fail-fast: true
     env:
       TEATIME_LABEL_GH_GROUP: 1
       OUTPUT_DIR: ${{ github.workspace }}/output
