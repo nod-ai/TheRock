@@ -19,7 +19,6 @@ on:
 jobs:
   portable_linux_packages:
     strategy:
-      fail-fast: true
       matrix:
         target_bundle:
           - amdgpu_family: "gfx94X-dcgpu"
@@ -35,7 +34,9 @@ jobs:
     steps:
       - name: "Checking out repository"
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
-
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
       - name: Enable cache
