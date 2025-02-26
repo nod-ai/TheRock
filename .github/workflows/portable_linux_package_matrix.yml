@@ -1,9 +1,6 @@
 name: Portable Linux Package
 
 on:
-  push:
-    branches:
-      - linux_build_matrix
   workflow_dispatch:
     inputs:
       package_suffix:
@@ -90,8 +87,7 @@ jobs:
             --image=${{ env.BUILD_IMAGE }} \
             --output-dir=${{ env.OUTPUT_DIR }} \
             -- \
-            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}" \
-            "-DTHEROCK_ENABLE_ALL=OFF"
+            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}"
           cd ${{ env.OUTPUT_DIR }}/build/dist/rocm
           echo "Building ${{ env.DIST_ARCHIVE }}"
           tar cfz "${{ env.DIST_ARCHIVE }}" .
