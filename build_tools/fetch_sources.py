@@ -18,8 +18,10 @@ THEROCK_DIR = THIS_SCRIPT_DIR.parent
 DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
 PATCHES_DIR = THEROCK_DIR / "patches"
 
+
 def is_windows() -> bool:
     return platform.system() == "Windows"
+
 
 def setup_repo_tool() -> Path:
     """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
@@ -119,8 +121,8 @@ def populate_ancillary_sources(args):
     needed to build. There is often something in CMake that attempts to automate it,
     but it is also often broken. So we just do the right thing here as a transitionary
     step to fixing the underlying software packages."""
-    populate_submodules_if_exists(args.dir / "rocprofiler-register")
-    populate_submodules_if_exists(args.dir / "rocprofiler-sdk")
+    populate_submodules_if_exists(args, args.dir / "rocprofiler-register")
+    populate_submodules_if_exists(args, args.dir / "rocprofiler-sdk")
 
     # TODO(#36): Enable once rocprofiler-systems can be checked out on Windows
     #     error: invalid path 'src/counter_analysis_toolkit/scripts/sample_data/L2_RQSTS:ALL_DEMAND_REFERENCES.data.reads.stat'
@@ -128,15 +130,18 @@ def populate_ancillary_sources(args):
     #   https://github.com/ROCm/rocprofiler-systems/issues/105
     #   https://github.com/icl-utk-edu/papi/issues/321
     if not is_windows():
-        populate_submodules_if_exists(args.dir / "rocprofiler-systems")
+        populate_submodules_if_exists(args, args.dir / "rocprofiler-systems")
 
 
-def populate_submodules_if_exists(git_dir: Path):
+def populate_submodules_if_exists(args, git_dir: Path):
     if not git_dir.exists():
         print(f"Not populating submodules for {git_dir} (does not exist)")
         return
     print(f"Populating submodules for {git_dir}:")
-    exec(["git", "submodule", "update", "--init"], cwd=git_dir)
+    depth_args = []
+    if args.depth is not None:
+        depth_args = ["--depth", str(args.depth)]
+    exec(["git", "submodule", "update", "--init"] + depth_args, cwd=git_dir)
 
 
 def main(argv):
@@ -199,9 +204,11 @@ def main(argv):
             "rocm-core",
             "rocminfo",
             "rocprofiler-register",
-            "rocprofiler-compute",
+            # TODO: Re-enable when used.
+            # "rocprofiler-compute",
             "rocprofiler-sdk",
-            "rocprofiler-systems",
+            # TODO: Re-enable when used.
+            # "rocprofiler-systems",
             "ROCR-Runtime",
         ],
     )

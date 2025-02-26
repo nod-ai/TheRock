@@ -45,13 +45,17 @@ def do_build(args: argparse.Namespace, *, rest_args: list[str]):
         args.docker,
         "run",
         "--rm",
-        "-t",
-        "-i",
-        "--mount",
-        f"type=bind,src={output_dir},dst=/therock/output",
-        "--mount",
-        f"type=bind,src={args.repo_dir},dst=/therock/src",
     ]
+    if sys.stdin.isatty():
+        cl.extend(["-i", "-t"])
+    cl.extend(
+        [
+            "--mount",
+            f"type=bind,src={output_dir},dst=/therock/output",
+            "--mount",
+            f"type=bind,src={args.repo_dir},dst=/therock/src",
+        ]
+    )
 
     if args.interactive:
         cl.extend(
@@ -107,6 +111,7 @@ def main(argv: list[str]):
     p.add_argument(
         "--output-dir",
         default=Path(THIS_DIR / "output"),
+        type=Path,
         help="Output directory",
     )
     p.add_argument(
