@@ -26,7 +26,7 @@ jobs:
           - amdgpu_family: "gfx110X-dgpu"
           - amdgpu_family: "gfx1151"
 
-    name: ${{matrix.target_bundle.amdgpu_family}}::Build Portable Linux
+    name: ${{ matrix.target_bundle.amdgpu_family }}::Build Portable Linux
     runs-on: azure-cpubuilder-linux-scale
     env:
       TEATIME_LABEL_GH_GROUP: 1
@@ -42,14 +42,14 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.OUTPUT_DIR }}/caches
-          key: portable-linux-package-matrix-v1-${{matrix.target_bundle.amdgpu_family}}-${{ github.sha }}
+          key: portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-${{ github.sha }}
           restore-keys: |
-            portable-linux-package-matrix-v1-${{matrix.target_bundle.amdgpu_family}}-
+            portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-
 
       - name: Fetch sources
         run: |
           # Prefetch docker container in background.
-          docker pull ${{env.BUILD_IMAGE}} &
+          docker pull ${{ env.BUILD_IMAGE }} &
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
           ./build_tools/fetch_sources.py --depth 1
@@ -66,10 +66,10 @@ jobs:
       - name: Build Projects
         run: |
           ./packaging/linux-portable/build_portable.py \
-            --image=${{env.BUILD_IMAGE}} \
-            --output-dir=${{env.OUTPUT_DIR}} \
+            --image=${{ env.BUILD_IMAGE }} \
+            --output-dir=${{ env.OUTPUT_DIR }} \
             -- \
-            "-DTHEROCK_AMDGPU_FAMILIES=${{matrix.target_bundle.amdgpu_family}}" \
+            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}" \
             "-DTHEROCK_ENABLE_ALL=OFF"
 
       - name: Report
@@ -77,17 +77,17 @@ jobs:
         run: |
           echo "Full SDK du:"
           echo "------------"
-          du -h -d 1 ${{env.OUTPUT_DIR}/build/dist/rocm
+          du -h -d 1 ${{ env.OUTPUT_DIR }}/build/dist/rocm
           echo "Artifact Archives:"
           echo "------------------"
-          ls -lh ${{env.OUTPUT_DIR}/build/artifacts/*.tar.xz
+          ls -lh ${{ env.OUTPUT_DIR }}/build/artifacts/*.tar.xz
           echo "Artifacts:"
           echo "----------"
-          du -h -d 1 ${{env.OUTPUT_DIR}/build/artifacts
+          du -h -d 1 ${{ env.OUTPUT_DIR }}/build/artifacts
 
       - name: Save cache
         uses: actions/cache/save@v4
         if: always()
         with:
           path: ${{ env.CACHE_DIR }}
-          key: portable-linux-package-matrix-v1-${{matrix.target_bundle.amdgpu_family}}-${{ github.sha }}
+          key: portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-${{ github.sha }}
