@@ -1,6 +1,9 @@
 name: Portable Linux Package Matrix
 
 on:
+  push:
+    branches:
+      - linux_build_matrix
   workflow_dispatch:
     inputs:
       package_version:
