@@ -89,7 +89,15 @@ jobs:
           tar cfJ "${{ env.DIST_ARCHIVE }}" .
 
       - name: Upload Release Asset
-
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.DIST_ARCHIVE }}"
+          tag: mainline-snapshot
+          name: mainline-snapshot
+          removeArtifacts: false
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: false
 
       - name: Report
         if: ${{ !cancelled() }}
@@ -104,13 +112,3 @@ jobs:
         with:
           path: ${{ env.OUTPUT_DIR }}/caches
           key: portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-${{ github.sha }}
-
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: "${{ env.DIST_ARCHIVE }}"
-          tag: mainline-snapshot
-          name: mainline-snapshot
-          removeArtifacts: false
-          allowUpdates: true
-          replacesArtifacts: true
-          makeLatest: false
