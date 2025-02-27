@@ -141,7 +141,7 @@ class PatternMatcher:
         def scan_children(rootpath: str, prefix: str):
             with os.scandir(rootpath) as it:
                 for entry in it:
-                    if entry.is_dir(follow_symlinks=False):
+                    if not entry.is_symlink() and entry.is_dir():
                         relpath = f"{prefix}{entry.name}"
                         new_rootpath = os.path.join(rootpath, entry.name)
                         all[relpath] = entry
@@ -195,14 +195,9 @@ class PatternMatcher:
         for relpath, direntry in self.matches():
             try:
                 destpath = destdir / PurePosixPath(destprefix + relpath)
-                if direntry.is_dir(follow_symlinks=False):
-                    # Directory.
-                    if verbose:
-                        print(f"mkdir {destpath}", file=sys.stderr, end="")
-                    destpath.mkdir(parents=True, exist_ok=True)
-                elif direntry.is_symlink():
+                if direntry.is_symlink():
                     # Symlink.
-                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                    if not remove_dest and not destpath.is_symlink() and destpath.exists():
                         os.unlink(destpath)
                     targetpath = os.readlink(direntry.path)
                     if verbose:
@@ -213,9 +208,14 @@ class PatternMatcher:
                         )
                     destpath.parent.mkdir(parents=True, exist_ok=True)
                     os.symlink(targetpath, destpath)
+                elif direntry.is_dir():
+                    # Directory.
+                    if verbose:
+                        print(f"mkdir {destpath}", file=sys.stderr, end="")
+                    destpath.mkdir(parents=True, exist_ok=True)
                 else:
                     # Regular file.
-                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                    if not remove_dest and not destpath.is_symlink() and destpath.exists():
                         os.unlink(destpath)
                     destpath.parent.mkdir(parents=True, exist_ok=True)
                     linked_file = False
@@ -378,15 +378,15 @@ def do_artifact_archive(args):
                     written_paths.add(relpath)
                     if isinstance(arc, zipfile.ZipFile):
                         # zip file.
-                        if dir_entry.is_dir(follow_symlinks=False):
-                            arc.mkdir(relpath)
-                        elif dir_entry.is_symlink():
+                        if dir_entry.is_symlink():
                             # See: https://stackoverflow.com/questions/35782941/archiving-symlinks-with-python-zipfile
                             zip_info = zipfile.ZipInfo(dir_entry.path)
                             zip_info.filename = relpath
                             zip_info.create_system = 3  # System 3 = Unix
                             zip_info.external_attr = (0xA000 | 0o777) << 16
                             arc.writestr(zip_info, os.readlink(dir_entry.path))
+                        elif dir_entry.is_dir():
+                            arc.mkdir(relpath)
                         else:
                             arc.write(dir_entry.path, arcname=relpath)
                     else:
