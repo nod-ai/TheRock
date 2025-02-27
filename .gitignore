@@ -9,8 +9,12 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
-build/
-install/
 sources/
 .vscode/
 *.venv
+__pycache__
+
+# Output directories.
+/build/
+/install/
+/output-*/
