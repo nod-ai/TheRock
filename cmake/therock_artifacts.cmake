@@ -40,7 +40,7 @@ function(therock_provide_artifact slice_name)
 
   # Determine top-level name.
   if(ARG_TARGET_NEUTRAL)
-    set(_bundle_suffix "")
+    set(_bundle_suffix "_generic")
   else()
     set(_bundle_suffix "_${THEROCK_AMDGPU_DIST_BUNDLE_NAME}")
   endif()
@@ -64,7 +64,6 @@ function(therock_provide_artifact slice_name)
         --output-dir "${_component_dir}"
         --root-dir "${THEROCK_BINARY_DIR}" --descriptor "${ARG_DESCRIPTOR}"
         --component "${_component}"
-        --manifest "${_manifest_file}"
     )
   endforeach()
 
@@ -87,27 +86,25 @@ function(therock_provide_artifact slice_name)
   ### Generate artifact archive commands.
   set(_archive_files)
   foreach(_component ${ARG_COMPONENTS})
-    foreach(_archive_type ${THEROCK_ARTIFACT_ARCHIVE_TYPES})
-      set(_component_dir "${THEROCK_BINARY_DIR}/artifacts/${slice_name}_${_component}${_bundle_suffix}")
-      set(_manifest_file "${_component_dir}/artifact_manifest.txt")
-      set(_archive_file "${THEROCK_BINARY_DIR}/artifacts/${slice_name}_${_component}${_bundle_suffix}${THEROCK_ARTIFACT_ARCHIVE_SUFFIX}.${_archive_type}")
-      list(APPEND _archive_files "${_archive_file}")
-      set(_archive_sha_file "${_archive_file}.sha256sum")
-      add_custom_command(
-        OUTPUT
-          "${_archive_file}"
-          "${_archive_sha_file}"
-        COMMENT "Creating archive ${_archive_file}"
-        COMMAND
-          "${Python3_EXECUTABLE}" "${_fileset_tool}"
-          artifact-archive "${_component_dir}"
-            -o "${_archive_file}" --type "${_archive_type}"
-            --hash-file "${_archive_sha_file}" --hash-algorithm sha256
-        DEPENDS
-          "${_manifest_file}"
-          "${_fileset_tool}"
-      )
-    endforeach()
+    set(_component_dir "${THEROCK_BINARY_DIR}/artifacts/${slice_name}_${_component}${_bundle_suffix}")
+    set(_manifest_file "${_component_dir}/artifact_manifest.txt")
+    set(_archive_file "${THEROCK_BINARY_DIR}/artifacts/${slice_name}_${_component}${_bundle_suffix}${THEROCK_ARTIFACT_ARCHIVE_SUFFIX}.tar.xz")
+    list(APPEND _archive_files "${_archive_file}")
+    set(_archive_sha_file "${_archive_file}.sha256sum")
+    add_custom_command(
+      OUTPUT
+        "${_archive_file}"
+        "${_archive_sha_file}"
+      COMMENT "Creating archive ${_archive_file}"
+      COMMAND
+        "${Python3_EXECUTABLE}" "${_fileset_tool}"
+        artifact-archive "${_component_dir}"
+          -o "${_archive_file}"
+          --hash-file "${_archive_sha_file}" --hash-algorithm sha256
+      DEPENDS
+        "${_manifest_file}"
+        "${_fileset_tool}"
+    )
   endforeach()
 
   add_custom_target("${_archive_target_name}" DEPENDS ${_archive_files})
