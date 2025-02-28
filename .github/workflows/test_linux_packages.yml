@@ -20,6 +20,7 @@ on:
         default: ADHOCBUILD
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
