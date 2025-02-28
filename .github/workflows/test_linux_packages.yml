@@ -26,9 +26,7 @@ permissions:
 jobs:
   test_rocm_info:
     name: "Sanity ROCM Test"
-    #runs-on: linux-mi300-1gpu-ossci
-    # Cheating for now for faster runs
-    runs-on: ubuntu-latest
+    runs-on: linux-mi300-1gpu-ossci
     strategy:
       fail-fast: true
     defaults:
@@ -36,7 +34,7 @@ jobs:
         shell: bash
     env:
       VENV_DIR: ${{ github.workspace }}/.venv
-    
+
     # MOSTLY BOILER PLATE ABOVE.
     steps:
       - name: Configure AWS Credentials
@@ -52,7 +50,6 @@ jobs:
           mkdir -p build/artifacts
 
           echo "Downloading artifacts"
-          aws s3 ls s3://therock-artifacts/13564590298 --recursive
           aws s3 cp s3://therock-artifacts/13564590298/core-runtime_run.tar.xz build/artifacts/
           aws s3 cp s3://therock-artifacts/13564590298/core-runtime_lib.tar.xz build/artifacts/
           aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz build/artifacts/
