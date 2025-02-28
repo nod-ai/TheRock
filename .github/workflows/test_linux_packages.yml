@@ -27,6 +27,9 @@ jobs:
   test_rocm_info:
     name: "Sanity ROCM Test"
     runs-on: linux-mi300-1gpu-ossci
+    # TODO(sosa): I don't really need this but wanted the aws tool.
+    container:
+      image: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
     strategy:
       fail-fast: true
     defaults:
