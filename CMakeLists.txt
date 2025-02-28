@@ -38,7 +38,6 @@ set(ROCM_SYMLINK_LIBS OFF)
 message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
-set(THEROCK_ARTIFACT_ARCHIVE_TYPES "tar.xz" CACHE STRING "List of artifact archive types to generate")
 
 cmake_dependent_option(
   THEROCK_BUNDLE_SYSDEPS "Builds bundled system deps for portable builds into lib/rocm_sysdeps"

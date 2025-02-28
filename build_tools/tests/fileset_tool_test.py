@@ -1,6 +1,7 @@
 import hashlib
 import os
 from pathlib import Path
+import platform
 import shlex
 import subprocess
 import sys
@@ -23,6 +24,18 @@ def exec(args: list[str | Path], cwd: Path = FILESET_TOOL.parent):
 def write_text(p: Path, text: str):
     p.parent.mkdir(exist_ok=True, parents=True)
     p.write_text(text)
+
+
+def is_windows():
+    return platform.system() == "Windows"
+
+
+def fset_executable(f):
+    os.fchmod(f.fileno(), os.fstat(f.fileno()).st_mode | 0o111)
+
+
+def is_executable(path: Path):
+    return bool(os.stat(path).st_mode & 0o111)
 
 
 class FilesetToolTest(unittest.TestCase):
@@ -53,7 +66,7 @@ class FilesetToolTest(unittest.TestCase):
         flat2_dir = self.temp_dir / "flat2"
         write_text(descriptor_file, ARTIFACT_DESCRIPTOR_1)
 
-        # One sample file and a symlink.
+        # One sample file and a symlink, and an executable.
         write_text(
             input_dir / "example" / "stage" / "share" / "doc" / "README.txt",
             "Hello World!",
@@ -61,6 +74,12 @@ class FilesetToolTest(unittest.TestCase):
         Path(input_dir / "example" / "stage" / "share" / "doc" / "README").symlink_to(
             "README.txt"
         )
+        if not is_windows():
+            with open(
+                input_dir / "example" / "stage" / "share" / "doc" / "executable", "wb"
+            ) as f:
+                f.write(b"Contents")
+                fset_executable(f)
         exec(
             [
                 sys.executable,
@@ -94,6 +113,12 @@ class FilesetToolTest(unittest.TestCase):
             ),
             "README.txt",
         )
+        if not is_windows():
+            self.assertTrue(
+                is_executable(
+                    artifact_dir / "example" / "stage" / "share" / "doc" / "executable"
+                )
+            )
 
         # Archive it.
         exec(
@@ -134,6 +159,10 @@ class FilesetToolTest(unittest.TestCase):
             os.readlink(flat1_dir / "share" / "doc" / "README"),
             "README.txt",
         )
+        if not is_windows():
+            self.assertTrue(
+                is_executable(flat1_dir / "share" / "doc" / "executable")
+            )
 
         # Flatten the archive file and verify.
         exec(
@@ -143,18 +172,21 @@ class FilesetToolTest(unittest.TestCase):
                 "artifact-flatten",
                 artifact_archive,
                 "-o",
-                flat1_dir,
+                flat2_dir,
             ]
         )
         self.assertEqual(
-            (flat1_dir / "share" / "doc" / "README.txt").read_text(),
+            (flat2_dir / "share" / "doc" / "README.txt").read_text(),
             "Hello World!",
         )
         self.assertEqual(
-            os.readlink(flat1_dir / "share" / "doc" / "README"),
+            os.readlink(flat2_dir / "share" / "doc" / "README"),
             "README.txt",
         )
-
+        if not is_windows():
+            self.assertTrue(
+                is_executable(flat2_dir / "share" / "doc" / "executable")
+            )
 
 
 if __name__ == "__main__":

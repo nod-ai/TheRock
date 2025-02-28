@@ -22,7 +22,6 @@ import re
 import shutil
 import sys
 import tarfile
-import zipfile
 
 
 class ComponentDefaults:
@@ -197,7 +196,11 @@ class PatternMatcher:
                 destpath = destdir / PurePosixPath(destprefix + relpath)
                 if direntry.is_symlink():
                     # Symlink.
-                    if not remove_dest and not destpath.is_symlink() and destpath.exists():
+                    if (
+                        not remove_dest
+                        and not destpath.is_symlink()
+                        and destpath.exists()
+                    ):
                         os.unlink(destpath)
                     targetpath = os.readlink(direntry.path)
                     if verbose:
@@ -215,7 +218,11 @@ class PatternMatcher:
                     destpath.mkdir(parents=True, exist_ok=True)
                 else:
                     # Regular file.
-                    if not remove_dest and not destpath.is_symlink() and destpath.exists():
+                    if (
+                        not remove_dest
+                        and not destpath.is_symlink()
+                        and destpath.exists()
+                    ):
                         os.unlink(destpath)
                     destpath.parent.mkdir(parents=True, exist_ok=True)
                     linked_file = False
@@ -346,11 +353,8 @@ def do_artifact(args):
         )
 
     # Write a manifest containing relative paths of all base directories.
-    manifest_path = args.manifest
-    if manifest_path is None:
-        manifest_path = output_dir / "artifact_manifest.txt"
-    if manifest_path:
-        manifest_path.write_text("\n".join(all_basedir_relpaths) + "\n")
+    manifest_path = output_dir / "artifact_manifest.txt"
+    manifest_path.write_text("\n".join(all_basedir_relpaths) + "\n")
 
 
 def do_artifact_archive(args):
@@ -359,11 +363,12 @@ def do_artifact_archive(args):
         output_path.unlink()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with _open_archive(output_path, archive_type=args.type) as arc:
-        written_paths: set[str] = set()
+    with _open_archive(output_path) as arc:
         for artifact_path in args.artifact:
             manifest_path: Path = artifact_path / "artifact_manifest.txt"
             relpaths = manifest_path.read_text().splitlines()
+            # Important: The manifest must be stored first.
+            arc.add(manifest_path, arcname=manifest_path.name, recursive=False)
             for relpath in relpaths:
                 if not relpath:
                     continue
@@ -372,26 +377,9 @@ def do_artifact_archive(args):
                     continue
                 pm = PatternMatcher()
                 pm.add_basedir(source_dir)
-                for relpath, dir_entry in pm.all.items():
-                    if relpath in written_paths:
-                        continue
-                    written_paths.add(relpath)
-                    if isinstance(arc, zipfile.ZipFile):
-                        # zip file.
-                        if dir_entry.is_symlink():
-                            # See: https://stackoverflow.com/questions/35782941/archiving-symlinks-with-python-zipfile
-                            zip_info = zipfile.ZipInfo(dir_entry.path)
-                            zip_info.filename = relpath
-                            zip_info.create_system = 3  # System 3 = Unix
-                            zip_info.external_attr = (0xA000 | 0o777) << 16
-                            arc.writestr(zip_info, os.readlink(dir_entry.path))
-                        elif dir_entry.is_dir():
-                            arc.mkdir(relpath)
-                        else:
-                            arc.write(dir_entry.path, arcname=relpath)
-                    else:
-                        # tar file
-                        arc.add(dir_entry.path, arcname=relpath, recursive=False)
+                for subpath, dir_entry in pm.all.items():
+                    fullpath = f"{relpath}/{subpath}"
+                    arc.add(dir_entry.path, arcname=fullpath, recursive=False)
 
     if args.hash_file:
         with open(output_path, "rb") as f:
@@ -401,33 +389,77 @@ def do_artifact_archive(args):
             hash_file.write("\n")
 
 
-def _open_archive(p: Path, archive_type: str) -> tarfile.TarFile | zipfile.ZipFile:
-    if archive_type == "tar.xz":
-        return tarfile.TarFile.open(p, mode="x:xz")
-    elif archive_type == "tar.gz":
-        return tarfile.TarFile.open(p, mode="x:gz")
-    elif archive_type == "tar.bz2":
-        return tarfile.TarFile.open(p, mode="x:bz2")
-    elif archive_type == "zip":
-        return zipfile.ZipFile(str(p), "x")
-    raise ValueError("Expected one of tar.xz, tar.gz, tar.bz2 for archive type")
+def _open_archive(p: Path) -> tarfile.TarFile:
+    return tarfile.TarFile.open(p, mode="x:xz")
 
 
 def _do_artifact_flatten(args):
     output_path: Path = args.o
-    pm = PatternMatcher()
-    for artifact_path in args.artifact:
-        manifest_path: Path = artifact_path / "artifact_manifest.txt"
-        relpaths = manifest_path.read_text().splitlines()
-        for relpath in relpaths:
-            if not relpath:
-                continue
-            source_dir = artifact_path / relpath
-            if not source_dir.exists():
-                continue
-            pm.add_basedir(source_dir)
-
-    pm.copy_to(destdir=output_path, verbose=args.verbose)
+    artifact_paths: list[Path] = args.artifact
+    for artifact_path in artifact_paths:
+        if artifact_path.is_dir():
+            # Process an exploded artifact dir.
+            pm = PatternMatcher()
+            manifest_path: Path = artifact_path / "artifact_manifest.txt"
+            relpaths = manifest_path.read_text().splitlines()
+            for relpath in relpaths:
+                if not relpath:
+                    continue
+                source_dir = artifact_path / relpath
+                if not source_dir.exists():
+                    continue
+                pm.add_basedir(source_dir)
+            pm.copy_to(destdir=output_path, verbose=args.verbose, remove_dest=False)
+        else:
+            # Process as an archive file.
+            with tarfile.TarFile.open(artifact_path, mode="r:xz") as tf:
+                # Read manifest first.
+                manifest_member = tf.next()
+                if (
+                    manifest_member is None
+                    or manifest_member.name != "artifact_manifest.txt"
+                ):
+                    raise IOError(
+                        f"Artifact archive {artifact_path} must have artifact_manifest.txt as its first member"
+                    )
+                with tf.extractfile(manifest_member) as mf_file:
+                    relpaths = mf_file.read().decode().splitlines()
+                # Iterate over all remaining members.
+                while member := tf.next():
+                    member_name = member.name
+                    # Figure out which relpath prefix it is a part of.
+                    for prefix_relpath in relpaths:
+                        prefix_relpath += "/"
+                        if member_name.startswith(prefix_relpath):
+                            scoped_path = member_name[len(prefix_relpath) :]
+                            dest_path = output_path / PurePosixPath(scoped_path)
+                            if dest_path.is_symlink() or (
+                                dest_path.exists() and not dest_path.is_dir()
+                            ):
+                                os.unlink(dest_path)
+                            dest_path.parent.mkdir(parents=True, exist_ok=True)
+                            if member.isfile():
+                                exec_mask = member.mode & 0o111
+                                with tf.extractfile(member) as member_file:
+                                    with open(
+                                        dest_path,
+                                        "wb",
+                                    ) as out_file:
+                                        out_file.write(member_file.read())
+                                        st = os.fstat(out_file.fileno())
+                                        new_mode = st.st_mode | exec_mask
+                                        os.fchmod(out_file.fileno(), new_mode)
+                            elif member.isdir():
+                                dest_path.mkdir(parents=True, exist_ok=True)
+                            elif member.issym():
+                                dest_path.symlink_to(member.linkname)
+                            else:
+                                raise IOError(f"Unhandled tar member: {member}")
+                            break
+                    else:
+                        raise IOError(
+                            f"Extracting tar artifact archive, encountered file not in manifest: {member}"
+                        )
 
 
 def _dup_list_or_str(v: list[str] | str) -> list[str]:
@@ -515,11 +547,6 @@ def main(cl_args: list[str]):
     artifact_p.add_argument(
         "--component", required=True, help="Component within the descriptor to merge"
     )
-    artifact_p.add_argument(
-        "--manifest",
-        type=Path,
-        help="Manifest text file to write (contains base paths)",
-    )
     artifact_p.set_defaults(func=do_artifact)
 
     # 'artifact-archive' command
@@ -532,9 +559,6 @@ def main(cl_args: list[str]):
     )
     artifact_archive_p.add_argument(
         "-o", type=Path, required=True, help="Output archive name"
-    )
-    artifact_archive_p.add_argument(
-        "--type", default="tar.xz", help="Archive type (tar.xz, tar.gz, tar.bz2, zip)"
     )
     artifact_archive_p.add_argument(
         "--hash-file",
