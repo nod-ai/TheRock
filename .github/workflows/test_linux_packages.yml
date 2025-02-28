@@ -60,7 +60,7 @@ jobs:
 
           echo "Unpacking artifacts"
           pushd build/artifacts          
-          for a in *.tar.xz; do tar -xvpf $(readlink -f .)/"$a" -C /; done
+          for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C /; done
           popd
 
       - name: Run rocminfo
