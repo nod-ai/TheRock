@@ -138,8 +138,10 @@ jobs:
         run: |
           aws s3 cp build/logs/ s3://therock-artifacts/${{github.run_id}}/logs/ \
             --recursive \
+            --content-type="text/plain" \
             --exclude "*" \
-            --include "*.log" --include "index.html"
+            --include "*.log"
+          aws s3 cp build/logs/index.html s3://therock-artifacts/${{github.run_id}}/logs/
 
       - name: Add Links to Job Summary
         run: |
