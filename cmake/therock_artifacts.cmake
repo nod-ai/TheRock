@@ -40,7 +40,7 @@ function(therock_provide_artifact slice_name)
 
   # Determine top-level name.
   if(ARG_TARGET_NEUTRAL)
-    set(_bundle_suffix "")
+    set(_bundle_suffix "_generic")
   else()
     set(_bundle_suffix "_${THEROCK_AMDGPU_DIST_BUNDLE_NAME}")
   endif()

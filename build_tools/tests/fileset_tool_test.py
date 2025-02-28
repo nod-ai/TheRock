@@ -160,9 +160,7 @@ class FilesetToolTest(unittest.TestCase):
             "README.txt",
         )
         if not is_windows():
-            self.assertTrue(
-                is_executable(flat1_dir / "share" / "doc" / "executable")
-            )
+            self.assertTrue(is_executable(flat1_dir / "share" / "doc" / "executable"))
 
         # Flatten the archive file and verify.
         exec(
@@ -184,9 +182,7 @@ class FilesetToolTest(unittest.TestCase):
             "README.txt",
         )
         if not is_windows():
-            self.assertTrue(
-                is_executable(flat2_dir / "share" / "doc" / "executable")
-            )
+            self.assertTrue(is_executable(flat2_dir / "share" / "doc" / "executable"))
 
 
 if __name__ == "__main__":
