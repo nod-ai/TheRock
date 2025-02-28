@@ -19,6 +19,9 @@ on:
         type: string
         default: ADHOCBUILD
 
+permissions:
+  contents: read
+
 jobs:
   test_rocm_info:
     name: "Sanity ROCM Test"
