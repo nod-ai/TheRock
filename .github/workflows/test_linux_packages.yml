@@ -49,17 +49,18 @@ jobs:
       # TODO(): Replace id with ${{github.run_id}}
       - name: Download Unpack Artifacts
         run: |
-          echo "Making build/artifacts directory"
-          mkdir -p build/artifacts
+          BUILD_ARTIFACTS_DIR=build/artifacts
+          echo "Making ${BUILD_ARTIFACTS_DIR} directory"
+          mkdir -p "${BUILD_ARTIFACTS_DIR}"
 
           echo "Downloading artifacts"
-          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_run.tar.xz build/artifacts/
-          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_lib.tar.xz build/artifacts/
-          aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz build/artifacts/
-          aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz build/artifacts/
+          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_run.tar.xz "${BUILD_ARTIFACTS_DIR}"
+          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
+          aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
+          aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
 
           echo "Unpacking artifacts"
-          pushd build/artifacts          
+          pushd "${BUILD_ARTIFACTS_DIR}"
           for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C /; done
           popd
 
