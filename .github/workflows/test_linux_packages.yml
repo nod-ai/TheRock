@@ -60,8 +60,10 @@ jobs:
           aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
 
           echo "Unpacking artifacts"
+          set -x
           pushd "${BUILD_ARTIFACTS_DIR}"
           for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C /; done
+          set +x
           popd
 
       - name: Run rocminfo
