@@ -4,6 +4,8 @@
 #   THEROCK_AMDGPU_TARGET_NAME_{gfx_target}: Product name of the gfx target
 #   THEROCK_AMDGPU_TARGET_FAMILY_{family}: List of gfx targets within a named
 #     family
+#
+# Note that each gfx_target will also create a family of the same name.
 set_property(GLOBAL PROPERTY THEROCK_AMDGPU_TARGETS)
 
 function(therock_add_amdgpu_target gfx_target product_name)
@@ -19,7 +21,7 @@ function(therock_add_amdgpu_target gfx_target product_name)
   endif()
   set_property(GLOBAL APPEND PROPERTY THEROCK_AMDGPU_TARGETS "${gfx_target}")
   set_property(GLOBAL PROPERTY "THEROCK_AMDGPU_TARGET_NAME_${gfx_target}" "${product_name}")
-  foreach(_family ${ARG_FAMILY})
+  foreach(_family "${gfx_target}" ${ARG_FAMILY})
     set_property(GLOBAL APPEND PROPERTY THEROCK_AMDGPU_TARGET_FAMILIES "${_family}")
     set_property(GLOBAL APPEND PROPERTY "THEROCK_AMDGPU_TARGET_FAMILY_${_family}" "${gfx_target}")
   endforeach()

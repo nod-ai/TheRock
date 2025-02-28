@@ -6,19 +6,22 @@ The HIP Environment and ROCm Kit - A lightweight open source build system for HI
 
 # Install Deps
 
+By default on Linux, the project builds with -DTHEROCK_BUNDLE_SYSDEPS=ON, which
+builds low-level system libraries from source and private links to them. This
+requires some additional development tools, which are included below.
+
 ## Common
 
 ```
-pip install CppHeaderParser
+pip install CppHeaderParser==2.7.4 meson==1.7.0
 ```
 
 ## On Ubuntu
 
-```
-sudo apt install \
-  repo git-lfs libnuma-dev ninja-build cmake g++ pkg-config libdrm-dev \
-  libelf-dev xxd libgl1-mesa-dev libbz2-dev libsqlite3-dev libgtest-dev gfortran libdw-dev
+Dev tools:
 
+```
+sudo apt install gfortran repo git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev
 ```
 
 # Checkout Sources

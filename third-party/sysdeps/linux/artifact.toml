@@ -1,0 +1,30 @@
+# bzip2
+[components.dev."third-party/sysdeps/linux/bzip2/build/stage"]
+[components.lib."third-party/sysdeps/linux/bzip2/build/stage"]
+
+# elfutils
+[components.dev."third-party/sysdeps/linux/elfutils/build/stage"]
+[components.lib."third-party/sysdeps/linux/elfutils/build/stage"]
+
+# libdrm
+[components.dev."third-party/sysdeps/linux/libdrm/build/stage"]
+[components.lib."third-party/sysdeps/linux/libdrm/build/stage"]
+include = [
+  "**/share/**",
+]
+
+# numactl
+[components.dev."third-party/sysdeps/linux/numactl/build/stage"]
+[components.lib."third-party/sysdeps/linux/numactl/build/stage"]
+
+# sqlite3
+[components.dev."third-party/sysdeps/linux/sqlite3/build/stage"]
+[components.lib."third-party/sysdeps/linux/sqlite3/build/stage"]
+
+# zlib
+[components.dev."third-party/sysdeps/linux/zlib/build/stage"]
+[components.lib."third-party/sysdeps/linux/zlib/build/stage"]
+
+# zstd
+[components.dev."third-party/sysdeps/linux/zstd/build/stage"]
+[components.lib."third-party/sysdeps/linux/zstd/build/stage"]

@@ -1,0 +1,122 @@
+name: Portable Linux Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_suffix:
+        type: string
+        default: -ADHOCBUILD
+      release_tag:
+        description: Publish files to this release tag
+        required: false
+        type: string
+
+  workflow_call:
+    inputs:
+      package_suffix:
+        type: string
+        default: -ADHOCBUILD
+      release_tag:
+        description: Publish files to this release tag
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # A PR number if a pull request and otherwise the commit hash. This cancels
+  # queued and in-progress runs for the same PR (presubmit) or commit
+  # (postsubmit). The workflow name is prepended to avoid conflicts between
+  # different workflows.
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  portable_linux_packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        target_bundle:
+          - amdgpu_family: "gfx94X-dcgpu"
+          - amdgpu_family: "gfx110X-dgpu"
+          - amdgpu_family: "gfx1151"
+
+    permissions:
+      contents: write
+    name: ${{ matrix.target_bundle.amdgpu_family }}::Build Portable Linux
+    runs-on: azure-cpubuilder-linux-scale
+    env:
+      TEATIME_LABEL_GH_GROUP: 1
+      OUTPUT_DIR: ${{ github.workspace }}/output
+      BUILD_IMAGE: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
+      DIST_ARCHIVE: "${{ github.workspace }}/output/therock-dist-${{ matrix.target_bundle.amdgpu_family }}${{ github.events.input.package_suffix }}.tar.gz"
+    steps:
+      - name: "Checking out repository"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: '3.10'
+      # TODO: We shouldn't be using a cache on actual release branches, but it
+      # really helps for iteration time.
+      - name: Enable cache
+        uses: actions/cache/restore@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        with:
+          path: ${{ env.OUTPUT_DIR }}/caches
+          key: portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-${{ github.sha }}
+          restore-keys: |
+            portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-
+
+      - name: Fetch sources
+        run: |
+          # Prefetch docker container in background.
+          docker pull ${{ env.BUILD_IMAGE }} &
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
+          ./build_tools/fetch_sources.py --depth 1
+          wait
+
+      # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
+      # So we delete the latter. This must be done after getting any git
+      # stamps or such things.
+      - name: Trim Disk Space
+        run: |
+          rm -Rf sources/.repo
+          df -h
+
+      - name: Build Projects
+        run: |
+          ./packaging/linux-portable/build_portable.py \
+            --image=${{ env.BUILD_IMAGE }} \
+            --output-dir=${{ env.OUTPUT_DIR }} \
+            -- \
+            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}"
+          cd ${{ env.OUTPUT_DIR }}/build/dist/rocm
+          echo "Building ${{ env.DIST_ARCHIVE }}"
+          tar cfz "${{ env.DIST_ARCHIVE }}" .
+
+      - name: Upload Release Asset
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        if: github.event.inputs.release_tag != ''
+        with:
+          artifacts: "${{ env.DIST_ARCHIVE }}"
+          tag: mainline-snapshot
+          name: mainline-snapshot
+          removeArtifacts: false
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: false
+
+      - name: Report
+        if: ${{ !cancelled() }}
+        run: |
+          echo "Full SDK du:"
+          echo "------------"
+          du -h -d 1 ${{ env.OUTPUT_DIR }}/build/dist/rocm
+
+      - name: Save cache
+        uses: actions/cache/save@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        if: always()
+        with:
+          path: ${{ env.OUTPUT_DIR }}/caches
+          key: portable-linux-package-matrix-v1-${{ matrix.target_bundle.amdgpu_family }}-${{ github.sha }}

@@ -179,6 +179,8 @@ endfunction()
 #   sub-projects must add to their runtime link library path.
 # INTERFACE_PROGRAM_DIRS: Relative paths within the install tree which
 #   dependent sub-projects must add to their program search path.
+# INTERFACE_PKG_CONFIG_DIRS: Relative paths within the install tree which
+#   dependent sub-projects must add to their PKG_CONFIG_PATH.
 # IGNORE_PACKAGES: List of find_package package names to ignore, even if they
 #   are advertised by the super-project. These packages will always fall-through
 #   to the system resolver.
@@ -202,7 +204,7 @@ function(therock_cmake_subproject_declare target_name)
   cmake_parse_arguments(
     PARSE_ARGV 1 ARG
     "ACTIVATE;EXCLUDE_FROM_ALL;BACKGROUND_BUILD;NO_MERGE_COMPILE_COMMANDS;OUTPUT_ON_FAILURE"
-    "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH"
+    "EXTERNAL_SOURCE_DIR;BINARY_DIR;DIR_PREFIX;INSTALL_DESTINATION;COMPILER_TOOLCHAIN;INTERFACE_PROGRAM_DIRS;CMAKE_LISTS_RELPATH;INTERFACE_PKG_CONFIG_DIRS"
     "BUILD_DEPS;RUNTIME_DEPS;CMAKE_ARGS;INTERFACE_LINK_DIRS;IGNORE_PACKAGES;EXTRA_DEPENDS"
   )
   if(TARGET "${target_name}")
@@ -250,28 +252,40 @@ function(therock_cmake_subproject_declare target_name)
 
   # Collect LINK_DIRS and PROGRAM_DIRS from explicit args and RUNTIME_DEPS.
   _therock_cmake_subproject_collect_runtime_deps(
-      _private_link_dirs _private_program_dirs _transitive_runtime_deps
+      _private_link_dirs _private_program_dirs _private_pkg_config_dirs
+      _transitive_runtime_deps
       _transitive_configure_depend_files
       ${ARG_RUNTIME_DEPS})
+
+  # Link dirs
   set(_declared_link_dirs "${ARG_INTERFACE_LINK_DIRS}")
   _therock_cmake_subproject_absolutize(_declared_link_dirs "${_stage_dir}")
   # The link dirs that we advertise combine interface link dirs of runtime deps
   # and any that we declared.
-  list(APPEND _interface_link_dirs ${_private_link_dirs} ${_declared_link_dirs})
+  set(_interface_link_dirs ${_private_link_dirs} ${_declared_link_dirs})
+
+  # Program dirs
   # Collect program dirs from explicit args and RUNTIME_DEPS.
   set(_declared_program_dirs "${ARG_INTERFACE_PROGRAM_DIRS}")
   _therock_cmake_subproject_absolutize(_declared_program_dirs "${_dist_dir}")
   # The program dirs that we advertise combine interface program dirs of
   # runtime deps and any that we declared.
-  list(APPEND _interface_program_dirs ${_private_program_dirs} ${_declared_program_dirs})
+  set(_interface_program_dirs ${_private_program_dirs} ${_declared_program_dirs})
+
+  # PkgConfig dirs
+  set(_declared_pkg_config_dirs "${ARG_INTERFACE_PKG_CONFIG_DIRS}")
+  _therock_cmake_subproject_absolutize(_declared_pkg_config_dirs "${_stage_dir}")
+  set(_interface_pkg_config_dirs ${_private_pkg_config_dirs} ${_declared_pkg_config_dirs})
 
   # Dedup transitives.
   list(REMOVE_DUPLICATES _private_link_dirs)
   list(REMOVE_DUPLICATES _interface_link_dirs)
-  list(REMOVE_DUPLICATES _transitive_runtime_deps)
   list(REMOVE_DUPLICATES _private_program_dirs)
   list(REMOVE_DUPLICATES _interface_program_dirs)
+  list(REMOVE_DUPLICATES _transitive_runtime_deps)
   list(REMOVE_DUPLICATES _transitive_configure_depend_files)
+  list(REMOVE_DUPLICATES _private_pkg_config_dirs)
+  list(REMOVE_DUPLICATES _interface_pkg_config_dirs)
 
   # Build pool determination.
   set(_build_pool)
@@ -302,6 +316,10 @@ function(therock_cmake_subproject_declare target_name)
     THEROCK_PRIVATE_LINK_DIRS "${_private_link_dirs}"
     # Link dirs that are advertised to dependents
     THEROCK_INTERFACE_LINK_DIRS "${_interface_link_dirs}"
+    # PkgConfig directories that this project must use.
+    THEROCK_PRIVATE_PKG_CONFIG_DIRS "${_private_pkg_config_dirs}"
+    # Directories that sub-projects must add to their PKG_CONFIG_PATH.
+    THEROCK_INTERFACE_PKG_CONFIG_DIRS "${_interface_pkg_config_dirs}"
     # Program dirs that this sub-project must configure with.
     THEROCK_PRIVATE_PROGRAM_DIRS "${_private_program_dirs}"
     # Program dirs that are advertised to dependents.
@@ -362,6 +380,7 @@ function(therock_cmake_subproject_activate target_name)
   get_target_property(_install_destination "${target_name}" THEROCK_INSTALL_DESTINATION)
   get_target_property(_no_merge_compile_commands "${target_name}" THEROCK_NO_MERGE_COMPILE_COMMANDS)
   get_target_property(_private_link_dirs "${target_name}" THEROCK_PRIVATE_LINK_DIRS)
+  get_target_property(_private_pkg_config_dirs "${target_name}" THEROCK_PRIVATE_PKG_CONFIG_DIRS)
   get_target_property(_private_program_dirs "${target_name}" THEROCK_PRIVATE_PROGRAM_DIRS)
   get_target_property(_stage_dir "${target_name}" THEROCK_STAGE_DIR)
   get_target_property(_sources "${target_name}" SOURCES)
@@ -423,12 +442,14 @@ function(therock_cmake_subproject_activate target_name)
     string(APPEND _init_contents "set(${_var_name} \"@${_var_name}@\" CACHE STRING \"\" FORCE)\n")
   endforeach()
   # Process dependencies. We process runtime deps first so that they take precedence
-  # over build deps (first wins).
+  # over build deps (first wins). Both come from the dist directory because if
+  # build tools are needed from them, only the dist dir is guaranteed to have
+  # all runtime deps met.
   string(APPEND _init_contents "set(THEROCK_PROVIDED_PACKAGES)\n")
   set(_deps_contents)
   set(_deps_provided)
   _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_DIST_DIR ${_runtime_deps})
-  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_STAGE_DIR ${_build_deps})
+  _therock_cmake_subproject_setup_deps(_deps_contents _deps_provided THEROCK_DIST_DIR ${_build_deps})
 
   string(APPEND _init_contents "${_deps_contents}")
   string(APPEND _init_contents "set(THEROCK_IGNORE_PACKAGES \"@_ignore_packages@\")\n")
@@ -437,9 +458,21 @@ function(therock_cmake_subproject_activate target_name)
     if(THEROCK_VERBOSE)
       message(STATUS "  LINK_DIR: ${_private_link_dir}")
     endif()
-    string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
-    string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -Wl,-rpath-link,${_private_link_dir}\")\n")
+    if(NOT MSVC)
+      # The normal way.
+      string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" -L ${_private_link_dir} -Wl,-rpath-link,${_private_link_dir}\")\n")
+      string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" -L ${_private_link_dir} -Wl,-rpath-link,${_private_link_dir}\")\n")
+    else()
+      # The MSVC way.
+      string(APPEND _init_contents "string(APPEND CMAKE_EXE_LINKER_FLAGS \" /LIBPATH:${_private_link_dir}\")\n")
+      string(APPEND _init_contents "string(APPEND CMAKE_SHARED_LINKER_FLAGS \" /LIBPATH:${_private_link_dir}\")\n")
+    endif()
   endforeach()
+  if(THEROCK_VERBOSE AND _private_pkg_config_dirs)
+    message(STATUS "  PKG_CONFIG_DIRS: ${_private_pkg_config_dirs}")
+  endif()
+  string(APPEND _init_contents "set(THEROCK_PKG_CONFIG_DIRS \"@_private_pkg_config_dirs@\")\n")
+
   string(APPEND _init_contents "${_compiler_toolchain_init_contents}")
   if(_dep_provider_file)
     string(APPEND _init_contents "include(${_dep_provider_file})\n")
@@ -454,12 +487,15 @@ function(therock_cmake_subproject_activate target_name)
   file(CONFIGURE OUTPUT "${_cmake_project_init_file}" CONTENT "${_init_contents}" @ONLY ESCAPE_QUOTES)
 
   # Transform build and run deps from target form (i.e. 'ROCR-Runtime' to a dependency
-  # on the stage.stamp or dist.stamp file). These are a dependency for configure. Build
-  # deps are satisfied out of the stage directory as they do not have a runtime
-  # component. Runtime deps are satisfied out of the dist directory as they may have
-  # transitive runtime deps at build time.
+  # on the dist.stamp file). These are a dependency for configure. We satisfy both
+  # build and runtime deps from the dist phase because even build-only deps may
+  # need to execute tools linked such that they require all transitive libraries
+  # materialized. We might be able to save some milliseconds by steering
+  # build-only deps to the stage.stamp file, but the complexity involved is not
+  # worth it, especially considering that it increases the likelihood of build
+  # non-determinism.
   set(_configure_dep_stamps)
-  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps stage.stamp ${_build_deps})
+  _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_build_deps})
   _therock_cmake_subproject_deps_to_stamp(_configure_dep_stamps dist.stamp ${_runtime_deps})
 
   # Target flags.
@@ -788,10 +824,11 @@ endfunction()
 # and transitive runtime deps. Both lists may contain duplicates if the DAG
 # includes the same dep multiple times.
 function(_therock_cmake_subproject_collect_runtime_deps
-    out_link_dirs out_program_dirs out_transitive_deps
+    out_link_dirs out_program_dirs out_pkg_config_dirs out_transitive_deps
     out_transitive_configure_depend_files)
   set(_link_dirs)
   set(_program_dirs)
+  set(_pkg_config_dirs)
   set(_transitive_deps)
   set(_transitive_configure_depend_files)
   foreach(target_name ${ARGN})
@@ -816,9 +853,16 @@ function(_therock_cmake_subproject_collect_runtime_deps
       list(APPEND _program_dirs ${_program_dir})
       list(APPEND _transitive_configure_depend_files "${_stamp_dir}/dist.stamp")
     endif()
+
+    # PkgConfig dirs.
+    get_target_property(_pkg_config_dir "${target_name}" THEROCK_INTERFACE_PKG_CONFIG_DIRS)
+    if(_pkg_config_dir)
+      list(APPEND _pkg_config_dirs ${_pkg_config_dir})
+    endif()
   endforeach()
   set("${out_link_dirs}" "${_link_dirs}" PARENT_SCOPE)
   set("${out_program_dirs}" "${_program_dirs}" PARENT_SCOPE)
+  set("${out_pkg_config_dirs}" "${_pkg_config_dirs}" PARENT_SCOPE)
   set("${out_transitive_deps}" "${_transitive_deps}" PARENT_SCOPE)
   set("${out_transitive_configure_depend_files}" "${_transitive_configure_depend_files}" PARENT_SCOPE)
 endfunction()

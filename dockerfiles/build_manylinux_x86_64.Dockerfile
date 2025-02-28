@@ -17,7 +17,7 @@ FROM quay.io/pypa/manylinux_2_28_x86_64@sha256:9042a22d33af2223ff7a3599f236aff1e
 ENV PATH="/opt/python/cp312-cp312/bin:${PATH}"
 
 ######## Pip Packages ########
-RUN pip install CppHeaderParser
+RUN pip install CppHeaderParser==2.7.4 meson==1.7.0
 
 ######## Repo ########
 RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo && chmod a+x /usr/local/bin/repo
@@ -39,16 +39,19 @@ ENV CMAKE_VERSION="1.12.1"
 COPY install_ninja.sh ./
 RUN ./install_ninja.sh "${CMAKE_VERSION}" && rm -rf /install-ninja
 
+######## AWS CLI ######
+WORKDIR /install-awscli
+COPY install_awscli.sh ./
+RUN ./install_awscli.sh && rm -rf /install-awscli
+
 ######## Yum Packages #######
-# TODO: Remove elfutils-devel (https://github.com/nod-ai/TheRock/issues/91)
 # TODO: Figure out why gcc-toolset-12-libatomic-devel doesn't install with the
 # rest of the dev toolset.
 RUN yum install -y epel-release && \
     yum install -y gcc-toolset-12-libatomic-devel && \
-    yum install -y numactl-devel elfutils-libelf-devel vim-common git-lfs && \
-    yum install -y bzip2-devel && \
+    yum install -y patchelf && \
     yum install -y gtest-devel && \
-    yum install -y elfutils-devel && \
+    yum install -y vim-common git-lfs && \
     yum clean all && \
     rm -rf /var/cache/yum
 

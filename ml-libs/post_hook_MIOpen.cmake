@@ -6,4 +6,5 @@ therock_set_install_rpath(
     MIOpen
   PATHS
     .
+    rocm_sysdeps/lib
 )

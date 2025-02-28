@@ -12,6 +12,9 @@ if(THEROCK_ENABLE_CORE_RUNTIME)
       amd-llvm
     RUNTIME_DEPS
       rocprofiler-register
+      ${THEROCK_BUNDLED_ELFUTILS}
+      ${THEROCK_BUNDLED_LIBDRM}
+      ${THEROCK_BUNDLED_NUMACTL}
     INTERFACE_LINK_DIRS
       "lib"
   )
@@ -23,6 +26,11 @@ if(THEROCK_ENABLE_CORE_RUNTIME)
   therock_cmake_subproject_provide_package(ROCR-Runtime hsakmt lib/cmake/hsakmt)
   therock_cmake_subproject_provide_package(ROCR-Runtime hsa-runtime64 lib/cmake/hsa-runtime64)
   therock_cmake_subproject_activate(ROCR-Runtime)
+
+  therock_test_validate_shared_lib(
+    PATH ROCR-Runtime/dist/lib
+    LIB_NAMES libhsa-runtime64.so
+  )
 
   ##############################################################################
   # rocminfo
@@ -108,5 +116,13 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
       run
     SUBPROJECT_DEPS
       hip-clr
+  )
+
+  therock_test_validate_shared_lib(
+    PATH clr/dist/lib
+    LIB_NAMES
+      libamdhip64.so
+      libhiprtc-builtins.so
+      libhiprtc.so
   )
 endif(THEROCK_ENABLE_HIP_RUNTIME)
