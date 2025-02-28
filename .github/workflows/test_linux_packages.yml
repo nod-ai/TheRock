@@ -52,14 +52,17 @@ jobs:
           mkdir -p build/artifacts
 
           echo "Downloading artifacts"
-          aws s3 ls s3://therock-artifacts/13564590298
+          aws s3 ls s3://therock-artifacts/13564590298 --recursive
           aws s3 cp s3://therock-artifacts/13564590298/core-runtime_run.tar.xz build/artifacts/
           aws s3 cp s3://therock-artifacts/13564590298/core-runtime_lib.tar.xz build/artifacts/
           aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz build/artifacts/
           aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz build/artifacts/
 
           echo "Unpacking artifacts"
-          for a in *.tar; do tar -xvpf "$a"; done
+          pushd build/artifacts
+          ls -lh
+          for a in *.tar.xz; do tar -xvpf "$a"; done
+          popd
           
       - name: Run rocminfo
         run: |
