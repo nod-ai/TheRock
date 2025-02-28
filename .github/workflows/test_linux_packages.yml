@@ -1,0 +1,63 @@
+# Copyright 2025 Advanced Micro Devices, Inc.
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+name: Test Linux Packages
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - ADHOCBUILD
+
+  workflow_call:
+    inputs:
+      package_version:
+        type: string
+        default: ADHOCBUILD
+
+jobs:
+  test_rocm_info:
+    name: "Sanity ROCM Test"
+    runs-on: linux-mi300-1gpu-ossci
+    container:
+      image: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
+    strategy:
+      fail-fast: true
+    defaults:
+      run:
+        shell: bash
+    env:
+      VENV_DIR: ${{ github.workspace }}/.venv
+    
+    # MOSTLY BOILER PLATE ABOVE.
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::692859939525:role/therock-artifacts
+
+      # TODO(): Replace id with ${{github.run_id}}
+      - name: Download Unpack Artifacts
+        run: |
+          echo "Making build/artifacts directory"
+          mkdir -p build/artifacts
+
+          echo "Downloading artifacts"
+          aws s3 ls s3://therock-artifacts/13564590298
+          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_run.tar.xz build/artifacts/
+          aws s3 cp s3://therock-artifacts/13564590298/core-runtime_lib.tar.xz build/artifacts/
+          aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz build/artifacts/
+          aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz build/artifacts/
+
+          echo "Unpacking artifacts"
+          for a in *.tar; do tar -xvpf "$a"; done
+          
+      - name: Run rocminfo
+        run: |
+          echo "Running rocminfo"
+          /bin/rocminfo
