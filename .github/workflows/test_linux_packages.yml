@@ -59,15 +59,10 @@ jobs:
           aws s3 cp s3://therock-artifacts/13564590298/sysdeps_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
           aws s3 cp s3://therock-artifacts/13564590298/base_lib.tar.xz "${BUILD_ARTIFACTS_DIR}"
 
-          # For some reason these exist here already.
-          # TODO(sosa): Fix later
-          sudo rm /bin/rocminfo
-          sudo rm /bin/rocm_agent_enumerator
-
           echo "Unpacking artifacts"
           set -x
           pushd "${BUILD_ARTIFACTS_DIR}"
-          for a in *.tar.xz; do sudo tar -xvkpf $(readlink -f .)/"$a" -C /; done
+          for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C / --keep-directory-symlink; done
           set +x
           popd
 
