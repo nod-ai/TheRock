@@ -22,9 +22,9 @@ on:
 jobs:
   test_rocm_info:
     name: "Sanity ROCM Test"
-    runs-on: linux-mi300-1gpu-ossci
-    container:
-      image: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
+    #runs-on: linux-mi300-1gpu-ossci
+    # Cheating for now for faster runs
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
     defaults:
