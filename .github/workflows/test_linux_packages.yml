@@ -65,7 +65,7 @@ jobs:
 
           echo "Unpacking artifacts"
           pushd "${BUILD_ARTIFACTS_DIR}"
-          sudo python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o /
+          sudo -E python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o /
           popd
 
       - name: Run rocminfo
