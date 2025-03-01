@@ -11,8 +11,6 @@ on:
   push:
     branches:
       - ADHOCBUILD
-
-on
   workflow_call:
 
 jobs:
