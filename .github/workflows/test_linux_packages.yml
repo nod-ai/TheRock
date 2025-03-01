@@ -30,7 +30,7 @@ jobs:
 
       - name: Install the AWS tool
         run: |
-          if [ $(aws --version) ]; then
+          if [ -x "$(aws)" ]; then
             echo "AWS CLI is already installed"
           else
             echo "Installing AWS CLI"
