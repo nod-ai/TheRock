@@ -7,6 +7,20 @@ but just prepares a directory structure that can be overlaid with
 This process involves both a re-organization of the sources and some surgical
 alterations.
 
+Example
+-------
+
+```
+./build_tools/linux_python_dist_split.py \
+    --artifact-dir ./output-linux-portable/build/artifacts \
+    --dest-dir $HOME/tmp/packages
+```
+
+Note that this does do some dynamic compilation of files and it performs
+patching via patchelf. It is recommended to run this in the same portable
+Linux container as was used to build the SDK (so as to avoid the possibility
+of accidentally referencing too-new glibc symbols).
+
 Relayout
 --------
 We generally split into the following top-level python packages (which correlate
@@ -99,6 +113,28 @@ Target specific packages (aka `libraries`) can either be fat or thin:
 
 Thin target packages are currently in the conceptual phase but are intended to
 be the final default packaging mechanism for multi-target builds.
+
+Development Package
+-------------------
+The `-devel` package is unique because it is the catch-all for any distributed
+files that are materialized in one of the above packages. For anything that is
+materialized in a prior package, a relative symlink is generated across the
+root directory to the named package directory. Since the development package
+contains symlink farms, it cannot be included verbatim in a Python wheel (which
+would try to materialize the symlinks). Instead, we *embed* it as a .tar.xz
+file in a built wheel at Python package construction time. Then code that
+needs to get the ROCM `cmake_prefix_path()` or run any tools will dynamically
+decompress it to the HOME directory, setup root links, and run from there.
+
+Note that most users never will need the development package: it exists to
+build projects such as PyTorch, et al, for distribution against specific
+`rocm-sdk` packages. If not building or using the CLI development tools, it
+is not needed.
+
+Since the development package is not meant to be used at runtime, it references
+a fat target package for a default target, regardless of what hardware may be
+physically installed on the machine. Since this is just used for linking, this
+should be fine and allows builds to run reproducibly on non-GPU systems.
 """
 
 import argparse
