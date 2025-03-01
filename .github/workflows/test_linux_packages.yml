@@ -67,7 +67,7 @@ jobs:
           pushd "${BUILD_ARTIFACTS_DIR}"
           mkdir output_dir
           python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o output_dir --verbose
-          sudo cp --archive --verbose output_dir /
+          sudo cp --archive --verbose output_dir/* /
           popd
 
       - name: Run rocminfo
