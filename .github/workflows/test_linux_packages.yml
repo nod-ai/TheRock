@@ -52,10 +52,10 @@ jobs:
 
           echo "Unpacking artifacts"
           pushd "${BUILD_ARTIFACTS_DIR}"
-          for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C / --keep-directory-symlink; done
+          for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C / --keep-directory-symlink --strip-components=3; done
           popd
 
       - name: Run rocminfo
         run: |
           echo "Running rocminfo"
-          /core/rocminfo/stage/bin/rocminfo
+          /bin/rocminfo
