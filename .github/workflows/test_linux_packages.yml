@@ -8,16 +8,9 @@ name: Test Linux Packages
 
 on:
   workflow_dispatch:
-    inputs:
-      package_version:
-        type: string
-        default: ADHOCBUILD
-
-  workflow_call:
-    inputs:
-      package_version:
-        type: string
-        default: ADHOCBUILD
+  push:
+    branches:
+      - ADHOCBUILD
 
 jobs:
   test_rocm_info:
