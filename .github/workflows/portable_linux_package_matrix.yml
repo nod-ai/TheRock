@@ -86,7 +86,7 @@ jobs:
 
       - name: Build Projects
         run: |
-          ./packaging/linux-portable/build_portable.py \
+          ./build_tools/linux_build_portable.py \
             --image=${{ env.BUILD_IMAGE }} \
             --output-dir=${{ env.OUTPUT_DIR }} \
             -- \

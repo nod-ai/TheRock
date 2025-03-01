@@ -27,7 +27,7 @@ import sys
 
 
 THIS_DIR = Path(__file__).resolve().parent
-REPO_DIR = THIS_DIR.parent.parent
+REPO_DIR = THIS_DIR.parent
 
 
 def exec(args: list[str | Path], cwd: Path):
@@ -70,7 +70,7 @@ def do_build(args: argparse.Namespace, *, rest_args: list[str]):
             [
                 args.image,
                 "/bin/bash",
-                "/therock/src/packaging/linux-portable/detail/build_in_container.sh",
+                "/therock/src/build_tools/detail/linux_portable_build_in_container.sh",
             ]
         )
         cl += rest_args
@@ -110,7 +110,7 @@ def main(argv: list[str]):
     )
     p.add_argument(
         "--output-dir",
-        default=Path(THIS_DIR / "output"),
+        default=Path(REPO_DIR / "output-linux-portable"),
         type=Path,
         help="Output directory",
     )

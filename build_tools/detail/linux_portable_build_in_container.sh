@@ -1,5 +1,6 @@
 #!/bin/bash
-# See corresponding build_portable.py which invokes this.
+# See corresponding linux_build_portable.py which invokes this within a
+# container.
 set -e
 set -o pipefail
 trap 'kill -TERM 0' INT
