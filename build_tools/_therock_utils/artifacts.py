@@ -78,5 +78,5 @@ class ArtifactCatalog:
         return set(
             an.target_family
             for an in self.artifact_names
-            if an.target_family is not "generic"
+            if an.target_family != "generic"
         )

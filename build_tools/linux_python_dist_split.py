@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-"""Given a ROCM dist directory on Linux, performs surgery to relayout it for
-distribution as Python packages.
-
-This does not actually do the Python packaging but just prepares a directory
-structure that can be packaged.
+"""Given ROCM artifacts directories, performs surgery to re-layout them for
+distribution as Python packages. This does not actually do the Python packaging
+but just prepares a directory structure that can be overlaid with
+`packaging/python` to build all packages.
 
 This process involves both a re-organization of the sources and some surgical
 alterations.
@@ -27,19 +26,20 @@ Note that Python distributed packages (i.e. wheel files) are named with dashes,
 per usual, and they do not include the version suffix nonce that we encode into
 the on-disk directory layout in site-lib. We include this extra version suffix
 nonce on disk because Python packaging versioning is not precise, and because
-these pieces are not interchangeable with different released versions,
-embedding a nonce gives us a point of control to ensure that things that
+these pieces are not interchangeable with different released versions.
+Embedding a nonce gives us a point of control to ensure that things that
 directly link together actually show up at distribution time that way. If this
 invariant were ever violated, the usual bevy of C++ linkage issues would
 make things very hard to troubleshoot (whereas with embedded nonces, we can
-even include Python level diagnostics and helpful suggestions).
+even include Python level diagnostics and helpful suggestions). This way,
+we can detect mismatches in Python code and triage accordingly.
 
 Surgical Alterations
 --------------------
 Python packages have a number of idiosynchracies that make them somewhat
 hostile for distributing native software components. Chief among these is
 that symlinks are simply materialized as discrete copies. This breaks a number
-of assumptions how Unix libraries are laid out.
+of assumptions regarding how Unix libraries are laid out.
 
 The compromise we make is that the (majority of) libraries are only materialized
 as their SONAME component in the non devel package. This is what the operating
@@ -48,9 +48,9 @@ sufficient to operate the software. By and large, the ROCM software and LLVM
 follows this convention closely enough to allow us to do this. We then
 materialize all names/symlinks in the devel package, which we do not
 distribute through symlink-unclean channels (there are other peculiarities of
-the devel package which are out of scope of this topic).
+the devel package which are out of scope of this topic -- see below).
 
-An issue arises because a standard Unix library is symlinked like this:
+The issue arises because a standard Unix library is symlinked like this:
 
 ```
 libamd_comgr.so -> libamd_comgr.so.2
@@ -59,13 +59,25 @@ libamd_comgr.so.2.9
 ```
 
 But the SONAME is `libamd_comgr.so.2` -- a symlink that we would like to
-avoid. This makes some sense in an OS context where you may have multiple
-patch versions of a library co-existing and being arbitrated by symlink. But
-it doesn't fit our constraints. So we "rotate" all link farms: In the normal
-packages, we only materialize the SONAME variant (middle above) as a real file.
-In devel packages, we keep them all but with a rotation where the non-SONAME
-variants resolve back to concrete library from the runtime side (TBI: or a
-stub).
+avoid (and the only file that matters at runtime). This makes some sense in an
+OS context where you may have multiple patch versions of a library co-existing
+and being arbitrated by symlink. But it doesn't fit our constraints. So we
+"rotate" all link farms: In the normal packages, we only materialize the SONAME
+variant (the middle one above) as a real file. In devel packages with shared
+libraries that were materialized in a runtime package, we symlink back to the
+runtime package version.
+
+The ROCM and LLVM distribution also includes a number of executable symlink,
+many of the form:
+
+```
+clang*
+amdclang -> clang
+```
+
+Critically, all such symlinks are relative. We replace them with a stub
+executable that we compile as part of the script which can perform the
+dynamic path computation and exec() the intended target.
 
 There are other alterations we have to make to accomodate our uniquely split
 layout on disk.
@@ -293,6 +305,7 @@ def maybe_materialize_lib_symlink(
         # Compile a standalone executable that dynamically emulates the symlink.
         link_target = os.readlink(src_entry.path)
         generate_exe_link_stub(dest_path, link_target)
+        materialized_paths[relpath] = dest_path
         return
 
     # Case 4: Copy.
