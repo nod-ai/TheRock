@@ -22,8 +22,6 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      VENV_DIR: ${{ github.workspace }}/.venv
 
     # MOSTLY BOILER PLATE ABOVE.
     steps:
@@ -33,19 +31,8 @@ jobs:
       - name: Install the AWS tool
         run: ./dockerfiles/install_awscli.sh
 
-      - name: "Setting up Python"
-        id: setup_python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{matrix.version}}
-
-      - name: Create Python venv
-        run: python -m venv ${VENV_DIR}
-
       - name: Download and Unpack Artifacts
         run: |
-          source ${VENV_DIR}/bin/activate
-
           BUILD_ARTIFACTS_DIR="build/artifacts"
           # TODO(sosa): We should infer this from the runner. For Libs and Above it should be based on the
           # runner, everything else is generic. Use just generic since this is all core/below.
@@ -65,7 +52,10 @@ jobs:
 
           echo "Unpacking artifacts"
           pushd "${BUILD_ARTIFACTS_DIR}"
-          sudo python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o /
+
+          # Extract to root but ensure we remove everything in the path before the stage directory.
+          # TODO(sosa): This is a bit of a hack. We should not need to extract to root.
+          for a in *.tar.xz; do sudo tar -xvpf $(readlink -f .)/"$a" -C / --keep-directory-symlink --transform='s/^.*stage//'; done
           popd
 
       - name: Run rocminfo
