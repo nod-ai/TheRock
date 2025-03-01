@@ -32,8 +32,6 @@ jobs:
 
   test_linux_packages:
     needs: build_linux_packages
-    permissions:
-      id-token: write
     name: Test Linux Packages
     uses: ./.github/workflows/test_linux_packages.yml
 

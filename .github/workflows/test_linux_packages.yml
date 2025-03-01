@@ -28,21 +28,15 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      VENV_DIR: ${{ github.workspace }}/.venv
 
     # MOSTLY BOILER PLATE ABOVE.
     steps:
+      # TODO(sosa): Consider switching to a simpler download to get a more recent version.
+      # See dockerfiles/install_awscli.sh
       - name: Install the AWS tool
         run: sudo apt-get install -y awscli
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
-        with:
-          aws-region: us-east-2
-          role-to-assume: arn:aws:iam::692859939525:role/therock-artifacts
-
-      - name: Download Unpack Artifacts
+      - name: Download and Unpack Artifacts
         run: |
           BUILD_ARTIFACTS_DIR="build/artifacts"
           # TODO(sosa): We should infer this from the runner. For Libs and Above it should be based on the
@@ -52,10 +46,10 @@ jobs:
           mkdir -p "${BUILD_ARTIFACTS_DIR}"
 
           echo "Downloading artifacts"
-          aws s3 cp s3://therock-artifacts/${{github.run_id}}/core-runtime_run"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}"
-          aws s3 cp s3://therock-artifacts/${{github.run_id}}/core-runtime_lib"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}"
-          aws s3 cp s3://therock-artifacts/${{github.run_id}}/sysdeps_lib.tar"${VARIANT}".xz "${BUILD_ARTIFACTS_DIR}"
-          aws s3 cp s3://therock-artifacts/${{github.run_id}}/base_lib.tar"${VARIANT}".xz "${BUILD_ARTIFACTS_DIR}"
+          aws s3 cp s3://therock-artifacts/${{github.run_id}}/core-runtime_run"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}" --no-sign-request
+          aws s3 cp s3://therock-artifacts/${{github.run_id}}/core-runtime_lib"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}" --no-sign-request
+          aws s3 cp s3://therock-artifacts/${{github.run_id}}/sysdeps_lib"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}" --no-sign-request
+          aws s3 cp s3://therock-artifacts/${{github.run_id}}/base_lib"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}" --no-sign-request
 
           echo "Unpacking artifacts"
           pushd "${BUILD_ARTIFACTS_DIR}"
