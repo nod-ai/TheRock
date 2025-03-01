@@ -35,6 +35,7 @@ jobs:
           else
             echo "Installing AWS CLI"
             ./dockerfiles/install_awscli.sh
+          fi
 
       - name: Download and Unpack Artifacts
         run: |
