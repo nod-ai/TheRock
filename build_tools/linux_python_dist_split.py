@@ -100,6 +100,7 @@ import subprocess
 import sys
 
 from _therock_utils.artifacts import ArtifactCatalog, ArtifactName
+from _therock_utils.exe_stub_gen import generate_exe_link_stub
 from _therock_utils.pattern_match import MatchPredicate, PatternMatcher
 
 MAGIC_AR_MATCH = re.compile("ar archive")
@@ -289,7 +290,9 @@ def maybe_materialize_lib_symlink(
 
     # Case 3: Executable.
     if target_file_type == "exe":
-        print("  SYMLINK EXE (NYI):", relpath)
+        # Compile a standalone executable that dynamically emulates the symlink.
+        link_target = os.readlink(src_entry.path)
+        generate_exe_link_stub(dest_path, link_target)
         return
 
     # Case 4: Copy.

@@ -27,7 +27,7 @@ from .pattern_match import PatternMatcher
 
 
 class ArtifactName:
-    def __init__(self, name: str, component: str, target_family: str | None = None):
+    def __init__(self, name: str, component: str, target_family: str):
         self.name = name
         self.component = component
         self.target_family = target_family
@@ -49,10 +49,12 @@ class ArtifactCatalog:
         for subdir in self.artifact_dir.iterdir():
             if not subdir.is_dir():
                 continue
-            m = re.match(r"^([^_]+)_([^_]+)(_([^_]+))?$", subdir.name)
+            # Matches {name}_{component}_{target_family} with an optional
+            # extra suffix that we ignore.
+            m = re.match(r"^([^_]+)_([^_]+)_([^_]+)(_.+)?$", subdir.name)
             if not m:
                 continue
-            name = ArtifactName(m.group(1), m.group(2), m.group(4) or None)
+            name = ArtifactName(m.group(1), m.group(2), m.group(3))
             if not filter(name):
                 continue
             manifest = subdir / "artifact_manifest.txt"
@@ -76,5 +78,5 @@ class ArtifactCatalog:
         return set(
             an.target_family
             for an in self.artifact_names
-            if an.target_family is not None
+            if an.target_family is not "generic"
         )
