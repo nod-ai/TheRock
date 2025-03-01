@@ -29,7 +29,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install the AWS tool
-        run: ./dockerfiles/install_awscli.sh
+        run: |
+          if $(aws --version); then
+            echo "AWS CLI is already installed"
+          else
+            echo "Installing AWS CLI"
+            ./dockerfiles/install_awscli.sh
 
       - name: Download and Unpack Artifacts
         run: |
