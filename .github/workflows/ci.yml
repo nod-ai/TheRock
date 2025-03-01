@@ -30,6 +30,11 @@ jobs:
     name: Build Windows Packages
     uses: ./.github/workflows/build_windows_packages.yml
 
+  test_linux_packages:
+    needs: build_linux_packages
+    name: Test Linux Packages
+    uses: ./.github/workflows/test_linux_packages.yml
+
   # build_python_packages:
   #   name: Build Python Packages
   #   uses: ./.github/workflows/build_python_packages.yml
