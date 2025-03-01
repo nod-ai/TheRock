@@ -64,12 +64,11 @@ jobs:
           aws s3 cp s3://therock-artifacts/13592953077/base_lib"${VARIANT}".tar.xz "${BUILD_ARTIFACTS_DIR}" --no-sign-request
 
           echo "Unpacking artifacts"
-          set -x
-          pushd "${BUILD_ARTIFACTS_DIR}"          
-          python
-          sudo -E python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o / --verbose
+          pushd "${BUILD_ARTIFACTS_DIR}"
+          mkdir output_dir
+          python ${{ github.workspace }}/build_tools/fileset_tool.py artifact-flatten *.tar.xz -o output_dir --verbose
+          sudo cp --archive --verbose output_dir /
           popd
-          set +x
 
       - name: Run rocminfo
         run: |
