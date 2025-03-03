@@ -63,7 +63,7 @@ jobs:
           cmake --version
           echo "python: $(which python), python3: $(which python3)"
           echo "Git version: $(git --version)"
-          git config fetch.parallel 0
+          git config fetch.parallel 10
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
