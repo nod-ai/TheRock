@@ -23,9 +23,15 @@ def is_windows() -> bool:
     return platform.system() == "Windows"
 
 
+def log(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
+
+
 def exec(args: list[str | Path], cwd: Path):
     args = [str(arg) for arg in args]
-    print(f"++ Exec [{cwd}]$ {shlex.join(args)}")
+    log(f"++ Exec [{cwd}]$ {shlex.join(args)}")
+    sys.stdout.flush()
     subprocess.check_call(args, cwd=str(cwd), stdin=subprocess.DEVNULL)
 
 
@@ -41,12 +47,14 @@ def get_enabled_projects(args) -> list[str]:
 def run(args):
     projects = get_enabled_projects(args)
     submodule_paths = [get_submodule_path(project) for project in projects]
-    depth_args = []
+    update_args = []
     if args.depth:
-        depth_args = ["--depth", str(args.depth)]
+        update_args += ["--depth", str(args.depth)]
+    if args.jobs:
+        update_args += ["--jobs", str(args.jobs)]
     exec(
         ["git", "submodule", "update", "--init", "--recursive"]
-        + depth_args
+        + update_args
         + ["--"]
         + submodule_paths,
         cwd=THEROCK_DIR,
@@ -67,20 +75,20 @@ def run(args):
 
 def apply_patches(args):
     if not args.patch_tag:
-        print("Not patching (no --patch-tag specified)")
+        log("Not patching (no --patch-tag specified)")
     patch_version_dir: Path = PATCHES_DIR / args.patch_tag
     if not patch_version_dir.exists():
-        print(f"ERROR: Patch directory {patch_version_dir} does not exist")
+        log(f"ERROR: Patch directory {patch_version_dir} does not exist")
     for patch_project_dir in patch_version_dir.iterdir():
-        print(f"* Processing project patch directory {patch_project_dir}:")
+        log(f"* Processing project patch directory {patch_project_dir}:")
         submodule_path = get_submodule_path(patch_project_dir.name)
         project_dir = THEROCK_DIR / submodule_path
         if not project_dir.exists():
-            print(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
+            log(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
             continue
         patch_files = list(patch_project_dir.glob("*.patch"))
         patch_files.sort()
-        print(f"Applying {len(patch_files)} patches")
+        log(f"Applying {len(patch_files)} patches")
         exec(["git", "am", "--whitespace=nowarn"] + patch_files, cwd=project_dir)
         # Since it is in a patched state, make it invisible to changes.
         exec(
@@ -113,34 +121,19 @@ def get_submodule_path(name: str) -> str:
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
     parser.add_argument(
-        "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
-    )
-    parser.add_argument(
-        "--manifest-url",
-        type=str,
-        help="Manifest repository location of ROCm",
-        default="https://github.com/ROCm/ROCm.git",
-    )
-    parser.add_argument(
-        "--manifest-name",
-        type=str,
-        help="Repo manifest name",
-        default="default.xml",
-    )
-    parser.add_argument(
-        "--manifest-branch",
-        type=str,
-        help="Branch to sync with repo tool",
-        default="amd-mainline",
-    )
-    parser.add_argument(
         "--patch-tag",
         type=str,
         default="amd-mainline",
         help="Patch tag to apply to sources after sync",
     )
     parser.add_argument(
-        "--depth", type=int, help="Git depth to pass to repo", default=None
+        "--depth", type=int, help="Git depth when updating submodules", default=None
+    )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        help="Number of jobs to use for updating submodules",
+        default=None,
     )
     parser.add_argument(
         "--include-math-libs",
