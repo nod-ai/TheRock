@@ -103,11 +103,6 @@
 	url = https://github.com/ROCm/hipSPARSE.git
 	branch = mainline
 	ignore = all
-[submodule "tensile"]
-	path = math-libs/BLAS/Tensile
-	url = https://github.com/ROCm/Tensile.git
-	branch = master
-	ignore = all
 [submodule "rocBLAS"]
 	path = math-libs/BLAS/rocBLAS
 	url = https://github.com/ROCm/rocBLAS.git
