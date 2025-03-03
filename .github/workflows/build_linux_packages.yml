@@ -54,6 +54,7 @@ jobs:
 
       - name: Fetch sources
         run: |
+          git config --global --add safe.directory $PWD
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
           ./build_tools/fetch_sources.py --depth 1
