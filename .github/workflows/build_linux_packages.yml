@@ -30,7 +30,7 @@ jobs:
       - name: "Checking out repository"
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Report Runner Health
+      - name: Runner Health Settings
         run: |
           echo "CCACHE_DIR=${CCACHE_DIR}"
           df -h
@@ -41,6 +41,10 @@ jobs:
           ls -d /opt/python
           echo "python: $(which python), python3: $(which python3)"
           echo "Git version: $(git --version)"
+          git config --global --add safe.directory $PWD
+          git config fetch.parallel 10
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
@@ -54,17 +58,7 @@ jobs:
 
       - name: Fetch sources
         run: |
-          git config --global user.email "nobody@amd.com"
-          git config --global user.name "Nobody"
-          ./build_tools/fetch_sources.py --depth 1
-
-      # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
-      # So we delete the latter. This must be done after getting any git
-      # stamps or such things.
-      - name: Trim Disk Space
-        run: |
-          rm -Rf sources/.repo
-          df -h
+          ./build_tools/fetch_sources.py --jobs 12
 
       - name: Build Projects
         run: |

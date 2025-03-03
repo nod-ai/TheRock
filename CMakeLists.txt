@@ -32,10 +32,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(THEROCK_BACKGROUND_BUILD_JOBS "0" CACHE STRING "Number of jobs to reserve for projects marked for background building (empty=auto or a number)")
 
 set(THEROCK_PACKAGE_VERSION "git" CACHE STRING "Sets the package version string")
-set(ROCM_GIT_DIR "${THEROCK_SOURCE_DIR}/sources" CACHE PATH "Directory of rocm-org repo checkout")
 # Disable compatibility symlinks created in default ROCM cmake project wide
 set(ROCM_SYMLINK_LIBS OFF)
-message(STATUS "ROCM_GIT_DIR is set to: ${ROCM_GIT_DIR}")
 
 set(THEROCK_ARTIFACT_ARCHIVE_SUFFIX "" CACHE STRING "Suffix to add to artifact archive file stem names")
 
@@ -194,7 +192,7 @@ therock_validate_amdgpu_targets()
 # Some sub-projects need Python. Make sure it is found consistently.
 find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
 
-configure_file(HIP_VERSION.in ${ROCM_GIT_DIR}/HIP/VERSION)
+configure_file(HIP_VERSION.in ${THEROCK_SOURCE_DIR}/core/HIP/VERSION)
 
 set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 

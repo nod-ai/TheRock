@@ -34,40 +34,11 @@ We want ROCm sources checked out into the sources/ directory or if you check it 
 python ./build_tools/fetch_sources.py
 ```
 
-This will use the [repo](https://source.android.com/docs/setup/reference/repo)
-tool with modified ROCm [manifest](https://github.com/nod-ai/ROCm/blob/the-rock-main/default.xml).
-It will also apply patches to some of the repositories.
-
-Alternatively, for a specific ROCm version e.g. 6.3.0
-
-```
-python ./build_tools/fetch_sources.py \
-  --manifest-url https://github.com/ROCm/ROCm.git \
-  --manifest-name tools/rocm-build/rocm-6.3.1.xml \
-  --manifest-branch roc-6.3.x
-```
+This uses a custom procedure to download submodules and apply patches while
+we are transitioning from the [repo](https://source.android.com/docs/setup/reference/repo).
+It will eventually be replaced by a normal `git submodule update` command.
 
 This will also apply the patches to the downloaded source files.
-
-## Manually
-
-Checkout the latest development branch with
-
-```
-mkdir -p ~/github/rocm
-cd ~/github/rocm
-repo init -u https://github.com/ROCm/ROCm.git -m tools/rocm-build/rocm-6.3.1.xml -b roc-6.3.x
-repo sync -j16
-```
-
-Checkout TheRock build tools
-
-```
-cd ~/github/
-git clone https://github.com/nod-ai/TheRock
-cd TheRock
-ln -s </path/to/rocm> sources
-```
 
 # Build
 

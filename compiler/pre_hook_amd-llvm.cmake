@@ -1,5 +1,5 @@
 # Get access to LLVM_VERSION_MAJOR
-include("${ROCM_GIT_DIR}/llvm-project/cmake/Modules/LLVMVersion.cmake")
+include("${THEROCK_SOURCE_DIR}/compiler/amd-llvm/cmake/Modules/LLVMVersion.cmake")
 
 # Build LLVM and the comgr dependency.
 # Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
@@ -31,7 +31,7 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
 
 # Build the device-libs as part of the core compiler so that clang works by
 # default (as opposed to other components that are *users* of the compiler).
-set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${ROCM_GIT_DIR}/llvm-project/amd/device-libs")
+set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
 set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects" FORCE)
 
 # TODO2: This mechanism has races in certain situations, failing to create a

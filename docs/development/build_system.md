@@ -186,7 +186,7 @@ with comments, describing what is going on.
 #   * RUNTIME_DEPS: Sub-projects that should be considered a BUILD_DEP and
 #     also are required to be in a unified distribution tree at runtime.
 therock_cmake_subproject_declare(ROCR-Runtime
-  EXTERNAL_SOURCE_DIR "${ROCM_GIT_DIR}/ROCR-Runtime"
+  EXTERNAL_SOURCE_DIR "${SOME_PATH}/ROCR-Runtime"
   CMAKE_ARGS
     "-DBUILD_SHARED_LIBS=ON"
   BUILD_DEPS

@@ -54,7 +54,7 @@ jobs:
           choco install ccache --yes
           choco install ninja --yes
 
-      - name: Report Runner Health
+      - name: Runner Health Settings
         run: |
           echo "CCACHE_DIR=${CCACHE_DIR}"
           df -h
@@ -63,6 +63,9 @@ jobs:
           cmake --version
           echo "python: $(which python), python3: $(which python3)"
           echo "Git version: $(git --version)"
+          git config fetch.parallel 10
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
 
       # TODO: We shouldn't be using a cache on actual release branches, but it
       # really helps for iteration time.
@@ -81,13 +84,7 @@ jobs:
         run: |
           # Sets an env variable to ensure urllib uses the certifi CA bundle in fetch_sources.py.
           export SSL_CERT_FILE=$(python3 -m certifi)
-          git config --global user.email "nobody@amd.com"
-          git config --global user.name "Nobody"
-          python ./build_tools/fetch_sources.py --depth 1
-
-      # TODO(scotttodd): Get symlinks working on CI runners instead of this
-      - name: Replace symlinks with copies
-        run: ./build_tools/patch_symlinks_for_windows_ci.sh
+          python ./build_tools/fetch_sources.py --jobs 12
 
       - name: Configure MSVC
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0

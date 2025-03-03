@@ -23,30 +23,15 @@ def is_windows() -> bool:
     return platform.system() == "Windows"
 
 
-def setup_repo_tool() -> Path:
-    """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
-
-    repo_path = shutil.which("repo")
-    if repo_path:
-        print(f"Found 'repo' on PATH at '{repo_path}', using it")
-        return repo_path
-
-    repo_path = THIS_SCRIPT_DIR / "repo"
-    if repo_path.exists():
-        print(f"Found 'repo' in script dir at '{repo_path}', using it")
-        return repo_path
-
-    print(f"Unable to find 'repo', downloading into script dir at '{repo_path}'")
-    urllib.request.urlretrieve(
-        "https://storage.googleapis.com/git-repo-downloads/repo", repo_path
-    )
-    os.chmod(repo_path, 0o744)
-    return repo_path
+def log(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
 
 
 def exec(args: list[str | Path], cwd: Path):
     args = [str(arg) for arg in args]
-    print(f"++ Exec [{cwd}]$ {shlex.join(args)}")
+    log(f"++ Exec [{cwd}]$ {shlex.join(args)}")
+    sys.stdout.flush()
     subprocess.check_call(args, cwd=str(cwd), stdin=subprocess.DEVNULL)
 
 
@@ -60,38 +45,29 @@ def get_enabled_projects(args) -> list[str]:
 
 
 def run(args):
-    repo_tool_path = setup_repo_tool()
-
-    repo_dir: Path = args.dir
-    print(f"Setting up repo in {repo_dir}")
-    repo_dir.mkdir(exist_ok=True, parents=True)
-    repo_args = [
-        sys.executable,
-        str(repo_tool_path),
-        "init",
-        "-v",
-        "-u",
-        args.manifest_url,
-        "-m",
-        args.manifest_name,
-        "-b",
-        args.manifest_branch,
-    ]
+    projects = get_enabled_projects(args)
+    submodule_paths = [get_submodule_path(project) for project in projects]
+    update_args = []
     if args.depth:
-        repo_args.extend(["--depth", str(args.depth)])
+        update_args += ["--depth", str(args.depth)]
+    if args.jobs:
+        update_args += ["--jobs", str(args.jobs)]
     exec(
-        repo_args,
-        cwd=repo_dir,
+        ["git", "submodule", "update", "--init"]
+        + update_args
+        + ["--"]
+        + submodule_paths,
+        cwd=THEROCK_DIR,
     )
+
+    # Because we allow local patches, if a submodule is in a patched state,
+    # we manually set it to skip-worktree since recording the commit is
+    # then meaningless. Here on each fetch, we reset the flag so that if
+    # patches are aged out, the tree is restored to normal.
+    submodule_paths = [get_submodule_path(name) for name in projects]
     exec(
-        [
-            sys.executable,
-            str(repo_tool_path),
-            "sync",
-            "-j16",
-        ]
-        + get_enabled_projects(args),
-        cwd=repo_dir,
+        ["git", "update-index", "--no-skip-worktree", "--"] + submodule_paths,
+        cwd=THEROCK_DIR,
     )
 
     populate_ancillary_sources(args)
@@ -100,20 +76,47 @@ def run(args):
 
 def apply_patches(args):
     if not args.patch_tag:
-        print("Not patching (no --patch-tag specified)")
+        log("Not patching (no --patch-tag specified)")
     patch_version_dir: Path = PATCHES_DIR / args.patch_tag
     if not patch_version_dir.exists():
-        print(f"ERROR: Patch directory {patch_version_dir} does not exist")
+        log(f"ERROR: Patch directory {patch_version_dir} does not exist")
     for patch_project_dir in patch_version_dir.iterdir():
-        print(f"* Processing project patch directory {patch_project_dir}:")
-        project_dir: Path = args.dir / patch_project_dir.name
+        log(f"* Processing project patch directory {patch_project_dir}:")
+        submodule_path = get_submodule_path(patch_project_dir.name)
+        project_dir = THEROCK_DIR / submodule_path
         if not project_dir.exists():
-            print(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
+            log(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
             continue
         patch_files = list(patch_project_dir.glob("*.patch"))
         patch_files.sort()
-        print(f"Applying {len(patch_files)} patches")
+        log(f"Applying {len(patch_files)} patches")
         exec(["git", "am", "--whitespace=nowarn"] + patch_files, cwd=project_dir)
+        # Since it is in a patched state, make it invisible to changes.
+        exec(
+            ["git", "update-index", "--skip-worktree", "--", submodule_path],
+            cwd=THEROCK_DIR,
+        )
+
+
+# Gets the the relative path to a submodule given its name.
+# Raises an exception on failure.
+def get_submodule_path(name: str) -> str:
+    relpath = (
+        subprocess.check_output(
+            [
+                "git",
+                "config",
+                "--file",
+                ".gitmodules",
+                "--get",
+                f"submodule.{name}.path",
+            ],
+            cwd=str(THEROCK_DIR),
+        )
+        .decode()
+        .strip()
+    )
+    return relpath
 
 
 def populate_ancillary_sources(args):
@@ -121,8 +124,8 @@ def populate_ancillary_sources(args):
     needed to build. There is often something in CMake that attempts to automate it,
     but it is also often broken. So we just do the right thing here as a transitionary
     step to fixing the underlying software packages."""
-    populate_submodules_if_exists(args, args.dir / "rocprofiler-register")
-    populate_submodules_if_exists(args, args.dir / "rocprofiler-sdk")
+    populate_submodules_if_exists(args, THEROCK_DIR / "base" / "rocprofiler-register")
+    populate_submodules_if_exists(args, THEROCK_DIR / "profiler" / "rocprofiler-sdk")
 
     # TODO(#36): Enable once rocprofiler-systems can be checked out on Windows
     #     error: invalid path 'src/counter_analysis_toolkit/scripts/sample_data/L2_RQSTS:ALL_DEMAND_REFERENCES.data.reads.stat'
@@ -130,7 +133,9 @@ def populate_ancillary_sources(args):
     #   https://github.com/ROCm/rocprofiler-systems/issues/105
     #   https://github.com/icl-utk-edu/papi/issues/321
     if not is_windows():
-        populate_submodules_if_exists(args, args.dir / "rocprofiler-systems")
+        populate_submodules_if_exists(
+            args, THEROCK_DIR / "profiler" / "rocprofiler-systems"
+        )
 
 
 def populate_submodules_if_exists(args, git_dir: Path):
@@ -138,35 +143,16 @@ def populate_submodules_if_exists(args, git_dir: Path):
         print(f"Not populating submodules for {git_dir} (does not exist)")
         return
     print(f"Populating submodules for {git_dir}:")
-    depth_args = []
+    update_args = []
     if args.depth is not None:
-        depth_args = ["--depth", str(args.depth)]
-    exec(["git", "submodule", "update", "--init"] + depth_args, cwd=git_dir)
+        update_args = ["--depth", str(args.depth)]
+    if args.jobs:
+        update_args += ["--jobs", str(args.jobs)]
+    exec(["git", "submodule", "update", "--init"] + update_args, cwd=git_dir)
 
 
 def main(argv):
     parser = argparse.ArgumentParser(prog="fetch_sources")
-    parser.add_argument(
-        "--dir", type=Path, help="Repo dir", default=DEFAULT_SOURCES_DIR
-    )
-    parser.add_argument(
-        "--manifest-url",
-        type=str,
-        help="Manifest repository location of ROCm",
-        default="https://github.com/ROCm/ROCm.git",
-    )
-    parser.add_argument(
-        "--manifest-name",
-        type=str,
-        help="Repo manifest name",
-        default="default.xml",
-    )
-    parser.add_argument(
-        "--manifest-branch",
-        type=str,
-        help="Branch to sync with repo tool",
-        default="amd-mainline",
-    )
     parser.add_argument(
         "--patch-tag",
         type=str,
@@ -174,7 +160,13 @@ def main(argv):
         help="Patch tag to apply to sources after sync",
     )
     parser.add_argument(
-        "--depth", type=int, help="Git depth to pass to repo", default=None
+        "--depth", type=int, help="Git depth when updating submodules", default=None
+    )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        help="Number of jobs to use for updating submodules",
+        default=None,
     )
     parser.add_argument(
         "--include-math-libs",
