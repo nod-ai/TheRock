@@ -18,7 +18,6 @@ add_submodule() {
   url="$4"
   unsymlink $path
   git submodule add -b "$branch" --name "$name" -- "$url" "$path"
-  git config --file .gitmodules submodule.$name.ignore all
 }
 
 add_submodule clr amd-mainline core/clr https://github.com/ROCm/clr

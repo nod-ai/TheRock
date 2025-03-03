@@ -48,6 +48,17 @@ def run(args):
         ["git", "submodule", "update", "--init", "--recursive"] + depth_args,
         cwd=THEROCK_DIR,
     )
+
+    # Because we allow local patches, if a submodule is in a patched state,
+    # we manually set it to skip-worktree since recording the commit is
+    # then meaningless. Here on each fetch, we reset the flag so that if
+    # patches are aged out, the tree is restored to normal.
+    submodule_paths = [get_submodule_path(name) for name in projects]
+    exec(
+        ["git", "update-index", "--no-skip-worktree", "--"] + submodule_paths,
+        cwd=THEROCK_DIR,
+    )
+
     apply_patches(args)
 
 
@@ -59,7 +70,8 @@ def apply_patches(args):
         print(f"ERROR: Patch directory {patch_version_dir} does not exist")
     for patch_project_dir in patch_version_dir.iterdir():
         print(f"* Processing project patch directory {patch_project_dir}:")
-        project_dir = get_submodule_path(patch_project_dir.name)
+        submodule_path = get_submodule_path(patch_project_dir.name)
+        project_dir = THEROCK_DIR / submodule_path
         if not project_dir.exists():
             print(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
             continue
@@ -67,11 +79,16 @@ def apply_patches(args):
         patch_files.sort()
         print(f"Applying {len(patch_files)} patches")
         exec(["git", "am", "--whitespace=nowarn"] + patch_files, cwd=project_dir)
+        # Since it is in a patched state, make it invisible to changes.
+        exec(
+            ["git", "update-index", "--skip-worktree", "--", submodule_path],
+            cwd=THEROCK_DIR,
+        )
 
 
-# Gets the the absolute path to a submodule given its name.
+# Gets the the relative path to a submodule given its name.
 # Raises an exception on failure.
-def get_submodule_path(name: str) -> Path:
+def get_submodule_path(name: str) -> str:
     relpath = (
         subprocess.check_output(
             [
@@ -87,7 +104,7 @@ def get_submodule_path(name: str) -> Path:
         .decode()
         .strip()
     )
-    return THEROCK_DIR / relpath
+    return relpath
 
 
 def main(argv):
