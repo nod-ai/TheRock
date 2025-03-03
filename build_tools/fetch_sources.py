@@ -23,27 +23,6 @@ def is_windows() -> bool:
     return platform.system() == "Windows"
 
 
-def setup_repo_tool() -> Path:
-    """Sets up https://gerrit.googlesource.com/git-repo/, downloading as needed."""
-
-    repo_path = shutil.which("repo")
-    if repo_path:
-        print(f"Found 'repo' on PATH at '{repo_path}', using it")
-        return repo_path
-
-    repo_path = THIS_SCRIPT_DIR / "repo"
-    if repo_path.exists():
-        print(f"Found 'repo' in script dir at '{repo_path}', using it")
-        return repo_path
-
-    print(f"Unable to find 'repo', downloading into script dir at '{repo_path}'")
-    urllib.request.urlretrieve(
-        "https://storage.googleapis.com/git-repo-downloads/repo", repo_path
-    )
-    os.chmod(repo_path, 0o744)
-    return repo_path
-
-
 def exec(args: list[str | Path], cwd: Path):
     args = [str(arg) for arg in args]
     print(f"++ Exec [{cwd}]$ {shlex.join(args)}")
@@ -60,41 +39,15 @@ def get_enabled_projects(args) -> list[str]:
 
 
 def run(args):
-    repo_tool_path = setup_repo_tool()
-
-    repo_dir: Path = args.dir
-    print(f"Setting up repo in {repo_dir}")
-    repo_dir.mkdir(exist_ok=True, parents=True)
-    repo_args = [
-        sys.executable,
-        str(repo_tool_path),
-        "init",
-        "-v",
-        "-u",
-        args.manifest_url,
-        "-m",
-        args.manifest_name,
-        "-b",
-        args.manifest_branch,
-    ]
+    projects = get_enabled_projects(args)
+    exec(["git", "config", "submodule.active", " ".join(projects)], cwd=THEROCK_DIR)
+    depth_args = []
     if args.depth:
-        repo_args.extend(["--depth", str(args.depth)])
+        depth_args = ["--depth", str(args.depth)]
     exec(
-        repo_args,
-        cwd=repo_dir,
+        ["git", "submodule", "update", "--init", "--recursive"] + depth_args,
+        cwd=THEROCK_DIR,
     )
-    exec(
-        [
-            sys.executable,
-            str(repo_tool_path),
-            "sync",
-            "-j16",
-        ]
-        + get_enabled_projects(args),
-        cwd=repo_dir,
-    )
-
-    populate_ancillary_sources(args)
     apply_patches(args)
 
 
@@ -106,7 +59,7 @@ def apply_patches(args):
         print(f"ERROR: Patch directory {patch_version_dir} does not exist")
     for patch_project_dir in patch_version_dir.iterdir():
         print(f"* Processing project patch directory {patch_project_dir}:")
-        project_dir: Path = args.dir / patch_project_dir.name
+        project_dir = get_submodule_path(patch_project_dir.name)
         if not project_dir.exists():
             print(f"WARNING: Source directory {project_dir} does not exist. Skipping.")
             continue
@@ -116,32 +69,25 @@ def apply_patches(args):
         exec(["git", "am", "--whitespace=nowarn"] + patch_files, cwd=project_dir)
 
 
-def populate_ancillary_sources(args):
-    """Various subprojects have their own mechanisms for populating ancillary sources
-    needed to build. There is often something in CMake that attempts to automate it,
-    but it is also often broken. So we just do the right thing here as a transitionary
-    step to fixing the underlying software packages."""
-    populate_submodules_if_exists(args, args.dir / "rocprofiler-register")
-    populate_submodules_if_exists(args, args.dir / "rocprofiler-sdk")
-
-    # TODO(#36): Enable once rocprofiler-systems can be checked out on Windows
-    #     error: invalid path 'src/counter_analysis_toolkit/scripts/sample_data/L2_RQSTS:ALL_DEMAND_REFERENCES.data.reads.stat'
-    #  Upstream issues:
-    #   https://github.com/ROCm/rocprofiler-systems/issues/105
-    #   https://github.com/icl-utk-edu/papi/issues/321
-    if not is_windows():
-        populate_submodules_if_exists(args, args.dir / "rocprofiler-systems")
-
-
-def populate_submodules_if_exists(args, git_dir: Path):
-    if not git_dir.exists():
-        print(f"Not populating submodules for {git_dir} (does not exist)")
-        return
-    print(f"Populating submodules for {git_dir}:")
-    depth_args = []
-    if args.depth is not None:
-        depth_args = ["--depth", str(args.depth)]
-    exec(["git", "submodule", "update", "--init"] + depth_args, cwd=git_dir)
+# Gets the the absolute path to a submodule given its name.
+# Raises an exception on failure.
+def get_submodule_path(name: str) -> Path:
+    relpath = (
+        subprocess.check_output(
+            [
+                "git",
+                "config",
+                "--file",
+                ".gitmodules",
+                "--get",
+                f"submodule.{name}.path",
+            ],
+            cwd=str(THEROCK_DIR),
+        )
+        .decode()
+        .strip()
+    )
+    return THEROCK_DIR / relpath
 
 
 def main(argv):
