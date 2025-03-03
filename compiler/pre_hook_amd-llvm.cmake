@@ -1,5 +1,5 @@
 # Get access to LLVM_VERSION_MAJOR
-include("${ROCM_GIT_DIR}/llvm-project/cmake/Modules/LLVMVersion.cmake")
+include("${THEROCK_SOURCE_DIR}/compiler/amd-llvm/cmake/Modules/LLVMVersion.cmake")
 
 # Build LLVM and the comgr dependency.
 # Note that in LLVM "BUILD_SHARED_LIBS" enables an unsupported development mode.
