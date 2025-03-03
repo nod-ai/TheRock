@@ -4,18 +4,14 @@
 # the CI uses to get to a clean state.
 
 import argparse
-import os
 from pathlib import Path
 import platform
 import shlex
-import shutil
 import subprocess
 import sys
-import urllib.request
 
 THIS_SCRIPT_DIR = Path(__file__).resolve().parent
 THEROCK_DIR = THIS_SCRIPT_DIR.parent
-DEFAULT_SOURCES_DIR = THEROCK_DIR / "sources"
 PATCHES_DIR = THEROCK_DIR / "patches"
 
 

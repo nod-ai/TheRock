@@ -21,14 +21,17 @@ pip install CppHeaderParser==2.7.4 meson==1.7.0
 Dev tools:
 
 ```
-sudo apt install gfortran repo git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev
+sudo apt install gfortran git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev
 ```
 
+## On Windows
+
+> [!WARNING]
+> Windows support is still early in development. Not all subprojects or packages build for Windows yet.
+
+See [windows_support.md](./docs/development/windows_support.md).
+
 # Checkout Sources
-
-We want ROCm sources checked out into the sources/ directory or if you check it out elsewhere create a symlink called `ln -s /path/to/rocm sources`
-
-## Via script
 
 ```
 python ./build_tools/fetch_sources.py

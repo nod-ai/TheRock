@@ -71,7 +71,11 @@ These instructions mostly mirror the instructions in the root
   terminal application. Some developers report good experiences with
   [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/)
   and [Cmder](https://cmder.app/).
-* Symlink support must be enabled.
+* A Dev Drive is recommended, due to how many source and build files are used.
+  See the
+  [Set up a Dev Drive on Windows 11](https://learn.microsoft.com/en-us/windows/dev-drive/)
+  article for setup instructions.
+* Symlink support is recommended.
 
   Test if symlinks work from cmd:
 
@@ -93,23 +97,19 @@ These instructions mostly mirror the instructions in the root
   * https://portal.perforce.com/s/article/3472
   * https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/create-symbolic-links
   * https://stackoverflow.com/a/59761201
-* A Dev Drive is recommended, due to how many source and build files are used.
-  See the
-  [Set up a Dev Drive on Windows 11](https://learn.microsoft.com/en-us/windows/dev-drive/)
-  article for setup instructions.
 
 #### Install tools
 
 You will need:
 
 * Git: https://git-scm.com/downloads
-  * Also enable symlinks with `git config --global core.symlinks true`
+  * Suggested: enable symlinks with `git config --global core.symlinks true`
 * CMake: https://cmake.org/download/
 * Ninja: https://ninja-build.org/
 * (Optional) ccache: https://ccache.dev/, or sccache:
   https://github.com/mozilla/sccache
 * Python: https://www.python.org/downloads/ (3.11+ recommended)
-* A compiler like MSVC from https://visualstudio.microsoft.com/downloads/
+* The MSVC compiler from https://visualstudio.microsoft.com/downloads/
   (typically from either Visual Studio or the Build Tools for Visual Studio),
   including these components:
   * MSVC
@@ -128,32 +128,18 @@ You will need:
 > https://github.com/chocolatey/choco
 >
 > ```
+> choco install git
 > choco install cmake
 > choco install ninja
 > choco install ccache
 > choco install sccache
+> choco install python
 > ```
 
 ### Clone and fetch sources
 
 ```bash
 git clone https://github.com/nod-ai/TheRock.git
-```
-
-Check that symlinks were created:
-
-```bash
-stat base/rocm-core
-  File: base/rocm-core -> ../sources/rocm-core
-  Size: 20              Blocks: 0          IO Block: 65536  symbolic link
-```
-
-If symlinks were not created, follow the instructions at
-https://stackoverflow.com/a/59761201.
-
-Next, fetch sources:
-
-```bash
 python ./build_tools/fetch_sources.py
 ```
 
