@@ -84,7 +84,7 @@ jobs:
         run: |
           # Sets an env variable to ensure urllib uses the certifi CA bundle in fetch_sources.py.
           export SSL_CERT_FILE=$(python3 -m certifi)
-          python ./build_tools/fetch_sources.py --depth 1 --jobs 10
+          python ./build_tools/fetch_sources.py --jobs 8
 
       - name: Configure MSVC
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
