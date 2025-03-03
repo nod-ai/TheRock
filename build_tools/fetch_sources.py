@@ -40,12 +40,15 @@ def get_enabled_projects(args) -> list[str]:
 
 def run(args):
     projects = get_enabled_projects(args)
-    exec(["git", "config", "submodule.active", " ".join(projects)], cwd=THEROCK_DIR)
+    submodule_paths = [get_submodule_path(project) for project in projects]
     depth_args = []
     if args.depth:
         depth_args = ["--depth", str(args.depth)]
     exec(
-        ["git", "submodule", "update", "--init", "--recursive"] + depth_args,
+        ["git", "submodule", "update", "--init", "--recursive"]
+        + depth_args
+        + ["--"]
+        + submodule_paths,
         cwd=THEROCK_DIR,
     )
 
