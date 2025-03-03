@@ -1,0 +1,150 @@
+[submodule "clr"]
+	path = core/clr
+	url = https://github.com/ROCm/clr
+	branch = amd-mainline
+	ignore = all
+[submodule "half"]
+	path = base/half
+	url = https://github.com/ROCm/half.git
+	branch = rocm
+	ignore = all
+[submodule "HIP"]
+	path = core/HIP
+	url = https://github.com/ROCm/HIP.git
+	branch = amd-mainline
+	ignore = all
+[submodule "HIPIFY"]
+	path = compiler/hipify
+	url = https://github.com/ROCm/HIPIFY.git
+	branch = amd-mainline
+	ignore = all
+[submodule "llvm-project"]
+	path = compiler/amd-llvm
+	url = https://github.com/ROCm/llvm-project.git
+	branch = amd-mainline
+	ignore = all
+[submodule "rccl"]
+	path = comm-libs/rccl
+	url = https://github.com/ROCm/rccl.git
+	branch = mainline
+	ignore = all
+[submodule "rocm_smi_lib"]
+	path = base/rocm_smi_lib
+	url = https://github.com/ROCm/rocm_smi_lib.git
+	branch = amd-mainline
+	ignore = all
+[submodule "rocm-cmake"]
+	path = base/rocm-cmake
+	url = https://github.com/ROCm/rocm-cmake.git
+	branch = mainline
+	ignore = all
+[submodule "rocm-core"]
+	path = base/rocm-core
+	url = https://github.com/ROCm/rocm-core.git
+	branch = amd-master
+	ignore = all
+[submodule "rocminfo"]
+	path = core/rocminfo
+	url = https://github.com/ROCm/rocminfo.git
+	branch = amd-master
+	ignore = all
+[submodule "rocprofiler-register"]
+	path = base/rocprofiler-register
+	url = https://github.com/ROCm/rocprofiler-register.git
+	branch = amd-mainline
+	ignore = all
+[submodule "rocprofiler-sdk"]
+	path = profiler/rocprofiler-sdk
+	url = https://github.com/ROCm/rocprofiler-sdk.git
+	branch = amd-mainline
+	ignore = all
+[submodule "ROCR-Runtime"]
+	path = core/ROCR-Runtime
+	url = https://github.com/ROCm/ROCR-Runtime.git
+	branch = amd-master
+	ignore = all
+[submodule "hipBLAS-common"]
+	path = math-libs/BLAS/hipBLAS-common
+	url = https://github.com/ROCm/hipBLAS-common.git
+	branch = mainline
+	ignore = all
+[submodule "hipBLAS"]
+	path = math-libs/BLAS/hipBLAS
+	url = https://github.com/ROCm/hipBLAS.git
+	branch = mainline
+	ignore = all
+[submodule "hipBLASLt"]
+	path = math-libs/BLAS/hipBLASLt
+	url = https://github.com/ROCm/hipBLASLt.git
+	branch = mainline
+	ignore = all
+[submodule "hipCUB"]
+	path = math-libs/hipCUB
+	url = https://github.com/ROCm/hipCUB.git
+	branch = mainline
+	ignore = all
+[submodule "hipFFT"]
+	path = math-libs/hipFFT
+	url = https://github.com/ROCm/hipFFT.git
+	branch = mainline
+	ignore = all
+[submodule "hipRAND"]
+	path = math-libs/hipRAND
+	url = https://github.com/ROCm/hipRAND.git
+	branch = mainline
+	ignore = all
+[submodule "hipSOLVER"]
+	path = math-libs/BLAS/hipSOLVER
+	url = https://github.com/ROCm/hipSOLVER.git
+	branch = mainline
+	ignore = all
+[submodule "hipSPARSE"]
+	path = math-libs/BLAS/hipSPARSE
+	url = https://github.com/ROCm/hipSPARSE.git
+	branch = mainline
+	ignore = all
+[submodule "tensile"]
+	path = math-libs/BLAS/Tensile
+	url = https://github.com/ROCm/Tensile.git
+	branch = master
+	ignore = all
+[submodule "rocBLAS"]
+	path = math-libs/BLAS/rocBLAS
+	url = https://github.com/ROCm/rocBLAS.git
+	branch = mainline
+	ignore = all
+[submodule "rocFFT"]
+	path = math-libs/rocFFT
+	url = https://github.com/ROCm/rocFFT.git
+	branch = mainline
+	ignore = all
+[submodule "rocPRIM"]
+	path = math-libs/rocPRIM
+	url = https://github.com/ROCm/rocPRIM.git
+	branch = mainline
+	ignore = all
+[submodule "rocRAND"]
+	path = math-libs/rocRAND
+	url = https://github.com/ROCm/rocRAND.git
+	branch = mainline
+	ignore = all
+[submodule "rocSOLVER"]
+	path = math-libs/BLAS/rocSOLVER
+	url = https://github.com/ROCm/rocSOLVER.git
+	branch = mainline
+	ignore = all
+[submodule "rocSPARSE"]
+	path = math-libs/BLAS/rocSPARSE
+	url = https://github.com/ROCm/rocSPARSE.git
+	branch = mainline
+	ignore = all
+[submodule "rocThrust"]
+	path = math-libs/rocThrust
+	url = https://github.com/ROCm/rocThrust.git
+	branch = mainline
+	ignore = all
+[submodule "MIOpen"]
+	path = ml-libs/MIOpen
+	url = https://github.com/ROCm/MIOpen.git
+	branch = amd-master
+	ignore = all
