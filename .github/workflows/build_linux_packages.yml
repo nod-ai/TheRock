@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: "Checking out repository"
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
 
       - name: Runner Health Settings
         run: |
@@ -58,7 +60,7 @@ jobs:
 
       - name: Fetch sources
         run: |
-          ./build_tools/fetch_sources.py --depth 1 --jobs 30
+          ./build_tools/fetch_sources.py --depth 1 --jobs 10
 
       # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
       # So we delete the latter. This must be done after getting any git
