@@ -71,7 +71,8 @@ def run(args):
     )
 
     populate_ancillary_sources(args)
-    apply_patches(args)
+    if args.apply_patches:
+        apply_patches(args)
 
 
 def apply_patches(args):
@@ -158,6 +159,12 @@ def main(argv):
         type=str,
         default="amd-mainline",
         help="Patch tag to apply to sources after sync",
+    )
+    parser.add_argument(
+        "--apply-patches",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Apply patches",
     )
     parser.add_argument(
         "--depth", type=int, help="Git depth when updating submodules", default=None
