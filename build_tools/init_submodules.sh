@@ -44,7 +44,7 @@ add_submodule hipFFT mainline math-libs/hipFFT https://github.com/ROCm/hipFFT.gi
 add_submodule hipRAND mainline math-libs/hipRAND https://github.com/ROCm/hipRAND.git
 add_submodule hipSOLVER mainline math-libs/BLAS/hipSOLVER https://github.com/ROCm/hipSOLVER.git
 add_submodule hipSPARSE mainline math-libs/BLAS/hipSPARSE https://github.com/ROCm/hipSPARSE.git
-add_submodule tensile master math-libs/BLAS/Tensile https://github.com/ROCm/Tensile.git
+add_submodule Tensile master math-libs/BLAS/Tensile https://github.com/ROCm/Tensile.git
 add_submodule rocBLAS mainline math-libs/BLAS/rocBLAS https://github.com/ROCm/rocBLAS.git
 add_submodule rocFFT mainline math-libs/rocFFT https://github.com/ROCm/rocFFT.git
 add_submodule rocPRIM mainline math-libs/rocPRIM https://github.com/ROCm/rocPRIM.git

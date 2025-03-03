@@ -143,3 +143,8 @@
 	url = https://github.com/ROCm/MIOpen.git
 	branch = amd-master
 	ignore = all
+[submodule "Tensile"]
+	path = math-libs/BLAS/Tensile
+	url = https://github.com/ROCm/Tensile.git
+	branch = master
+	ignore = all
