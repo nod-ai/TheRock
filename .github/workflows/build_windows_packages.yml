@@ -40,9 +40,6 @@ jobs:
           echo  "BUILD_DIR_BASH=$bashBuildDir" >> $env:GITHUB_ENV
           Write-Host "Converted Build Directory For Bash: $bashBuildDir"
 
-      - name: Enabling git symlinks
-        run: git config --global core.symlinks true
-
       - name: "Checking out repository"
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
@@ -77,13 +74,8 @@ jobs:
           restore-keys: |
             windows-build-packages-v2-
 
-      - name: Install Certs
-        run: python -m pip install certifi
-
       - name: Fetch sources
         run: |
-          # Sets an env variable to ensure urllib uses the certifi CA bundle in fetch_sources.py.
-          export SSL_CERT_FILE=$(python3 -m certifi)
           python ./build_tools/fetch_sources.py --jobs 12
 
       - name: Configure MSVC
