@@ -143,10 +143,12 @@ def populate_submodules_if_exists(args, git_dir: Path):
         print(f"Not populating submodules for {git_dir} (does not exist)")
         return
     print(f"Populating submodules for {git_dir}:")
-    depth_args = []
+    update_args = []
     if args.depth is not None:
-        depth_args = ["--depth", str(args.depth)]
-    exec(["git", "submodule", "update", "--init"] + depth_args, cwd=git_dir)
+        update_args = ["--depth", str(args.depth)]
+    if args.jobs:
+        update_args += ["--jobs", str(args.jobs)]
+    exec(["git", "submodule", "update", "--init"] + update_args, cwd=git_dir)
 
 
 def main(argv):

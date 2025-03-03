@@ -58,7 +58,7 @@ jobs:
 
       - name: Fetch sources
         run: |
-          ./build_tools/fetch_sources.py --jobs 8
+          ./build_tools/fetch_sources.py --jobs 12
 
       - name: Build Projects
         run: |
