@@ -32,6 +32,7 @@ therock_cmake_subproject_activate(therock-host-blas)
 
 therock_provide_artifact(host-blas
   DESCRIPTOR artifact-host-OpenBLAS.toml
+  TARGET_NEUTRAL
   COMPONENTS
     dbg
     dev

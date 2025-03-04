@@ -39,6 +39,7 @@ therock_cmake_subproject_activate(therock-SuiteSparse)
 
 therock_provide_artifact(host-suite-sparse
   DESCRIPTOR artifact-host-suite-sparse.toml
+  TARGET_NEUTRAL
   COMPONENTS
     dbg
     dev
