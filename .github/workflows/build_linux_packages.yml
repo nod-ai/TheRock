@@ -16,7 +16,7 @@ on:
 jobs:
   build_linux_packages:
     name: Build Linux Packages
-    runs-on: azure-cpubuilder-linux-scale
+    runs-on: azure-linux-scale-rocm
     container:
       image: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
     strategy:
