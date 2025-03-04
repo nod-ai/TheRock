@@ -16,7 +16,7 @@ on:
 jobs:
   test_rocm_info:
     name: "Sanity ROCM Test"
-    runs-on: linux-mi300-1gpu-ossci
+    runs-on: linux-mi300-1gpu-ossci-rocm
     strategy:
       fail-fast: true
     defaults:
