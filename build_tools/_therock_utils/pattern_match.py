@@ -116,14 +116,14 @@ class PatternMatcher:
         for relpath, direntry in self.matches():
             try:
                 destpath = destdir / PurePosixPath(destprefix + relpath)
-                if direntry.is_dir(follow_symlinks=False):
+                if direntry.is_dir() and not direntry.is_symlink():
                     # Directory.
                     if verbose:
                         print(f"mkdir {destpath}", file=sys.stderr, end="")
                     destpath.mkdir(parents=True, exist_ok=True)
                 elif direntry.is_symlink():
                     # Symlink.
-                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                    if not remove_dest and (destpath.exists() or destpath.is_symlink()):
                         os.unlink(destpath)
                     targetpath = os.readlink(direntry.path)
                     if verbose:
@@ -136,7 +136,7 @@ class PatternMatcher:
                     os.symlink(targetpath, destpath)
                 else:
                     # Regular file.
-                    if not remove_dest and destpath.exists(follow_symlinks=False):
+                    if not remove_dest and (destpath.exists() or destpath.is_symlink()):
                         os.unlink(destpath)
                     destpath.parent.mkdir(parents=True, exist_ok=True)
                     linked_file = False
