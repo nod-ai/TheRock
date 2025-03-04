@@ -67,7 +67,7 @@ def add_prefix(args: argparse.Namespace):
 
         # Remove old links.
         for orig_path in orig_paths:
-            if orig_path.exists(follow_symlinks=False):
+            if orig_path.is_symlink():
                 print(f"Removing original link: {orig_path}")
                 orig_path.unlink()
 
