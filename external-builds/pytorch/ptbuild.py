@@ -22,7 +22,7 @@ The checkout process combines the following activities:
   tag (default to latest release).
 * Configures PyTorch submodules to be ignored for any local changes (so that
   the result is suitable for development with local patches).
-* Applies "base" patches to the pytorch repo and any submodules (by using 
+* Applies "base" patches to the pytorch repo and any submodules (by using
   `git am` with patches from `patches/<pytorch-ref>/<repo-name>/base`).
 * Runs `hipify` to prepare sources for AMD GPU and commits the result to the
   main repo and any modified submodules.

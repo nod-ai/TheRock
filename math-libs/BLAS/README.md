@@ -6,10 +6,10 @@ ROCM BLAS APIs on AMD GPUs.
 Some libraries are low-level, implementation libraries. The following are
 user-level API libraries:
 
-* hipBLASLt
-* hipBLAS
-* hipSOLVER
-* hipSPARSE
+- hipBLASLt
+- hipBLAS
+- hipSOLVER
+- hipSPARSE
 
 Currently, all component libraries are built individually, but a future rework
 will nest them all under the same CMake project for better optimization of the
