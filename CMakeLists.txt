@@ -192,8 +192,6 @@ therock_validate_amdgpu_targets()
 # Some sub-projects need Python. Make sure it is found consistently.
 find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
 
-configure_file(HIP_VERSION.in ${THEROCK_SOURCE_DIR}/core/HIP/VERSION)
-
 set(STAGING_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/staging_install")
 
 # On some distributions, this will install to lib64. We would like
