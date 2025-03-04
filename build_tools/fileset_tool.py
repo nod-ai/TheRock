@@ -312,10 +312,12 @@ def _dup_list_or_str(v: list[str] | str) -> list[str]:
 def load_toml_file(p: Path):
     try:
         import tomllib
+        with open(p, "rb") as f:
+            return tomllib.load(f)
     except ModuleNotFoundError:
         # Python <= 3.10 compatibility (requires install of 'toml' package)
         import toml as tomllib
-    return tomllib.load(p)
+        return tomllib.load(p)
 
 
 def main(cl_args: list[str]):
