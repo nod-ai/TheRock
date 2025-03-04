@@ -14,7 +14,7 @@ FROM quay.io/pypa/manylinux_2_28_x86_64@sha256:9042a22d33af2223ff7a3599f236aff1e
 ######## Python setup #######
 # These images come with multiple python versions. We pin one for
 # default use.
-ENV PATH="/opt/python/cp310-cp310/bin:${PATH}"
+ENV PATH="/opt/python/cp312-cp312/bin:${PATH}"
 
 ######## Pip Packages ########
 RUN pip install CppHeaderParser==2.7.4 meson==1.7.0 toml==0.10.2
