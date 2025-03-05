@@ -83,4 +83,4 @@ jobs:
         run: |
           source ${VENV_DIR}/bin/activate
           pytest tests/ \
-          --log-cli-level=info 
+          --log-cli-level=info
