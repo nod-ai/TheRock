@@ -74,20 +74,12 @@ jobs:
           docker pull ${{ env.BUILD_IMAGE }} &
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
-          ./build_tools/fetch_sources.py --depth 1
+          ./build_tools/fetch_sources.py
           wait
-
-      # The full checkout is very large: ~16GB, 9 of which is GIT stuff.
-      # So we delete the latter. This must be done after getting any git
-      # stamps or such things.
-      - name: Trim Disk Space
-        run: |
-          rm -Rf sources/.repo
-          df -h
 
       - name: Build Projects
         run: |
-          ./build_tools/linux_build_portable.py \
+          ./build_tools/linux_portable_build.py \
             --image=${{ env.BUILD_IMAGE }} \
             --output-dir=${{ env.OUTPUT_DIR }} \
             -- \
