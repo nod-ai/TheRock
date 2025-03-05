@@ -58,6 +58,9 @@ therock_add_amdgpu_target(gfx1103 "AMD Radeon 780M Laptop iGPU" FAMILY igpu-all 
 therock_add_amdgpu_target(gfx1150 "AMD Strix Point iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu)
 therock_add_amdgpu_target(gfx1151 "AMD Strix Halo iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu)
 
+# gfx120X family
+therock_add_amdgpu_target(gfx1201 "AMD WIP RDNA4/NAVI48" FAMILY dgpu-all gfx120X-all)
+
 
 # Validates and normalizes AMDGPU target selection cache variables.
 function(therock_validate_amdgpu_targets)
