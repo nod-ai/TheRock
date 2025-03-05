@@ -99,7 +99,7 @@ def main(argv: list[str]):
     p.add_argument("--docker", default="docker", help="Docker or podman binary")
     p.add_argument(
         "--image",
-        default="ghcr.io/nod-ai/therock_build_manylinux_x86_64:main",
+        default="ghcr.io/rocm/therock_build_manylinux_x86_64:main",
         help="Build docker image",
     )
     p.add_argument(
