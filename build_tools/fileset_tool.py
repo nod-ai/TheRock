@@ -314,12 +314,9 @@ def load_toml_file(p: Path):
         import tomllib
     except ModuleNotFoundError:
         # Python <= 3.10 compatibility (requires install of 'toml' package)
-        import toml as tomllib
-    if sys.version_info < (3, 11):
-        return tomllib.load(p)
-    else:
-        with open(p, "rb") as f:
-            return tomllib.load(f)
+        import tomli as tomllib
+    with open(p, "rb") as f:
+        return tomllib.load(f)
 
 
 def main(cl_args: list[str]):
