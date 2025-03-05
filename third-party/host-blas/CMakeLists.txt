@@ -22,7 +22,7 @@ therock_cmake_subproject_declare(therock-host-blas
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS=ON
     # TODO: DYNAMIC_ARCH=ON produces illegal elf files
-    # See: https://github.com/nod-ai/TheRock/issues/83
+    # See: https://github.com/ROCm/TheRock/issues/83
     -DDYNAMIC_ARCH=OFF
     -DC_LAPACK=ON
     -DBUILD_TESTING=OFF

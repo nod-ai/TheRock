@@ -25,7 +25,7 @@ option(THEROCK_ENABLE_SOLVER "Whether rocsolver/hipsolver are available" ON)
 option(THEROCK_ENABLE_SPARSE "Whether rocsparse/hipsparse are available" ON)
 
 if(THEROCK_ENABLE_HIP)
-    # TODO: Don't require HIP_PLATFORM https://github.com/nod-ai/TheRock/issues/68
+    # TODO: Don't require HIP_PLATFORM https://github.com/ROCm/TheRock/issues/68
     set(HIP_PLATFORM "amd")
     find_package(hip CONFIG REQUIRED)
     message(STATUS "**** HIP Configuration:")

@@ -22,7 +22,7 @@ if(THEROCK_ENABLE_RCCL)
       # to work and it will only do so if the system resolver reports it not found
       # without any other error (which due to the signature, our resolver will
       # hard fail). Once fixed, `rocm-core` should be added to the BUILD_DEPS
-      # and this removed: https://github.com/nod-ai/TheRock/issues/18
+      # and this removed: https://github.com/ROCm/TheRock/issues/18
       ROCM
     RUNTIME_DEPS
       hip-clr
