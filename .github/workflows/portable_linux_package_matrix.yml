@@ -74,7 +74,7 @@ jobs:
           docker pull ${{ env.BUILD_IMAGE }} &
           git config --global user.email "nobody@amd.com"
           git config --global user.name "Nobody"
-          ./build_tools/fetch_sources.py
+          ./build_tools/fetch_sources.py --jobs 10
           wait
 
       - name: Build Projects
@@ -83,7 +83,8 @@ jobs:
             --image=${{ env.BUILD_IMAGE }} \
             --output-dir=${{ env.OUTPUT_DIR }} \
             -- \
-            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}"
+            "-DTHEROCK_AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }}" \
+            -DTHEROCK_ENABLE_ALL=OFF -DTHEROCK_ENABLE_HIP_RUNTIME=ON
           cd ${{ env.OUTPUT_DIR }}/build/dist/rocm
           echo "Building ${{ env.DIST_ARCHIVE }}"
           tar cfz "${{ env.DIST_ARCHIVE }}" .
