@@ -43,7 +43,7 @@ endif()
 # don't need to probe warning flag availability and just have a hard-coded
 # list. We only squelch warnings here that do not signal code correctness
 # issues.
-# TODO: Clean up warning flags (https://github.com/nod-ai/TheRock/issues/47)
+# TODO: Clean up warning flags (https://github.com/ROCm/TheRock/issues/47)
 set(THEROCK_AMD_LLVM_DEFAULT_CXX_FLAGS
   -Wno-documentation-unknown-command
   -Wno-documentation-pedantic

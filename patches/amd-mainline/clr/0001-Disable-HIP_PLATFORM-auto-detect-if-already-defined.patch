@@ -9,7 +9,7 @@ This is actually worse than that because it leaks global variables that establis
 
 Also fixes a bug in hip-config.cmake where it enforces that hipcc exists even if not taking the install branch in the code above.
 
-See: https://github.com/nod-ai/TheRock/issues/21
+See: https://github.com/ROCm/TheRock/issues/21
 ---
  CMakeLists.txt             | 43 ++++++++++++++++++++++++--------------
  hipamd/CMakeLists.txt      |  5 ++++-

@@ -18,7 +18,7 @@ add_test(
 
         # TODO: HIP language support not based on an /opt/rocm installed SDK
         # must have these three cache variables set to avoid language setup
-        # error. https://github.com/nod-ai/TheRock/issues/102
+        # error. https://github.com/ROCm/TheRock/issues/102
         -DCMAKE_HIP_PLATFORM=amd
         "-DCMAKE_HIP_COMPILER=${THEROCK_BINARY_DIR}/dist/rocm/lib/llvm/bin/clang++"
         "-DCMAKE_HIP_COMPILER_ROCM_ROOT=${THEROCK_BINARY_DIR}/dist/rocm"

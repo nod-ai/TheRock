@@ -148,7 +148,7 @@ You will need:
 ### Clone and fetch sources
 
 ```bash
-git clone https://github.com/nod-ai/TheRock.git
+git clone https://github.com/ROCm/TheRock.git
 python ./build_tools/fetch_sources.py
 ```
 
