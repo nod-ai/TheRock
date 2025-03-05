@@ -48,13 +48,16 @@ def run(args):
         update_args += ["--depth", str(args.depth)]
     if args.jobs:
         update_args += ["--jobs", str(args.jobs)]
-    exec(
-        ["git", "submodule", "update", "--init"]
-        + update_args
-        + ["--"]
-        + submodule_paths,
-        cwd=THEROCK_DIR,
-    )
+    if args.remote:
+        update_args += ["--remote"]
+    if args.update_submodules:
+        exec(
+            ["git", "submodule", "update", "--init"]
+            + update_args
+            + ["--"]
+            + submodule_paths,
+            cwd=THEROCK_DIR,
+        )
 
     # Because we allow local patches, if a submodule is in a patched state,
     # we manually set it to skip-worktree since recording the commit is
@@ -155,6 +158,18 @@ def main(argv):
         type=str,
         default="amd-mainline",
         help="Patch tag to apply to sources after sync",
+    )
+    parser.add_argument(
+        "--update-submodules",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Updates submodules",
+    )
+    parser.add_argument(
+        "--remote",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Updates submodules from remote vs current",
     )
     parser.add_argument(
         "--apply-patches",
