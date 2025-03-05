@@ -16,8 +16,6 @@ class TestROCmSanity:
         assert run_command_with_search(["rocminfo"], r"Name:\s*gfx")
         
         assert run_command_with_search(["rocminfo"], r"Vendor\s*Name:\s*AMD")
-        
-        # L2 Cache size >= GPU marketing name
 
     def test_clinfo(self):
         assert run_command_with_search(["clinfo"], r"Device(\s|\\t)*Type:(\s|\\t)*CL_DEVICE_TYPE_GPU")
