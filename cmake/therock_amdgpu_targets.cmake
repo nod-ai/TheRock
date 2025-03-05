@@ -4,15 +4,26 @@
 #   THEROCK_AMDGPU_TARGET_NAME_{gfx_target}: Product name of the gfx target
 #   THEROCK_AMDGPU_TARGET_FAMILY_{family}: List of gfx targets within a named
 #     family
+#   THEROCK_AMDGPU_PROJECT_TARGET_EXCLUDES_${project_name}: Project target keyed
+#     list of gfx targets to exclude when building the target.
 #
 # Note that each gfx_target will also create a family of the same name.
 set_property(GLOBAL PROPERTY THEROCK_AMDGPU_TARGETS)
 
+# Declares an AMDGPU target, associating it with family names and optionally
+# setting additional characteristics.
+# Args: gfx_target product_name
+#
+# Keyword Args:
+# FAMILY: List of family names to associate the gfx target with.
+# EXCLUDE_TARGET_PROJECTS: sub-project names for which this target should be
+#   filtered out. This is used to work around bugs during bringup and should
+#   not be set on any fully supported targets.
 function(therock_add_amdgpu_target gfx_target product_name)
   cmake_parse_arguments(PARSE_ARGV 2 ARG
     ""
     ""
-    "FAMILY"
+    "FAMILY;EXCLUDE_TARGET_PROJECTS"
   )
 
   get_property(_targets GLOBAL PROPERTY THEROCK_AMDGPU_TARGETS)
@@ -21,6 +32,9 @@ function(therock_add_amdgpu_target gfx_target product_name)
   endif()
   set_property(GLOBAL APPEND PROPERTY THEROCK_AMDGPU_TARGETS "${gfx_target}")
   set_property(GLOBAL PROPERTY "THEROCK_AMDGPU_TARGET_NAME_${gfx_target}" "${product_name}")
+  foreach(project_name in ${ARG_EXCLUDE_TARGET_PROJECTS})
+    set_property(GLOBAL APPEND PROPERTY THEROCK_AMDGPU_PROJECT_TARGET_EXCLUDES_${project_name} "${gfx_target}")
+  endforeach()
   foreach(_family "${gfx_target}" ${ARG_FAMILY})
     set_property(GLOBAL APPEND PROPERTY THEROCK_AMDGPU_TARGET_FAMILIES "${_family}")
     set_property(GLOBAL APPEND PROPERTY "THEROCK_AMDGPU_TARGET_FAMILY_${_family}" "${gfx_target}")
@@ -55,8 +69,20 @@ therock_add_amdgpu_target(gfx1102 "AMD RX 7700S/Framework Laptop 16" FAMILY igpu
 therock_add_amdgpu_target(gfx1103 "AMD Radeon 780M Laptop iGPU" FAMILY igpu-all gfx110X-all gfx110X-igpu)
 
 # gfx115X family
-therock_add_amdgpu_target(gfx1150 "AMD Strix Point iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu)
-therock_add_amdgpu_target(gfx1151 "AMD Strix Halo iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu)
+therock_add_amdgpu_target(gfx1150 "AMD Strix Point iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu
+  EXCLUDE_TARGET_PROJECTS
+    rccl  # https://github.com/ROCm/TheRock/issues/150
+)
+therock_add_amdgpu_target(gfx1151 "AMD Strix Halo iGPU" FAMILY igpu-all gfx115X-all gfx115X-igpu
+  EXCLUDE_TARGET_PROJECTS
+    rccl  # https://github.com/ROCm/TheRock/issues/150
+)
+
+# gfx120X family
+therock_add_amdgpu_target(gfx1201 "AMD RX 9070 / XT" FAMILY dgpu-all gfx120X-all
+  EXCLUDE_TARGET_PROJECTS
+    hipBLASLt  # https://github.com/ROCm/TheRock/issues/149
+)
 
 
 # Validates and normalizes AMDGPU target selection cache variables.

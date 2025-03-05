@@ -22,6 +22,13 @@ set_property(GLOBAL PROPERTY THEROCK_DEFAULT_CMAKE_VARS
   ROCM_SYMLINK_LIBS
 )
 
+# Some sub-projects do not react well to not having any GPU targets to build.
+# In this case, we build them with a default target. This should only happen
+# with target filtering for non-production, single target builds, and we will
+# warn about it.
+set(THEROCK_SUBPROJECTS_REQUIRING_DEFAULT_GPU_TARGETS hipBLASLt)
+set(THEROCK_DEFAULT_GPU_TARGETS "gfx1100")
+
 set_property(GLOBAL PROPERTY THEROCK_SUBPROJECT_COMPILE_COMMANDS_FILES)
 
 if(CMAKE_C_VISIBILITY_PRESET)
@@ -417,7 +424,8 @@ function(therock_cmake_subproject_activate target_name)
   set(_compiler_toolchain_addl_depends)
   set(_compiler_toolchain_init_contents)
   set(_build_env_pairs)
-  _therock_cmake_subproject_setup_toolchain("${_compiler_toolchain}" "${_cmake_project_toolchain_file}")
+  _therock_cmake_subproject_setup_toolchain("${target_name}"
+    "${_compiler_toolchain}" "${_cmake_project_toolchain_file}")
 
   # Customize any other super-project CMake variables that are captured by
   # _init.cmake.
@@ -877,6 +885,36 @@ function(_therock_cmake_subproject_absolutize list_var relative_to)
   set("${list_var}" "${_abs_dirs}" PARENT_SCOPE)
 endfunction()
 
+# Filters THEROCK_AMDGPU_TARGETS based on global settings for the project.
+function(_therock_filter_project_gpu_targets out_var target_name)
+  get_property(_excludes GLOBAL PROPERTY "THEROCK_AMDGPU_PROJECT_TARGET_EXCLUDES_${target_name}")
+  set(_filtered ${THEROCK_AMDGPU_TARGETS})
+  if(_excludes)
+    foreach(exclude in ${_excludes})
+      if("${exclude}" IN_LIST _filtered)
+        message(WARNING
+          "Excluding support for ${exclude} in ${target_name} because it was "
+          "manually marked for exclusion in therock_amdgpu_targets.cmake. This "
+          "warning should never be issued for production/supported gfx targets.")
+        list(REMOVE_ITEM _filtered "${exclude}")
+      endif()
+    endforeach()
+  endif()
+
+  if(NOT _filtered)
+    if("${target_name}" IN_LIST THEROCK_SUBPROJECTS_REQUIRING_DEFAULT_GPU_TARGETS)
+      set(_filtered ${THEROCK_DEFAULT_GPU_TARGETS})
+      message(WARNING
+        "Project ${target_name} cannot build with no gpu targets but was "
+        "instructed to do so. Overriding to the default ${_filtered}. "
+        "This message should never appear for production/supported gfx targets."
+      )
+    endif()
+  endif()
+
+  set("${out_var}" "${_filtered}" PARENT_SCOPE)
+endfunction()
+
 # Writes a toolchain file and sets variables in the parent scope of the
 # therock_cmake_subproject_activate prior to initializing sub-project arguments
 # to configure the toolchain based on the user-provided COMPILER_TOOLCHAIN.
@@ -887,10 +925,13 @@ endfunction()
 #     to a ROCM installation for headers, etc.
 #   * amd-hip: Extends the amd-llvm toolchain to also depend on HIP, making
 #     it ready to use to compile HIP code.
-function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_file)
+function(_therock_cmake_subproject_setup_toolchain
+    target_name compiler_toolchain toolchain_file)
   string(APPEND CMAKE_MESSAGE_INDENT "  ")
   set(_build_env_pairs "${_build_env_pairs}")
   set(_toolchain_contents)
+
+  _therock_filter_project_gpu_targets(_filtered_gpu_targets "${target_name}")
 
   # General settings applicable to all toolchains.
   string(APPEND _toolchain_contents "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n")
@@ -944,17 +985,18 @@ function(_therock_cmake_subproject_setup_toolchain compiler_toolchain toolchain_
     string(APPEND _toolchain_contents "set(CMAKE_CXX_COMPILER @AMD_LLVM_CXX_COMPILER@)\n")
     string(APPEND _toolchain_contents "set(CMAKE_LINKER @AMD_LLVM_LINKER@)\n")
     # TODO: AMDGPU_TARGETS is being deprecated. For now we set both.
-    string(APPEND _toolchain_contents "set(AMDGPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
-    string(APPEND _toolchain_contents "set(GPU_TARGETS @THEROCK_AMDGPU_TARGETS@ CACHE STRING \"From super-project\" FORCE)\n")
+    string(APPEND _toolchain_contents "set(AMDGPU_TARGETS @_filtered_gpu_targets@ CACHE STRING \"From super-project\" FORCE)\n")
+    string(APPEND _toolchain_contents "set(GPU_TARGETS @_filtered_gpu_targets@ CACHE STRING \"From super-project\" FORCE)\n")
     string(APPEND _toolchain_contents "string(APPEND CMAKE_CXX_FLAGS_INIT \" ${_amd_llvm_cxx_flags_spaces}\")\n")
 
     if(THEROCK_VERBOSE)
+      string(JOIN " " _filtered_gpu_targets_spaces ${_filtered_gpu_targets})
       message(STATUS "Compiler toolchain ${compiler_toolchain}:")
       string(APPEND CMAKE_MESSAGE_INDENT "  ")
       message(STATUS "CMAKE_C_COMPILER = ${AMD_LLVM_C_COMPILER}")
       message(STATUS "CMAKE_CXX_COMPILER = ${AMD_LLVM_CXX_COMPILER}")
       message(STATUS "CMAKE_LINKER = ${AMD_LLVM_LINKER}")
-      message(STATUS "GPU_TARGETS = ${THEROCK_AMDGPU_TARGETS_SPACES}")
+      message(STATUS "GPU_TARGETS = ${_filtered_gpu_targets_spaces}")
     endif()
   else()
     message(FATAL_ERROR "Unsupported COMPILER_TOOLCHAIN = ${compiler_toolchain} (supported: 'amd-llvm' or none)")
