@@ -13,11 +13,12 @@ set_property(GLOBAL PROPERTY THEROCK_AMDGPU_TARGETS)
 # Declares an AMDGPU target, associating it with family names and optionally
 # setting additional characteristics.
 # Args: gfx_target product_name
+#
 # Keyword Args:
 # FAMILY: List of family names to associate the gfx target with.
 # EXCLUDE_TARGET_PROJECTS: sub-project names for which this target should be
-# filtered out. This is used to work around bugs during bringup and should
-# not be set on any fully supported targets.
+#   filtered out. This is used to work around bugs during bringup and should
+#   not be set on any fully supported targets.
 function(therock_add_amdgpu_target gfx_target product_name)
   cmake_parse_arguments(PARSE_ARGV 2 ARG
     ""
