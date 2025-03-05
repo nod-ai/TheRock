@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: nod-ai/therock_build_manylinux_x86_64
+  IMAGE_NAME: ROCm/therock_build_manylinux_x86_64
 
 jobs:
   build-and-push-image:
