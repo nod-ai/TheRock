@@ -18,7 +18,7 @@ jobs:
     name: Build Linux Packages
     runs-on: azure-linux-scale-rocm
     container:
-      image: ghcr.io/nod-ai/therock_build_manylinux_x86_64:main
+      image: ghcr.io/rocm/therock_build_manylinux_x86_64:main
     strategy:
       fail-fast: true
     env:
