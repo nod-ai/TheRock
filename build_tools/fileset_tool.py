@@ -313,7 +313,7 @@ def load_toml_file(p: Path):
     try:
         import tomllib
     except ModuleNotFoundError:
-        # Python <= 3.10 compatibility (requires install of 'toml' package)
+        # Python <= 3.10 compatibility (requires install of 'tomli' package)
         import tomli as tomllib
     with open(p, "rb") as f:
         return tomllib.load(f)
