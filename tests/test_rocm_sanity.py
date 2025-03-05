@@ -1,6 +1,9 @@
 import pytest
 import subprocess
 import re
+from pathlib import Path
+
+THIS_DIR = Path(__file__).parent
 
 def run_command_with_search(command, to_search):
     process = subprocess.run(command, capture_output=True, check=False)
@@ -23,4 +26,11 @@ class TestROCmSanity:
         assert run_command_with_search(["clinfo"], r"Name:(\s|\\t)*gfx")
         
         assert run_command_with_search(["clinfo"], r"Vendor:(\s|\\t)*Advanced Micro Devices, Inc.")
+        
+    def test_hip_printf(self):
+        # Compiling .cpp file using hipcc
+        run_command_with_search(["hipcc", f"{str(THIS_DIR)}/hip_printf.cpp", "-o",  f"{str(THIS_DIR)}/hip_printf"], "")
+        
+        # Running the executable
+        assert run_command_with_search([f"{str(THIS_DIR)}/hip_printf"], r"Thread......is\swriting")
         
