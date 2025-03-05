@@ -222,7 +222,18 @@ def do_artifact_archive(args):
 
     if args.hash_file:
         with open(output_path, "rb") as f:
-            digest = hashlib.file_digest(f, args.hash_algorithm)
+            try:
+                digest = hashlib.file_digest(f, args.hash_algorithm)
+            except AttributeError:  # file_digest() was added in Python 3.11.
+                digest = hashlib.new(args.hash_algorithm)
+                buffer = bytearray(2**16)
+                view = memoryview(buffer)
+                while True:
+                    size = f.readinto(buffer)
+                    if size == 0:
+                        break
+                    digest.update(view[:size])
+
         with open(args.hash_file, "wt") as hash_file:
             hash_file.write(digest.hexdigest())
             hash_file.write("\n")
