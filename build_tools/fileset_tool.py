@@ -224,7 +224,7 @@ def do_artifact_archive(args):
         with open(output_path, "rb") as f:
             try:
                 digest = hashlib.file_digest(f, args.hash_algorithm)
-            except AttributeError:
+            except AttributeError:  # file_digest() was added in Python 3.11.
                 digest = hashlib.new(args.hash_algorithm)
                 buffer = bytearray(2**16)
                 view = memoryview(buffer)
