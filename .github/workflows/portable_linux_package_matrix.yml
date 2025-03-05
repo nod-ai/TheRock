@@ -38,9 +38,10 @@ jobs:
       fail-fast: false
       matrix:
         target_bundle:
-          - amdgpu_family: "gfx94X-dcgpu"
-          - amdgpu_family: "gfx110X-dgpu"
-          - amdgpu_family: "gfx1151"
+          # - amdgpu_family: "gfx94X-dcgpu"
+          # - amdgpu_family: "gfx110X-dgpu"
+          # - amdgpu_family: "gfx1151"
+          - amdgpu_family: "gfx1201"
 
     permissions:
       contents: write
