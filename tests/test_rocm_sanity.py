@@ -6,45 +6,43 @@ from pathlib import Path
 THIS_DIR = Path(__file__).parent
 
 
-def run_command_with_search(command, to_search):
+def run_command(command):
     process = subprocess.run(command, capture_output=True, check=False)
     if process.returncode != 0:
         pytest.fail(f"The command {command} failed. Failing this test...")
-    return re.search(to_search, str(process.stdout))
+    return str(process.stdout)
 
 
 class TestROCmSanity:
     def test_rocminfo(self):
-        assert run_command_with_search(["rocminfo"], r"Device\s*Type:\s*GPU")
+        output = run_command(["rocminfo"])
 
-        assert run_command_with_search(["rocminfo"], r"Name:\s*gfx")
-
-        assert run_command_with_search(["rocminfo"], r"Vendor\s*Name:\s*AMD")
+        pytest.assume(re.search(r"Device\s*Type:\s*GPU", output))
+        pytest.assume(re.search(r"Name:\s*gfx", output))
+        pytest.assume(re.search(r"Vendor\s*Name:\s*AMD", output))
 
     def test_clinfo(self):
-        assert run_command_with_search(
-            ["clinfo"], r"Device(\s|\\t)*Type:(\s|\\t)*CL_DEVICE_TYPE_GPU"
+        output = run_command(["clinfo"])
+
+        pytest.assume(
+            re.search(r"Device(\s|\\t)*Type:(\s|\\t)*CL_DEVICE_TYPE_GPU", output)
         )
-
-        assert run_command_with_search(["clinfo"], r"Name:(\s|\\t)*gfx")
-
-        assert run_command_with_search(
-            ["clinfo"], r"Vendor:(\s|\\t)*Advanced Micro Devices, Inc."
+        pytest.assume(re.search(r"Name:(\s|\\t)*gfx", output))
+        pytest.assume(
+            re.search(r"Vendor:(\s|\\t)*Advanced Micro Devices, Inc.", output)
         )
 
     def test_hip_printf(self):
         # Compiling .cpp file using hipcc
-        run_command_with_search(
+        run_command(
             [
                 "hipcc",
                 f"{str(THIS_DIR)}/hip_printf.cpp",
                 "-o",
                 f"{str(THIS_DIR)}/hip_printf",
-            ],
-            "",
+            ]
         )
 
         # Running the executable
-        assert run_command_with_search(
-            [f"{str(THIS_DIR)}/hip_printf"], r"Thread......is\swriting"
-        )
+        output = run_command([f"{str(THIS_DIR)}/hip_printf"])
+        pytest.assume(re.search(r"Thread.*is\swriting", output))
