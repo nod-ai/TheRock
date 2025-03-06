@@ -167,7 +167,7 @@ def main(argv):
     )
     parser.add_argument(
         "--remote",
-        default=True,
+        default=False,
         action=argparse.BooleanOptionalAction,
         help="Updates submodules from remote vs current",
     )
