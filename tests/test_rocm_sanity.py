@@ -3,7 +3,7 @@ import subprocess
 import re
 from pathlib import Path
 
-THIS_DIR = Path(__file__).parent
+THIS_DIR = Path(__file__).resolve().parent
 
 
 def run_command(command):
