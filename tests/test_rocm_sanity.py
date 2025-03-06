@@ -6,22 +6,25 @@ from pytest_check import check
 
 THIS_DIR = Path(__file__).resolve().parent
 
+
 def run_command(command):
     process = subprocess.run(command, capture_output=True, check=False)
     if process.returncode != 0:
         pytest.fail(f"The command {command} failed. Failing this test...")
     return str(process.stdout)
 
-@pytest.fixture(scope = "session")
+
+@pytest.fixture(scope="session")
 def rocm_info_output():
     return run_command(["rocminfo"])
 
-@pytest.fixture(scope = "session")
+
+@pytest.fixture(scope="session")
 def clinfo_info_output():
     return run_command(["clinfo"])
 
+
 class TestROCmSanity:
-        
     @pytest.mark.parametrize(
         "to_search",
         [
@@ -32,13 +35,12 @@ class TestROCmSanity:
         ids=[
             "rocminfo - GPU Device Type Search",
             "rocminfo - GFX Name Search",
-            "rocminfo - AMD Vendor Name Search"
+            "rocminfo - AMD Vendor Name Search",
         ],
     )
-    def test_rocm_output(self, rocm_info_output, to_search):        
+    def test_rocm_output(self, rocm_info_output, to_search):
         check.is_not_none(re.search(to_search, rocm_info_output))
-        
-        
+
     @pytest.mark.parametrize(
         "to_search",
         [
@@ -49,12 +51,11 @@ class TestROCmSanity:
         ids=[
             "clinfo - GPU Device Type Search",
             "clinfo - GFX Name Search",
-            "clinfo - AMD Vendor Name Search"
+            "clinfo - AMD Vendor Name Search",
         ],
     )
-    def test_clinfo_output(self, clinfo_info_output, to_search):        
+    def test_clinfo_output(self, clinfo_info_output, to_search):
         check.is_not_none(re.search(to_search, clinfo_info_output))
-        
 
     def test_hip_printf(self):
         # Compiling .cpp file using hipcc
