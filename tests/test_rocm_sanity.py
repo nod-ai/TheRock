@@ -2,9 +2,9 @@ import pytest
 import subprocess
 import re
 from pathlib import Path
+from pytest_check import check
 
 THIS_DIR = Path(__file__).resolve().parent
-
 
 def run_command(command):
     process = subprocess.run(command, capture_output=True, check=False)
@@ -12,33 +12,49 @@ def run_command(command):
         pytest.fail(f"The command {command} failed. Failing this test...")
     return str(process.stdout)
 
+@pytest.fixture(scope = "session")
+def rocm_info_output():
+    return run_command(["rocminfo"])
 
-rocm_info_output = run_command(["rocminfo"])
-cli_info_output = run_command(["clinfo"])
-
+@pytest.fixture(scope = "session")
+def clinfo_info_output():
+    return run_command(["clinfo"])
 
 class TestROCmSanity:
+        
     @pytest.mark.parametrize(
-        "to_search, output",
+        "to_search",
         [
-            (r"Device\s*Type:\s*GPU", rocm_info_output),
-            (r"Name:\s*gfx", rocm_info_output),
-            (r"Vendor\s*Name:\s*AMD", rocm_info_output),
-            (r"Device(\s|\\t)*Type:(\s|\\t)*CL_DEVICE_TYPE_GPU", cli_info_output),
-            (r"Name:(\s|\\t)*gfx", cli_info_output),
-            (r"Vendor:(\s|\\t)*Advanced Micro Devices, Inc.", cli_info_output),
+            (r"Device\s*Type:\s*GPU"),
+            (r"Name:\s*gfx"),
+            (r"Vendor\s*Name:\s*AMD"),
         ],
         ids=[
             "rocminfo - GPU Device Type Search",
             "rocminfo - GFX Name Search",
-            "rocminfo - AMD Vendor Name Search",
-            "clinfo - GPU Device Type Search",
-            "clinfo - GFX Name Search",
-            "clinfo - AMD Vendor Name Search",
+            "rocminfo - AMD Vendor Name Search"
         ],
     )
-    def test_info_output(self, to_search, output):
-        pytest.assume(re.search(to_search, output))
+    def test_rocm_output(self, rocm_info_output, to_search):        
+        check.is_not_none(re.search(to_search, rocm_info_output))
+        
+        
+    @pytest.mark.parametrize(
+        "to_search",
+        [
+            (r"Device(\s|\\t)*Type:(\s|\\t)*CL_DEVICE_TYPE_GPU"),
+            (r"Name:(\s|\\t)*gfx"),
+            (r"Vendor:(\s|\\t)*Advanced Micro Devices, Inc."),
+        ],
+        ids=[
+            "clinfo - GPU Device Type Search",
+            "clinfo - GFX Name Search",
+            "clinfo - AMD Vendor Name Search"
+        ],
+    )
+    def test_clinfo_output(self, clinfo_info_output, to_search):        
+        check.is_not_none(re.search(to_search, clinfo_info_output))
+        
 
     def test_hip_printf(self):
         # Compiling .cpp file using hipcc
@@ -53,4 +69,4 @@ class TestROCmSanity:
 
         # Running the executable
         output = run_command([str(THIS_DIR / "hip_printf")])
-        pytest.assume(re.search(r"Thread.*is\swriting", output))
+        check.is_not_none(re.search(r"Thread.*is\swriting", output))

@@ -1,2 +1,2 @@
 pytest
-pytest-assume
+pytest-check
