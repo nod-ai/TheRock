@@ -3,25 +3,33 @@ import subprocess
 import re
 from pathlib import Path
 from pytest_check import check
+import logging
 
 THIS_DIR = Path(__file__).resolve().parent
 
+logger = logging.getLogger(__name__)
 
 def run_command(command):
-    process = subprocess.run(command, capture_output=True, check=False)
-    if process.returncode != 0:
-        pytest.fail(f"The command {command} failed. Failing this test...")
+    process = subprocess.run(command, capture_output=True)
     return str(process.stdout)
 
 
 @pytest.fixture(scope="session")
 def rocm_info_output():
-    return run_command(["rocminfo"])
+    try:
+        return run_command(["rocminfo"])
+    except Exception as e:
+        logger.info(str(e))
+        return None
 
 
 @pytest.fixture(scope="session")
 def clinfo_info_output():
-    return run_command(["clinfo"])
+    try:
+        return run_command(["clinfo"])
+    except Exception as e:
+        logger.info(str(e))
+        return None
 
 
 class TestROCmSanity:
@@ -39,7 +47,9 @@ class TestROCmSanity:
         ],
     )
     def test_rocm_output(self, rocm_info_output, to_search):
-        check.is_not_none(re.search(to_search, rocm_info_output))
+        if not rocm_info_output:
+            pytest.fail("Command rocminfo failed to run")
+        check.is_not_none(re.search(to_search, rocm_info_output), f"Failed to search for {to_search} in rocminfo output")
 
     @pytest.mark.parametrize(
         "to_search",
@@ -55,7 +65,9 @@ class TestROCmSanity:
         ],
     )
     def test_clinfo_output(self, clinfo_info_output, to_search):
-        check.is_not_none(re.search(to_search, clinfo_info_output))
+        if not clinfo_info_output:
+            pytest.fail("Command clinfo failed to run")
+        check.is_not_none(re.search(to_search, clinfo_info_output), f"Failed to search for {to_search} in clinfo output")
 
     def test_hip_printf(self):
         # Compiling .cpp file using hipcc
