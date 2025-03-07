@@ -41,7 +41,8 @@ jobs:
         with:
           context: .
           file: dockerfiles/pytorch-dev/pytorch_dev_ubuntu_24.04.Dockerfile
-          build-args: ["AMDGPU_TARGETS=${{ matrix.targets.amdgpu_target }}"]
+          build-args: |
+            AMDGPU_TARGETS=${{ matrix.targets.amdgpu_target }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
