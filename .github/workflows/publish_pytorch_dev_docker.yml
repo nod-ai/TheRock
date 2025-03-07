@@ -22,6 +22,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Runner Health Settings
+        run: |
+          df -h
+          echo "python: $(which python), python3: $(which python3)"
+          echo "Git version: $(git --version)"
+          git config --global --add safe.directory $PWD
+          git config fetch.parallel 10
+          git config --global user.email "nobody@amd.com"
+          git config --global user.name "Nobody"
       - name: Fetch sources
         run: |
           python3 ./build_tools/fetch_sources.py --jobs 10
