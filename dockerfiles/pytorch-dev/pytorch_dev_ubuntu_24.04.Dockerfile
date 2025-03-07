@@ -51,6 +51,8 @@ RUN --mount=type=bind,target=/therock/src \
 COPY --from=build_rocm /therock/build/dist/rocm /opt/rocm
 
 # Setup environment.
+# Note that the rocm_sysdeps lib dir should not be strictly required if all
+# RPATH entries are set up correctly, but it is safer this way.
 ENV PATH="/opt/rocm/bin:$PATH"
 RUN (echo "/opt/rocm/lib" > /etc/ld.so.conf.d/rocm.conf) && \
     (echo "/opt/rocm/lib/rocm_sysdeps/lib" >> /etc/ld.so.conf.d/rocm.conf) && \
@@ -77,6 +79,7 @@ RUN python3 setup.py build --cmake-only
 RUN (cd build && cmake "-DPYTORCH_ROCM_ARCH=$AMDGPU_TARGETS" .)
 RUN python3 setup.py bdist_wheel
 
+
 ################################################################################
 # PyTorch Install
 ################################################################################
@@ -84,10 +87,10 @@ RUN python3 setup.py bdist_wheel
 FROM ubuntu:24.04 AS pytorch
 
 RUN apt update && apt install -y \
-  python3 python3-pip python3-pip-whl python3-venv python3-numpy
+    python3 python3-pip python3-pip-whl python3-venv python3-numpy
 
 # Copy ROCM
-COPY --from=build_rocm /therock/build/dist/rocm /opt/rocm
+COPY --from=pytorch_build /opt/rocm /opt/rocm
 
 # Setup environment.
 ENV PATH="/opt/rocm/bin:$PATH"
@@ -95,11 +98,9 @@ RUN (echo "/opt/rocm/lib" > /etc/ld.so.conf.d/rocm.conf) && \
     (echo "/opt/rocm/lib/rocm_sysdeps/lib" >> /etc/ld.so.conf.d/rocm.conf) && \
     ldconfig -v
 
-# Install pytorch.
-# TODO: It would be better to bind mount the prior stage somehow to avoid
-# leaving the wheel behind in a layer and wasting a half gig.
-COPY --from=pytorch_build /therock/pytorch/dist/torch-*.whl /wheels/
-RUN ls /wheels/
-RUN python3 -m pip install --break-system-packages \
-    $(find /wheels -name '*.whl') && \
-    rm -Rf /wheels
+# Bind mount the prior stage and install the wheel directly (saves the size of
+# the wheel vs copying).
+RUN --mount=type=bind,from=pytorch_build,source=/therock/pytorch/dist,target=/wheels \
+    ls -lh /wheels && \
+    python3 -m pip install --break-system-packages --no-cache-dir \
+      $(find /wheels -name '*.whl')
