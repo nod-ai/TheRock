@@ -21,7 +21,7 @@ pip install CppHeaderParser==2.7.4 meson==1.7.0
 Dev tools:
 
 ```
-sudo apt install gfortran git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev
+sudo apt install gfortran git-lfs ninja-build cmake g++ pkg-config xxd libgtest-dev patchelf automake
 ```
 
 ## On Windows
