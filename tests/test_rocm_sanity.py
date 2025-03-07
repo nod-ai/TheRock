@@ -9,6 +9,7 @@ THIS_DIR = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
 
+
 def run_command(command):
     process = subprocess.run(command, capture_output=True)
     return str(process.stdout)
@@ -49,7 +50,10 @@ class TestROCmSanity:
     def test_rocm_output(self, rocm_info_output, to_search):
         if not rocm_info_output:
             pytest.fail("Command rocminfo failed to run")
-        check.is_not_none(re.search(to_search, rocm_info_output), f"Failed to search for {to_search} in rocminfo output")
+        check.is_not_none(
+            re.search(to_search, rocm_info_output),
+            f"Failed to search for {to_search} in rocminfo output",
+        )
 
     @pytest.mark.parametrize(
         "to_search",
@@ -67,7 +71,10 @@ class TestROCmSanity:
     def test_clinfo_output(self, clinfo_info_output, to_search):
         if not clinfo_info_output:
             pytest.fail("Command clinfo failed to run")
-        check.is_not_none(re.search(to_search, clinfo_info_output), f"Failed to search for {to_search} in clinfo output")
+        check.is_not_none(
+            re.search(to_search, clinfo_info_output),
+            f"Failed to search for {to_search} in clinfo output",
+        )
 
     def test_hip_printf(self):
         # Compiling .cpp file using hipcc
