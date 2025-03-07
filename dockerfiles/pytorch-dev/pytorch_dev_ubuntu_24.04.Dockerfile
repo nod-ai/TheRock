@@ -71,6 +71,10 @@ ENV USE_KINETO=OFF
 ENV PYTORCH_ROCM_ARCH=$AMDGPU_TARGETS
 
 WORKDIR /therock/pytorch
+# TODO: PYTORCH_ROCM_ARCH from environment variables seems broken. So we
+# configure it manually for now.
+RUN python3 setup.py build --cmake-only
+RUN (cd build && cmake "-DPYTORCH_ROCM_ARCH=$AMDGPU_TARGETS" .)
 RUN python3 setup.py bdist_wheel
 
 ################################################################################
@@ -80,7 +84,7 @@ RUN python3 setup.py bdist_wheel
 FROM ubuntu:24.04 AS pytorch
 
 RUN apt update && apt install -y \
-  python3 python3-pip python3-pip-whl python3-venv
+  python3 python3-pip python3-pip-whl python3-venv python3-numpy
 
 # Copy ROCM
 COPY --from=build_rocm /therock/build/dist/rocm /opt/rocm
@@ -94,6 +98,8 @@ RUN (echo "/opt/rocm/lib" > /etc/ld.so.conf.d/rocm.conf) && \
 # Install pytorch.
 # TODO: It would be better to bind mount the prior stage somehow to avoid
 # leaving the wheel behind in a layer and wasting a half gig.
-COPY --from=pytorch_build /therock/pytorch/dist/torch-*.whl /wheels
-RUN python3 -m pip install --break-system-packages /wheels/torch-*.whl && \
+COPY --from=pytorch_build /therock/pytorch/dist/torch-*.whl /wheels/
+RUN ls /wheels/
+RUN python3 -m pip install --break-system-packages \
+    $(find /wheels -name '*.whl') && \
     rm -Rf /wheels
