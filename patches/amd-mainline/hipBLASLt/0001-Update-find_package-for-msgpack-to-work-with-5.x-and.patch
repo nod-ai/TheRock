@@ -1,7 +1,7 @@
-From bf134da273be7d9583c0e5b9ef7b08a48b1fa1c6 Mon Sep 17 00:00:00 2001
+From 2f8b74be392a93ae44cde84822c851fb9e1213bd Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Mon, 3 Feb 2025 20:28:58 -0800
-Subject: [PATCH 2/2] Update find_package for msgpack to work with 5.x and 6.x.
+Subject: [PATCH 1/2] Update find_package for msgpack to work with 5.x and 6.x.
 
 Adapted from: https://github.com/msgpack/msgpack-c/wiki/Q%26A#how-to-support-both-msgpack-c-c-version-5x-and-6x-
 

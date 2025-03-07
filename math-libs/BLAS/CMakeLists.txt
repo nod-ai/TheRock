@@ -51,11 +51,6 @@ therock_cmake_subproject_declare(hipBLASLt
     -DTensile_CODE_OBJECT_VERSION=default
     -DTensile_CPU_THREADS=
     -DTensile_LIBRARY_FORMAT=msgpack
-    -DTensile_HIP_CONFIG=${_blas_hack_hip_dir}/bin/hipconfig
-    "-DTensile_C_COMPILER=${_toolchain_dir}/bin/clang"
-    "-DTensile_CXX_COMPILER=${_toolchain_dir}/bin/clang++"
-    "-DTensile_ASSEMBLER=${_toolchain_dir}/bin/clang++"
-    "-DTensile_OFFLOAD_BUNDLER=${_toolchain_dir}/bin/clang-offload-bundler"
     # TODO(#55): Enable once roctracer is added
     -DHIPBLASLT_ENABLE_MARKER=OFF
     # TODO: Enable clients.
