@@ -81,10 +81,7 @@ therock_add_amdgpu_target(gfx1151 "AMD Strix Halo iGPU" FAMILY igpu-all gfx115X-
 )
 
 # gfx120X family
-therock_add_amdgpu_target(gfx1201 "AMD RX 9070 / XT" FAMILY dgpu-all gfx120X-all
-  EXCLUDE_TARGET_PROJECTS
-    hipBLASLt  # https://github.com/ROCm/TheRock/issues/149
-)
+therock_add_amdgpu_target(gfx1201 "AMD RX 9070 / XT" FAMILY dgpu-all gfx120X-all)
 
 
 # Validates and normalizes AMDGPU target selection cache variables.
