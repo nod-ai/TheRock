@@ -1,4 +1,4 @@
-From 03bf200c588ea203f5f917bfbef08d25719c88af Mon Sep 17 00:00:00 2001
+From fc2b5a9e93954054512b32043df8dc44e6e742db Mon Sep 17 00:00:00 2001
 From: Stella Laurenzo <stellaraccident@gmail.com>
 Date: Fri, 7 Mar 2025 12:13:41 -0800
 Subject: [PATCH 2/2] Do not hard-code hipBLASLt to find tools in /opt/rocm and
@@ -15,8 +15,8 @@ This will have a subtle change that if the project was not build with an explici
  .../src/kernels/CompileSourceKernel.cmake          |  4 +++-
  .../rocblaslt/src/kernels/compile_code_object.sh   | 14 ++++++++++++--
  tensilelite/Tensile/Ops/gen_assembly.sh            | 14 +++++++++-----
- tensilelite/Tensile/cmake/TensileConfig.cmake      |  6 ++++++
- 4 files changed, 30 insertions(+), 8 deletions(-)
+ tensilelite/Tensile/cmake/TensileConfig.cmake      | 10 +++++++++-
+ 4 files changed, 33 insertions(+), 9 deletions(-)
 
 diff --git a/library/src/amd_detail/rocblaslt/src/kernels/CompileSourceKernel.cmake b/library/src/amd_detail/rocblaslt/src/kernels/CompileSourceKernel.cmake
 index 13cf5bd2..27a3172d 100644
@@ -98,7 +98,7 @@ index 160d708f..0bf1c3f9 100755
  
  IFS=';' read -r -a archs <<< "$archStr"
 diff --git a/tensilelite/Tensile/cmake/TensileConfig.cmake b/tensilelite/Tensile/cmake/TensileConfig.cmake
-index 76277806..686549ff 100644
+index 76277806..b82a2cab 100644
 --- a/tensilelite/Tensile/cmake/TensileConfig.cmake
 +++ b/tensilelite/Tensile/cmake/TensileConfig.cmake
 @@ -235,6 +235,12 @@ function(TensileCreateLibraryFiles
@@ -114,6 +114,17 @@ index 76277806..686549ff 100644
    message(STATUS "Tensile_CREATE_COMMAND: ${CommandLine}")
  
    if(Tensile_EMBED_LIBRARY)
+@@ -300,7 +306,9 @@ function(TensileCreateExtOpLibraries OutputFolder ArchStr)
+     COMMAND ${CMAKE_COMMAND} -E rm -rf ${build_tmp_dir}
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${build_tmp_dir}
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${OutputFolder}
+-    COMMAND bash "${script}" "\"${Archs}\"" "${build_tmp_dir}" "${VIRTUALENV_HOME_DIR}" "${Tensile_BUILD_ID}"
++    COMMAND
++      "${CMAKE_COMMAND}" -E env "'PATH=$ENV{PATH}'" --    
++      bash "${script}" "\"${Archs}\"" "${build_tmp_dir}" "${VIRTUALENV_HOME_DIR}" "${Tensile_BUILD_ID}"
+     COMMAND ${CMAKE_COMMAND} -E copy ${ext_op_library_path} ${build_tmp_dir}/extop_*.co ${OutputFolder}
+   )
+ 
 -- 
 2.43.0
 
