@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 
+sys.path.insert(0, os.fspath(Path(__file__).parent.parent))
 from _therock_utils.hash_util import calculate_hash
 
 FILESET_TOOL = Path(__file__).parent.parent / "fileset_tool.py"
